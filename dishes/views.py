@@ -1,17 +1,14 @@
 # -*- coding: utf8 -*-
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
-from dishes.models import Dishes
-from dishes.serializers import DishesSerializer
-
 from rest_framework import status
-# from rest_framework.decorators import api_view, permission_classes
-# from rest_framework import permissions
 from rest_framework.response import Response
-
 from rest_framework import mixins
 from rest_framework import generics
-# from dishes.forms import OrdersInputForm
+
+from dishes.models import Dishes
+from dishes.serializers import DishesSerializer
+from dishes.forms import DishesInputForm
 
 
 class DishesList(mixins.CreateModelMixin, generics.GenericAPIView,
@@ -26,24 +23,22 @@ class DishesList(mixins.CreateModelMixin, generics.GenericAPIView,
         """
         :param request: 
         :param args: 
-        :param kwargs: {'city': '', 
-                        'meal_center': '',
-                        'dishes_ids': {'dishes_id': '',
-                                       'count': '',
-                                       },
+        :param kwargs: {'title': '', 
+                        'subtitle': '',
+                        'description': '',
+                        'price': '',
                         }
         :return: 
         """
-        form = OrdersInputForm(request.data)
+        form = DishesInputForm(request.data)
         if not form.is_valid():
             return Response(request.data, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
-        dishes_ids = JSONRenderer().render(cld['dishes_ids'])
+        serializer = DishesSerializer(data=cld)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        return Response(dishes_ids)
-
-        # return self.create(request, *args, **kwargs)
-
-
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
