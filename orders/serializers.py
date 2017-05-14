@@ -6,8 +6,9 @@ class OrdersSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Orders
-        fields = ('id', 'order_id', 'user_id', 'city', 'meal_center',
-                  'meal_ids', 'payable', 'payment_status', 'extend')
+        # fields = ('id', 'order_id', 'user_id', 'city', 'meal_center',
+        #           'meal_ids', 'payable', 'payment_status', 'extend')
+        fields = '__all__'
 
     # pk = serializers.IntegerField(read_only=True)
     # order_id = serializers.CharField(max_length=50)
