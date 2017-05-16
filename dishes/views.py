@@ -29,12 +29,12 @@ class DishesAction(mixins.CreateModelMixin, generics.GenericAPIView):
                         }
         :return: 
         """
-        form = DishesInputForm(request.data)
-        if not form.is_valid():
-            return Response(request.data, status=status.HTTP_400_BAD_REQUEST)
-
-        cld = form.cleaned_data
-        serializer = DishesSerializer(data=cld, request=request)
+        # form = DishesInputForm(request.data)
+        # if not form.is_valid():
+        #     return Response(request.data, status=status.HTTP_400_BAD_REQUEST)
+        #
+        # cld = form.cleaned_data
+        serializer = DishesSerializer(data=request.data, request=request)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -44,7 +44,7 @@ class DishesAction(mixins.CreateModelMixin, generics.GenericAPIView):
 
 class DishesDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
     queryset = Dishes.active_objects.all()
-    serializer_class = DishesSerializer
+    serializer_class = DishesResponseSerializer
 
     def get_object(self, *args, **kwargs):
         try:
@@ -68,5 +68,23 @@ class DishesDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
         serializer = DishesResponseSerializer(object_data)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+# class DishesImageShow(generics.GenericAPIView):
+#     """
+#     """
+#     queryset = Dishes.active_objects.all()
+#     serializer_class = DishesDownloadSerializer
+#
+#     def get_object(self, *args, **kwargs):
+#         try:
+#             return Dishes.active_objects.get(**kwargs)
+#         except Dishes.DoesNotExist:
+#             raise status.HTTP_404_NOT_FOUND
+#
+#     def post(self, request, pk, *args, **kwargs):
+#         obj = self.get_object(**{'pk': pk})
+#
+#         serializer = DishesDownloadSerializer(obj)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

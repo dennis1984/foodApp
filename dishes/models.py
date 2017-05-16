@@ -19,7 +19,7 @@ class Dishes(models.Model):
     subtitle = models.CharField('菜品副标题', max_length=200, default='')
     description = models.TextField('菜品描述', default='')
     price = models.CharField('价格', max_length=50, null=False)
-    image_url = models.URLField('菜品图片链接', max_length=500, default='', blank=True)
+    image = models.ImageField('菜品图片', upload_to='static/picture/', default='', null=True)
     user_id = models.IntegerField('创建者ID', null=False)
     created = models.DateTimeField('创建时间', default=now)
     updated = models.DateTimeField('最后修改时间', auto_now=True)
@@ -31,6 +31,7 @@ class Dishes(models.Model):
 
     class Meta:
         db_table = 'ys_dishes'
+        unique_together = ('title', 'user_id')
 
 
 class Meal_center(models.Model):

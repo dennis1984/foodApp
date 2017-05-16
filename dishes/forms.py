@@ -7,6 +7,7 @@ class DishesInputForm(forms.Form):
     subtitle = forms.CharField(max_length=200, required=False)
     description = forms.CharField(max_length=500, required=False)
     price = forms.CharField(max_length=50)
+    image = forms.ImageField(required=False)
     extend = forms.CharField(max_length=500, required=False)
 
 

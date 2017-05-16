@@ -19,8 +19,6 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from rest_framework import routers, serializers, viewsets
 
-import orders
-
 
 # Serializers定义了API的表现形式
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -47,5 +45,5 @@ urlpatterns = [
     url(r'^api-auth', include('rest_framework.urls', namespace='rest_framework')),
 
     url(r'^orders/', include('orders.urls')),
-    url(r'^dishes/', include('dishes.urls')),
+    url(r'^dishes/', include('dishes.urls', namespace='dishes_app')),
 ]

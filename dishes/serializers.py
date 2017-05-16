@@ -1,5 +1,7 @@
 from dishes.models import Dishes
 from rest_framework import serializers
+from django.shortcuts import render, redirect
+from django.core.urlresolvers import reverse
 import datetime
 
 
@@ -32,9 +34,11 @@ class DishesResponseSerializer(serializers.ModelSerializer):
         serializer = super(DishesResponseSerializer, self).data
         serializer['updated'] = timezoneStringTostring(serializer['updated'])
         serializer['created'] = timezoneStringTostring(serializer['created'])
+        serializer['image_url'] = serializer['image']
         return serializer
 
 
 def timezoneStringTostring(timezone_string):
     timezone = datetime.datetime.strptime(timezone_string, '%Y-%m-%dT%H:%M:%SZ')
     return str(timezone)
+
