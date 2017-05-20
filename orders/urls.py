@@ -13,7 +13,7 @@ urlpatterns = [
     # url(r'orders_list/', orders_view.OrdersList.as_view(), name='orders_list'),
 
     url(r'^orders_detail/$', orders_view.OrdersDetail.as_view(), name='orders_detail'),
-    url(r'^create_orders/$', orders_view.OrdersAction.as_view(), name='create_orders'),
+    url(r'^orders_action/$', orders_view.OrdersAction.as_view(), name='orders_action'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

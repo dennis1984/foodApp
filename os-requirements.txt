@@ -5,4 +5,24 @@ sudo apt-get install libtiff4-dev libjpeg8-dev zlib1g-dev \
 
 # MySQLdb 库依赖
 
-sudo apt-get install python-setuptools libmysqld-dev python-dev 
+sudo apt-get install python-setuptools libmysqld-dev python-dev
+
+# 安装mysql
+
+sudo apt-get install mysql-server
+
+# 安装nginx
+
+sudo apt-get install nginx
+
+# 安装uwsgi
+
+sudo apt-get install uwsgi
+
+# 安装uwsgi对python的支持包
+
+sudo apt-get install uwsgi-plugin-python
+
+# 安装php
+
+sudo apt-get install php5

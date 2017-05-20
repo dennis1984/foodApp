@@ -9,3 +9,8 @@ class OrdersInputForm(forms.Form):
 class OrdersGetForm(forms.Form):
     orders_id = forms.CharField(max_length=50)
 
+
+class OrdersUpdateForm(forms.Form):
+    orders_id = forms.CharField(max_length=50)
+    payment_status = forms.CharField(max_length=50)
+
