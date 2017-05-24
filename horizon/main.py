@@ -10,7 +10,14 @@ def timezoneStringTostring(timezone_string):
     此方法将数据样式改为："2017-05-19 09:40:37"，
     返回类型：string
     """
+    if not isinstance(timezone_string, (str, unicode)):
+        return ""
+    if not timezone_string:
+        return ""
     timezone_string = timezone_string.split('.')[0]
     timezone_string = timezone_string.split('Z')[0]
-    timezone = datetime.datetime.strptime(timezone_string, '%Y-%m-%dT%H:%M:%S')
+    try:
+        timezone = datetime.datetime.strptime(timezone_string, '%Y-%m-%dT%H:%M:%S')
+    except:
+        return ""
     return str(timezone)
