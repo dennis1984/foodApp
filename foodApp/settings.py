@@ -152,10 +152,21 @@ REST_FRAMEWORK = {
         # 'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
         'rest_framework.permissions.IsAuthenticated',
     ],
+
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'oauth2_provider.ext.rest_framework.OAuth2Authentication',
 
         # 'rest_framework.authentication.BasicAuthentication',
         # 'rest_framework.authentication.SessionAuthentication',
-    )
+    ),
+
+    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    # 'PAGE_SIZE': 100,
 }
+
+# pagination
+
+PAGE_SIZE = 100
+
+MAX_PAGE_SIZE = 300
+

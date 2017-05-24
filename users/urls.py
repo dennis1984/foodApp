@@ -9,6 +9,7 @@ urlpatterns = [
     # url(r'^create_orders/$', orders_view.OrdersAction.as_view(), name='create_orders'),
 
     url(r'user_action/$', users_view.UserAction.as_view()),
+    url(r'user_detail/$', users_view.UserDetail.as_view()),
     # url(r'login/$', users_view)
 ]
 

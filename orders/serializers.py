@@ -1,8 +1,7 @@
 #-*- coding:utf8 -*-
 from orders.models import Orders
 from rest_framework import serializers
-from dishes.serializers import timezoneStringTostring
-from dishes.models import FoodCourt
+from horizon.serializers import BaseListSerializer, timezoneStringTostring
 
 
 class OrdersSerializer(serializers.ModelSerializer):
@@ -29,6 +28,10 @@ class OrdersSerializer(serializers.ModelSerializer):
         serializer['updated'] = timezoneStringTostring(serializer['updated'])
         serializer['created'] = timezoneStringTostring(serializer['created'])
         return serializer
+
+
+class OrdersListSerializer(BaseListSerializer):
+    child = OrdersSerializer()
 
 
 def ordersIdIntegerToString(orders_id):

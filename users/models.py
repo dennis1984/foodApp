@@ -3,6 +3,9 @@ from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.utils.timezone import now
 from django.contrib.auth.hashers import make_password
+from django.forms.models import model_to_dict
+from dishes.models import FoodCourt
+import datetime
 
 
 class BusinessUserManager(BaseUserManager):
@@ -48,6 +51,8 @@ class BusinessUser(AbstractBaseUser):
     business_name = models.CharField(u'商户名称', max_length=100, default='')
     food_court_id = models.IntegerField(u'所属美食城', default=0)
     phone = models.CharField(u'手机号', max_length=20, unique=True, db_index=True)
+    head_picture = models.ImageField(u'头像', upload_to='static/picture/head_picture/',
+                                     default='static/picture/head_picture/noImage.png', null=True)
 
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
@@ -74,5 +79,35 @@ class BusinessUser(AbstractBaseUser):
         except cls.DoesNotExist:
             return None
 
+    @classmethod
+    def get_user_detail(cls, request):
+        """
+        返回数据结构：
+             {'id',             用户ID
+             'phone',           手机号
+             'business_name',   商户名称
+             'food_court_id',   所属美食城ID
+             'last_login',      最后登录时间
+             'head_picture',    商户头像
+             'city',            美食城所在城市
+             'district',        美食城所在城市市区
+             'food_court_name', 美食城名称
+             'mall',            美食城所属购物中心
+             }
+        """
+        try:
+            business_user = BusinessUser.objects.get(pk=request.user.id)
+        except Exception as e:
+            return e
+        try:
+            food_court = FoodCourt.objects.get(pk=business_user.food_court_id)
+        except Exception as e:
+            return e
 
-
+        business_user = model_to_dict(business_user)
+        business_user.update(**model_to_dict(food_court))
+        business_user['food_court_name'] = business_user['name']
+        business_user['user_id'] = business_user['id']
+        if business_user['last_login'] is None:
+            business_user['last_login'] = ''
+        return business_user

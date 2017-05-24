@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from users.models import BusinessUser
+from django.utils.timezone import now
 
 
 class BusinessUserBackend(object):
@@ -10,6 +11,8 @@ class BusinessUserBackend(object):
             pass
         else:
             if user.check_password(password):
+                user.last_login = now()
+                user.save()
                 return user
         return None
 

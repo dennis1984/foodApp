@@ -13,16 +13,14 @@ class IsOwnerOrReadOnly(permissions.IsAuthenticated):
             return True
 
         # Write permissions are only allowed to the owner of the dishes.
-        return obj.user_id == request.user.id
+        return obj.user_id == request.user.is_admin
 
-
-# class IsAdminOrOwner(permissions.IsAuthenticated):
-#     """
-#     自定义权限，只有管理员可以查看所有数据，用户只可以查看自己的数据
-#     """
-#     def has_permission(self, request, view):
-#         if request.user.is_admin is True:
-#             return True
-#
-#
-
+    def has_permission(self, request, view):
+        """
+        自定义权限，只有管理员才能添加数据（用户信息）
+        """
+        is_authenticated = super(IsOwnerOrReadOnly, self).has_permission(request, view)
+        # if is_authenticated:
+        #     if request.method == 'POST':
+        #         return request.user.is_admin
+        return is_authenticated

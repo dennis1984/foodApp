@@ -56,6 +56,22 @@ class UserAction(generics.GenericAPIView):
         return Response(serializer_response.data, status=status.HTTP_206_PARTIAL_CONTENT)
 
 
+class UserDetail(generics.GenericAPIView):
+    queryset = BusinessUser.objects.all()
+    serializer_class = UserResponseSerializer
+    # permission_classes = (IsAdminOrReadOnly, )
+
+    def post(self, request, *args, **kwargs):
+        user = BusinessUser.get_user_detail(request)
+        if isinstance(user, Exception):
+            return Response({'Error': user.args}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = UserResponseSerializer(data=user)
+        if serializer.is_valid():
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class AuthLogin(generics.GenericAPIView):
     """
     用户认证：登录
@@ -72,12 +88,12 @@ class AuthLogout(generics.GenericAPIView):
         pass
 
 
-# class UserViewSet(viewsets.ModelViewSet):
-#     """
-#     """
-#     queryset = BusinessUser.objects.all().order_by('-date_joined')
-#     serializer_class = UserSerializer
-#
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    """
+    queryset = BusinessUser.objects.all().order_by('-date_joined')
+    serializer_class = UserSerializer
+
 #
 # class GroupViewSet(viewsets.ModelViewSet):
 #     """

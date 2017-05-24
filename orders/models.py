@@ -5,6 +5,7 @@ from django.db import models
 from django.utils.timezone import now
 from dishes.models import Dishes, FoodCourt
 from django.forms.models import model_to_dict
+from django.db import transaction
 from decimal import Decimal
 
 import json
@@ -12,7 +13,7 @@ import datetime
 
 
 class Orders(models.Model):
-    # orders_id = models.AutoField('订单ID', db_index=True)
+    orders_id = models.CharField('订单ID', db_index=True, unique=True, max_length=30)
     user_id = models.IntegerField('用户ID', db_index=True)
     # city = models.CharField('城市', max_length=200, default='')
     # meal_center = models.CharField('美食城', max_length=300, default='')
@@ -23,7 +24,8 @@ class Orders(models.Model):
 
     dishes_ids = models.TextField('订购列表', default='')
     payable = models.CharField('订单总计', max_length=50, default='')
-    payment_status = models.IntegerField('订单支付状态', default=0)    # 0:未支付 200:已支付 500:支付失败
+    payment_status = models.IntegerField('订单支付状态', default=0)    # 0:未支付 200:已支付 400: 已过期 500:支付失败
+    payment_mode = models.IntegerField('订单支付方式', default=1)      # 1：现金支付 2：微信支付 3：支付宝支付
     created = models.DateTimeField('创建时间', default=now)
     updated = models.DateTimeField('最后修改时间', auto_now=True)
     extend = models.TextField('扩展信息', default='', blank=True)
@@ -31,12 +33,15 @@ class Orders(models.Model):
     class Meta:
         db_table = 'ys_orders'
 
+    def __unicode__(self):
+        return self.orders_id
+
     @classmethod
     def get_dishes_by_id(cls, pk):
         try:
             return Dishes.objects.get(pk=pk)
-        except Dishes.DoesNotExist:
-            raise Dishes.DoesNotExist
+        except Exception as e:
+            return  e
 
     @classmethod
     def make_orders_by_dishes_ids(cls, request, dishes_ids):
@@ -44,6 +49,9 @@ class Orders(models.Model):
         total_payable = '0'
         for item in dishes_ids:
             object_data = cls.get_dishes_by_id(item['dishes_id'])
+            if isinstance(object_data, Exception):
+                return object_data
+
             object_dict = model_to_dict(object_data)
             object_dict['count'] = item['count']
             meal_ids.append(object_dict)
@@ -54,7 +62,7 @@ class Orders(models.Model):
             return food_court_obj
 
         orders_data = {'user_id': request.user.id,
-                       # 'food_court_id': food_court_obj.id,
+                       'orders_id': OrdersIdGenerator.get_orders_id(),
                        'food_court_name': food_court_obj.name,
                        'city': food_court_obj.city,
                        'district': food_court_obj.district,
@@ -77,6 +85,60 @@ class Orders(models.Model):
             return cls.objects.get(pk=int(orders_id))
         except Exception as e:
             return e
+
+    @classmethod
+    def get_object_list_by_date(cls, **kwargs):
+        if 'user_id' not in kwargs:
+            return Exception('user_id must be not null')
+
+        _kwargs = {}
+        if 'start_created' in kwargs:
+            _kwargs['created__gte'] = kwargs['start_created']
+        if 'end_created' in kwargs:
+            _kwargs['created__lte'] = kwargs['end_created']
+        try:
+            return cls.objects.filter(user_id=kwargs['user_id'], **_kwargs)
+        except Exception as e:
+            return e
+
+
+def date_for_model():
+    return now().date()
+
+
+def ordersIdIntegerToString(orders_id):
+    return "%06d" % orders_id
+
+
+class OrdersIdGenerator(models.Model):
+    date = models.DateField('日期', primary_key=True, default=date_for_model)
+    orders_id = models.IntegerField('订单ID', default=1)
+    created = models.DateTimeField('创建日期', default=now)
+    updated = models.DateTimeField('最后更改日期', auto_now=True)
+
+    class Meta:
+        db_table = 'ys_orders_id_generator'
+
+    def __unicode__(self):
+        return str(self.date)
+
+    @classmethod
+    def get_orders_id(cls):
+        date_day = date_for_model()
+        orders_id = 0
+        # 数据库加排它锁，保证订单号是唯一的
+        with transaction.atomic():
+            try:
+                _instance = cls.objects.select_for_update().get(pk=date_day)
+            except cls.DoesNotExist:
+                cls().save()
+                orders_id = 1
+            else:
+                orders_id = _instance.orders_id + 1
+                _instance.orders_id = orders_id
+                _instance.save()
+        orders_id_string = ordersIdIntegerToString(orders_id)
+        return '%s%s' % (date_day.strftime('%Y%m%d'), orders_id_string)
 
 
 class DatetimeEncode(json.JSONEncoder):

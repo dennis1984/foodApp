@@ -1,0 +1,48 @@
+#-*- coding:utf8 -*-
+from rest_framework import serializers
+from django.core.paginator import Paginator
+from django.conf import settings
+from horizon.main import timezoneStringTostring
+import datetime
+
+
+class BaseListSerializer(serializers.ListSerializer):
+    def list_data(self, page_size=settings.PAGE_SIZE, page_index=1, **kwargs):
+        """
+        函数功能：分页
+        返回数据格式为：{'count': 当前返回的数据量,
+                       'all_count': 总数据量,
+                       'has_next': 是否有下一页,
+                       'data': [{
+                                 Dishes model数据
+                                },...]
+                       }
+        """
+        serializer = self.perfect_result(self.data)
+        paginator = Paginator(serializer, page_size)
+        try:
+            page = paginator.page(page_index)
+        except Exception as e:
+            return e
+
+        has_next = True
+        if len(page.object_list) < page_size:
+            has_next = False
+        elif page_size * page_index >= len(serializer):
+            has_next = False
+        results = {'count': len(page.object_list),
+                   'all_count': len(serializer),
+                   'has_next': has_next,
+                   'data': page.object_list}
+        return results
+
+    def perfect_result(self, ordered_dict):
+        for item in ordered_dict:
+            if 'created' in item:
+                item['created'] = timezoneStringTostring(item['created'])
+            if 'updated' in item:
+                item['updated'] = timezoneStringTostring(item['updated'])
+            if 'image' in item:
+                item['image_url'] = item['image']
+        return ordered_dict
+

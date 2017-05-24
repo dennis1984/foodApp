@@ -7,6 +7,7 @@ from dishes import views as dishes_view
 urlpatterns = [
     url(r'^dishes_action/$', dishes_view.DishesAction.as_view()),
     url(r'^dishes_detail/$', dishes_view.DishesDetail.as_view()),
+    url(r'^dishes_list/$', dishes_view.DishesList.as_view()),
 
     url(r'^food_court_action/$', dishes_view.FoodCourtAction.as_view()),
     url(r'^food_court_detail/$', dishes_view.FoodCourtDetail.as_view()),
