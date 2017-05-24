@@ -149,7 +149,7 @@ class DishesDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
 class DishesList(generics.GenericAPIView):
     queryset = Dishes.objects.all()
     serializer_class = DishesSerializer
-    permission_classes = (IsAdminOrReadOnly, )
+    permission_classes = (IsOwnerOrReadOnly, )
 
     def get_object_list(self, request, **kwargs):
         return Dishes.get_object_list(request, **kwargs)
