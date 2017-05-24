@@ -30,7 +30,7 @@ class Dishes(models.Model):
     created = models.DateTimeField('创建时间', default=now)
     updated = models.DateTimeField('最后修改时间', auto_now=True)
     status = models.IntegerField('数据状态', default=1)   # 1 有效 2 已删除 3 其他（比如暂时不用）
-    is_recommend = models.IntegerField('是否推荐该菜品', default=0)   # 0: 不推荐  1：推荐
+    is_recommend = models.BooleanField('是否推荐该菜品', default=False)   # 0: 不推荐  1：推荐
     extend = models.TextField('扩展信息', default='', blank=True)
 
     # objects = models.Manager()
