@@ -18,6 +18,9 @@ class BaseListSerializer(serializers.ListSerializer):
                                 },...]
                        }
         """
+        # page size不能超过默认最大值，如果超过，则按page size默认最大值返回数据
+        if page_size > settings.MAX_PAGE_SIZE:
+            page_size = settings.MAX_PAGE_SIZE
         serializer = self.perfect_result(self.data)
         paginator = Paginator(serializer, page_size)
         try:

@@ -166,7 +166,6 @@ class DishesList(generics.GenericAPIView):
                        }
         """
         form = DishesListForm(request.data)
-
         if not form.is_valid():
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
