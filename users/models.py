@@ -109,5 +109,5 @@ class BusinessUser(AbstractBaseUser):
         business_user['food_court_name'] = business_user['name']
         business_user['user_id'] = business_user['id']
         if business_user['last_login'] is None:
-            business_user['last_login'] = ''
+            business_user['last_login'] = business_user['date_joined']
         return business_user
