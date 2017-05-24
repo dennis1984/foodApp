@@ -25,7 +25,9 @@ class Orders(models.Model):
     dishes_ids = models.TextField('订购列表', default='')
     payable = models.CharField('订单总计', max_length=50, default='')
     payment_status = models.IntegerField('订单支付状态', default=0)    # 0:未支付 200:已支付 400: 已过期 500:支付失败
-    payment_mode = models.IntegerField('订单支付方式', default=1)      # 1：现金支付 2：微信支付 3：支付宝支付
+
+    # 支付方式：0:未指定支付方式 1：现金支付 2：微信支付 3：支付宝支付
+    payment_mode = models.IntegerField('订单支付方式', default=0)
     created = models.DateTimeField('创建时间', default=now)
     updated = models.DateTimeField('最后修改时间', auto_now=True)
     extend = models.TextField('扩展信息', default='', blank=True)

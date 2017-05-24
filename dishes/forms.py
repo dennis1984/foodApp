@@ -21,6 +21,7 @@ class DishesUpdateForm(forms.Form):
     price = forms.CharField(max_length=50, required=False)
     size = forms.IntegerField(min_value=10, max_value=13, required=False)
     image = forms.ImageField(required=False)
+    is_recommend = forms.BooleanField(required=False)
     extend = forms.CharField(max_length=500, required=False)
 
 
