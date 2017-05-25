@@ -8,7 +8,7 @@ from rest_framework import status
 from users.serializers import UserSerializer, GroupSerializer, \
     UserResponseSerializer, UserListSerializer
 from users.permissions import IsAdminOrReadOnly
-from users.models import BusinessUser
+from users.models import BusinessUser, make_token_expire
 from users.forms import UsersInputForm, ChangePasswordForm, UserListForm
 
 
@@ -111,12 +111,13 @@ class UserList(generics.GenericAPIView):
 #         pass
 #
 #
-# class AuthLogout(generics.GenericAPIView):
-#     """
-#     用户认证：登出
-#     """
-#     def post(self, request, *args, **kwargs):
-#         pass
+class AuthLogout(generics.GenericAPIView):
+    """
+    用户认证：登出
+    """
+    def post(self, request, *args, **kwargs):
+        make_token_expire(request)
+        return Response(status=status.HTTP_200_OK)
 
 
 class UserViewSet(viewsets.ModelViewSet):

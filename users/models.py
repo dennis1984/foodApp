@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.utils.timezone import now
 from django.contrib.auth.hashers import make_password
+from oauth2_provider.models import AccessToken
 from horizon.models import model_to_dict
 from dishes.models import FoodCourt
 import datetime
@@ -149,4 +150,19 @@ class BusinessUser(AbstractBaseUser):
         if business_user['last_login'] is None:
             business_user['last_login'] = business_user['date_joined']
         return business_user
+
+
+def make_token_expire(request):
+    """
+    置token过期
+    """
+    header = request.META
+    token = header['HTTP_AUTHORIZATION'].split()[1]
+    try:
+        _instance = AccessToken.objects.get(token=token)
+        _instance.expires = now()
+        _instance.save()
+    except:
+        pass
+    return True
 
