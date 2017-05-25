@@ -4,7 +4,7 @@ from rest_framework import serializers
 from django.core.paginator import Paginator
 from django.conf import settings
 from horizon.serializers import BaseListSerializer, timezoneStringTostring
-import datetime
+import datetime, os
 
 
 class DishesSerializer(serializers.ModelSerializer):
@@ -41,7 +41,7 @@ class DishesSerializer(serializers.ModelSerializer):
         if serializer.get('user_id', None):
             serializer['updated'] = timezoneStringTostring(serializer['updated'])
             serializer['created'] = timezoneStringTostring(serializer['created'])
-            serializer['image_url'] = serializer['image']
+            serializer['image_url'] = os.path.join(settings.DOMAIN_NAME, serializer['image'])
         return serializer
 
 

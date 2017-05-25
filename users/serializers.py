@@ -4,6 +4,8 @@ from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
 from users.models import BusinessUser
 from horizon.serializers import BaseListSerializer, timezoneStringTostring
+from django.conf import settings
+import os
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -37,7 +39,7 @@ class UserResponseSerializer(serializers.Serializer):
         _data = super(UserResponseSerializer, self).data
         if _data.get('user_id', None):
             _data['last_login'] = timezoneStringTostring(_data['last_login'])
-            _data['head_picture_url'] = _data['head_picture']
+            _data['head_picture_url'] = os.path.join(settings.DOMAIN_NAME, _data['head_picture'])
         return _data
 
 

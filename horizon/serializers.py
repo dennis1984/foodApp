@@ -5,6 +5,7 @@ from django.conf import settings
 from django.db import models
 from horizon.main import timezoneStringTostring
 from horizon.models import model_to_dict
+import os
 import datetime
 
 
@@ -55,6 +56,6 @@ class BaseListSerializer(serializers.ListSerializer):
                 if isinstance(dict_format[key], datetime.datetime):
                     item[key] = timezoneStringTostring(item[key])
                 if isinstance(dict_format[key], models.fields.files.ImageFieldFile):
-                    item['%s_url' % key] = item[key]
+                    item['%s_url' % key] = os.path.join(settings.DOMAIN_NAME, item[key])
         return ordered_dict
 

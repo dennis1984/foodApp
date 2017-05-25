@@ -170,3 +170,7 @@ PAGE_SIZE = 100
 
 MAX_PAGE_SIZE = 500
 
+# domain name
+
+DOMAIN_NAME = 'http://121.42.249.43'
+
