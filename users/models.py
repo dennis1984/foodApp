@@ -99,10 +99,13 @@ class BusinessUser(AbstractBaseUser):
             business_user = BusinessUser.objects.get(pk=request.user.id)
         except Exception as e:
             return e
-        try:
-            food_court = FoodCourt.objects.get(pk=business_user.food_court_id)
-        except Exception as e:
-            return e
+        if request.user.is_admin:
+            food_court = {}
+        else:
+            try:
+                food_court = FoodCourt.objects.get(pk=business_user.food_court_id)
+            except Exception as e:
+                return e
 
         return cls.join_user_and_food_court(business_user, food_court)
 
@@ -139,8 +142,9 @@ class BusinessUser(AbstractBaseUser):
     @classmethod
     def join_user_and_food_court(cls, user_instance, food_court_instance):
         business_user = model_to_dict(user_instance)
-        business_user.update(**model_to_dict(food_court_instance))
-        business_user['food_court_name'] = business_user['name']
+        if food_court_instance:
+            business_user.update(**model_to_dict(food_court_instance))
+            business_user['food_court_name'] = business_user['name']
         business_user['user_id'] = business_user['id']
         if business_user['last_login'] is None:
             business_user['last_login'] = business_user['date_joined']

@@ -27,9 +27,9 @@ class UserResponseSerializer(serializers.Serializer):
     last_login = serializers.DateTimeField()
 
     head_picture = serializers.ImageField()
-    food_court_name = serializers.CharField(max_length=200)
-    city = serializers.CharField(max_length=100)
-    district = serializers.CharField(max_length=100)
+    food_court_name = serializers.CharField(max_length=200, required=False)
+    city = serializers.CharField(max_length=100, required=False)
+    district = serializers.CharField(max_length=100, required=False)
     mall = serializers.CharField(max_length=200, required=False)
 
     @property
