@@ -13,6 +13,7 @@ class OrdersGetForm(forms.Form):
 class OrdersListForm(forms.Form):
     start_created = forms.DateField(required=False)
     end_created = forms.DateField(required=False)
+    payment_status = forms.IntegerField(required=False, max_value=500)
     page_size = forms.IntegerField(required=False)
     page_index = forms.IntegerField(required=False)
 

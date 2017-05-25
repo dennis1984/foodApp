@@ -27,6 +27,14 @@ class DishesSerializer(serializers.ModelSerializer):
         validated_data = {'status': 2}
         super(DishesSerializer, self).update(obj, validated_data)
 
+    def update_dishes(self, request, instance, validated_data):
+        """
+        权限控制，只有管理员能设置is_recommend字段
+        """
+        if 'is_recommend' in validated_data and not request.user.is_admin:
+            raise Exception('Permission denied')
+        return super(DishesSerializer, self).update(instance, validated_data)
+
     @property
     def data(self):
         serializer = super(DishesSerializer, self).data

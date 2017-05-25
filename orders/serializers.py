@@ -11,20 +11,15 @@ class OrdersSerializer(serializers.ModelSerializer):
         #           'meal_ids', 'payable', 'payment_status', 'extend')
         fields = '__all__'
 
-    # def create(self, orders_data):
-    #     return Orders.objects.create(**orders_data)
-    #
-    # def update(self, instance, orders_data):
-    #     instance.save()
-    #     return instance
     def update_payment_status(self, instance, validated_data):
-        super(OrdersSerializer, self).update(instance,
-                                             {'payment_status': validated_data['validated_data']})
+        super(OrdersSerializer, self).update(
+            instance,
+            {'payment_status': validated_data['validated_data']}
+        )
 
     @property
     def data(self):
         serializer = super(OrdersSerializer, self).data
-        serializer['orders_id'] = ordersIdIntegerToString(serializer['id'])
         serializer['updated'] = timezoneStringTostring(serializer['updated'])
         serializer['created'] = timezoneStringTostring(serializer['created'])
         return serializer
@@ -32,10 +27,4 @@ class OrdersSerializer(serializers.ModelSerializer):
 
 class OrdersListSerializer(BaseListSerializer):
     child = OrdersSerializer()
-
-
-def ordersIdIntegerToString(orders_id):
-    if len(str(orders_id)) < 8:
-        return "%08d" % orders_id
-    return str(orders_id)
 

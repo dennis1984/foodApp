@@ -5,12 +5,9 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from users import views as users_view
 
 urlpatterns = [
-    # url(r'^orders_detail/$', orders_view.OrdersDetail.as_view(), name='orders_detail'),
-    # url(r'^create_orders/$', orders_view.OrdersAction.as_view(), name='create_orders'),
-
     url(r'user_action/$', users_view.UserAction.as_view()),
     url(r'user_detail/$', users_view.UserDetail.as_view()),
-    # url(r'login/$', users_view)
+    url(r'user_list/$', users_view.UserList.as_view()),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

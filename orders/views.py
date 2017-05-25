@@ -120,7 +120,7 @@ class OrdersList(generics.GenericAPIView):
 
     def get_objects_list(self, request, **kwargs):
         kwargs['user_id'] = request.user.id
-        return Orders.get_object_list_by_date(**kwargs)
+        return Orders.get_objects_list(**kwargs)
 
     def post(self, request, *args, **kwargs):
         """

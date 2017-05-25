@@ -3,7 +3,7 @@ from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.utils.timezone import now
 from django.contrib.auth.hashers import make_password
-from django.forms.models import model_to_dict
+from horizon.models import model_to_dict
 from dishes.models import FoodCourt
 import datetime
 
@@ -104,10 +104,45 @@ class BusinessUser(AbstractBaseUser):
         except Exception as e:
             return e
 
-        business_user = model_to_dict(business_user)
-        business_user.update(**model_to_dict(food_court))
+        return cls.join_user_and_food_court(business_user, food_court)
+
+    @classmethod
+    def get_objects_list(cls, request, **kwargs):
+        """
+        获取用户列表
+        权限控制：只有管理员可以访问这些数据
+        """
+        if not request.user.is_admin:
+            return Exception('Permission denied, Cannot access the method')
+
+        _kwargs = {}
+        if 'start_created' in kwargs:
+            _kwargs['created__gte'] = kwargs['start_created']
+        if 'end_created' in kwargs:
+            _kwargs['created__lte'] = kwargs['end_created']
+        _kwargs['is_admin'] = False
+        try:
+            _instances_list = cls.objects.filter(**_kwargs)
+        except Exception as e:
+            return e
+
+        results = []
+        for _instance in _instances_list:
+            try:
+                food_court = FoodCourt.objects.get(pk=_instance.food_court_id)
+            except Exception as e:
+                return e
+            user_data = cls.join_user_and_food_court(_instance, food_court)
+            results.append(user_data)
+        return results
+
+    @classmethod
+    def join_user_and_food_court(cls, user_instance, food_court_instance):
+        business_user = model_to_dict(user_instance)
+        business_user.update(**model_to_dict(food_court_instance))
         business_user['food_court_name'] = business_user['name']
         business_user['user_id'] = business_user['id']
         if business_user['last_login'] is None:
             business_user['last_login'] = business_user['date_joined']
         return business_user
+

@@ -60,6 +60,7 @@ class DishesAction(mixins.CreateModelMixin, generics.GenericAPIView):
                         'price': '',
                         'size': Integer,
                         'image': Image,
+                        'is_recommend': BOOL,
                         }
         :return: Dishes object
         """
@@ -69,7 +70,7 @@ class DishesAction(mixins.CreateModelMixin, generics.GenericAPIView):
 
         cld = form.cleaned_data
         for key in cld.keys():
-            if not cld[key]:
+            if cld[key] is None:
                 cld.pop(key)
 
         obj = Dishes.get_object(**{'pk': cld['pk']})
@@ -78,7 +79,7 @@ class DishesAction(mixins.CreateModelMixin, generics.GenericAPIView):
             return Response({'Error': obj.args}, status=status.HTTP_400_BAD_REQUEST)
         serializer = DishesSerializer(obj)
         try:
-            serializer.update(obj, cld)
+            serializer.update_dishes(request, obj, cld)
         except Exception as e:
             return Response({'Error': e.args}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.data, status=status.HTTP_206_PARTIAL_CONTENT)

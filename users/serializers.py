@@ -3,23 +3,13 @@ from django.contrib.auth.models import User, Group
 from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
 from users.models import BusinessUser
-from horizon.main import timezoneStringTostring
+from horizon.serializers import BaseListSerializer, timezoneStringTostring
 
-
-# class UserSerializer(serializers.HyperlinkedModelSerializer):
-#     class Meta:
-#         model = User
-#         fields = ('url', 'username', 'email', 'groups')
-#         # fields = '__all__'
 
 class UserSerializer(serializers.ModelSerializer):
-    # dishes = serializers.PrimaryKeyRelatedField(many=True, queryset=Dishes.active_objects.all())
-
     class Meta:
         model = BusinessUser
-        # fields = ('id', 'username', 'dishes')
         fields = '__all__'
-        write_only_fields = ('password', )
 
     def update_password(self, instance, validated_data):
         password = validated_data.get('password', None)
@@ -49,6 +39,10 @@ class UserResponseSerializer(serializers.Serializer):
             _data['last_login'] = timezoneStringTostring(_data['last_login'])
             _data['head_picture_url'] = _data['head_picture']
         return _data
+
+
+class UserListSerializer(BaseListSerializer):
+    child = UserResponseSerializer()
 
 
 # class UserResponseSerializer(serializers.ModelSerializer):

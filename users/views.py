@@ -6,10 +6,10 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from users.serializers import UserSerializer, GroupSerializer, \
-    UserResponseSerializer
+    UserResponseSerializer, UserListSerializer
 from users.permissions import IsAdminOrReadOnly
 from users.models import BusinessUser
-from users.forms import UsersInputForm, ChangePasswordForm
+from users.forms import UsersInputForm, ChangePasswordForm, UserListForm
 
 
 class UserAction(generics.GenericAPIView):
@@ -72,20 +72,51 @@ class UserDetail(generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class AuthLogin(generics.GenericAPIView):
-    """
-    用户认证：登录
-    """
+class UserList(generics.GenericAPIView):
+    queryset = BusinessUser.objects.all()
+    serializer_class = UserResponseSerializer
+    permission_classes = (IsAdminOrReadOnly, )
+
+    def get_objects_list(self, request, **kwargs):
+        return BusinessUser.get_objects_list(request, **kwargs)
+
     def post(self, request, *args, **kwargs):
-        pass
+        form = UserListForm(request.data)
+        if not form.is_valid():
+            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        cld = form.cleaned_data
+        for key in cld.keys():
+            if not cld[key]:
+                cld.pop(key)
+
+        _objects = self.get_objects_list(request, **kwargs)
+        if isinstance(_objects, Exception):
+            return Response({'detail': _objects.args}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = UserListSerializer(data=_objects)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        results = serializer.list_data(**cld)
+        if isinstance(results, Exception):
+            return Response({'Error': results.args}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(results, status=status.HTTP_200_OK)
 
 
-class AuthLogout(generics.GenericAPIView):
-    """
-    用户认证：登出
-    """
-    def post(self, request, *args, **kwargs):
-        pass
+# class AuthLogin(generics.GenericAPIView):
+#     """
+#     用户认证：登录
+#     """
+#     def post(self, request, *args, **kwargs):
+#         pass
+#
+#
+# class AuthLogout(generics.GenericAPIView):
+#     """
+#     用户认证：登出
+#     """
+#     def post(self, request, *args, **kwargs):
+#         pass
 
 
 class UserViewSet(viewsets.ModelViewSet):

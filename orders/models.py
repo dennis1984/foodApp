@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.utils.timezone import now
 from dishes.models import Dishes, FoodCourt
-from django.forms.models import model_to_dict
+from horizon.models import model_to_dict
 from django.db import transaction
 from decimal import Decimal
 
@@ -84,12 +84,12 @@ class Orders(models.Model):
     @classmethod
     def get_object_by_orders_id(cls, orders_id):
         try:
-            return cls.objects.get(pk=int(orders_id))
+            return cls.objects.get(orders_id=orders_id)
         except Exception as e:
             return e
 
     @classmethod
-    def get_object_list_by_date(cls, **kwargs):
+    def get_objects_list(cls, **kwargs):
         if 'user_id' not in kwargs:
             return Exception('user_id must be not null')
 
@@ -98,6 +98,8 @@ class Orders(models.Model):
             _kwargs['created__gte'] = kwargs['start_created']
         if 'end_created' in kwargs:
             _kwargs['created__lte'] = kwargs['end_created']
+        if 'payment_status' in kwargs:
+            _kwargs['payment_status'] = kwargs['payment_status']
         try:
             return cls.objects.filter(user_id=kwargs['user_id'], **_kwargs)
         except Exception as e:

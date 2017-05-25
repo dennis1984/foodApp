@@ -2,7 +2,9 @@
 from rest_framework import serializers
 from django.core.paginator import Paginator
 from django.conf import settings
+from django.db import models
 from horizon.main import timezoneStringTostring
+from horizon.models import model_to_dict
 import datetime
 
 
@@ -14,14 +16,14 @@ class BaseListSerializer(serializers.ListSerializer):
                        'all_count': 总数据量,
                        'has_next': 是否有下一页,
                        'data': [{
-                                 Dishes model数据
+                                  model数据
                                 },...]
                        }
         """
         # page size不能超过默认最大值，如果超过，则按page size默认最大值返回数据
         if page_size > settings.MAX_PAGE_SIZE:
             page_size = settings.MAX_PAGE_SIZE
-        serializer = self.perfect_result(self.data)
+        serializer = self.perfect_result()
         paginator = Paginator(serializer, page_size)
         try:
             page = paginator.page(page_index)
@@ -39,13 +41,20 @@ class BaseListSerializer(serializers.ListSerializer):
                    'data': page.object_list}
         return results
 
-    def perfect_result(self, ordered_dict):
+    def perfect_result(self):
+        dict_format = {}
+        if hasattr(self, 'initial_data'):
+            if len(self.initial_data) > 0:
+                dict_format = self.initial_data[0]
+        else:
+            if len(self.instance) > 0:
+                dict_format = model_to_dict(self.instance[0])
+        ordered_dict = self.data
         for item in ordered_dict:
-            if 'created' in item:
-                item['created'] = timezoneStringTostring(item['created'])
-            if 'updated' in item:
-                item['updated'] = timezoneStringTostring(item['updated'])
-            if 'image' in item:
-                item['image_url'] = item['image']
+            for key in item.keys():
+                if isinstance(dict_format[key], datetime.datetime):
+                    item[key] = timezoneStringTostring(item[key])
+                if isinstance(dict_format[key], models.fields.files.ImageFieldFile):
+                    item['%s_url' % key] = item[key]
         return ordered_dict
 
