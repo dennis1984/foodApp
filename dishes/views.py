@@ -60,7 +60,7 @@ class DishesAction(mixins.CreateModelMixin, generics.GenericAPIView):
                         'price': '',
                         'size': Integer,
                         'image': Image,
-                        'is_recommend': BOOL,
+                        'is_recommend': Integer,
                         }
         :return: Dishes object
         """
