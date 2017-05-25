@@ -47,18 +47,6 @@ class UserListSerializer(BaseListSerializer):
     child = UserResponseSerializer()
 
 
-# class UserResponseSerializer(serializers.ModelSerializer):
-#     food_court_name = serializers.CharField(max_length=200)
-#     city = serializers.CharField(max_length=100)
-#     district = serializers.CharField(max_length=100)
-#     mall = serializers.CharField(max_length=200)
-#
-#     class Meta:
-#         model = BusinessUser
-#         fields = ('id', 'phone', 'business_name', 'food_court_id', 'last_login',
-#                   'head_picture', 'food_court_name', 'city', 'district', 'mall')
-
-
 class GroupSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Group

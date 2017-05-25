@@ -28,3 +28,13 @@ class OrdersSerializer(serializers.ModelSerializer):
 class OrdersListSerializer(BaseListSerializer):
     child = OrdersSerializer()
 
+
+class SaleSerializer(serializers.Serializer):
+    date = serializers.CharField()
+    total_count = serializers.IntegerField()
+    total_payable = serializers.CharField()
+
+
+class SaleListSerializer(BaseListSerializer):
+    child = SaleSerializer()
+

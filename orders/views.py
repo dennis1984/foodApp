@@ -14,9 +14,9 @@ from rest_framework import mixins
 from rest_framework import generics
 from django.utils.six import BytesIO
 from orders.forms import OrdersInputForm, OrdersGetForm, OrdersUpdateForm,\
-    OrdersListForm
-from orders.models import Orders
-from orders.serializers import OrdersSerializer, OrdersListSerializer
+    OrdersListForm, SaleListForm
+from orders.models import Orders, get_sale_list
+from orders.serializers import OrdersSerializer, OrdersListSerializer, SaleListSerializer
 from orders.permissoins import IsOwnerOrReadOnly
 
 
@@ -119,8 +119,7 @@ class OrdersList(generics.GenericAPIView):
     permissions = (IsOwnerOrReadOnly,)
 
     def get_objects_list(self, request, **kwargs):
-        kwargs['user_id'] = request.user.id
-        return Orders.get_objects_list(**kwargs)
+        return Orders.get_objects_list(request, **kwargs)
 
     def post(self, request, *args, **kwargs):
         """
@@ -149,3 +148,33 @@ class OrdersList(generics.GenericAPIView):
             return Response({'Error': results.args}, status=status.HTTP_400_BAD_REQUEST)
         return Response(results, status=status.HTTP_200_OK)
 
+
+class SaleList(generics.GenericAPIView):
+    queryset = Orders.objects.all()
+    serializer_class = OrdersSerializer
+    permissions = (IsOwnerOrReadOnly,)
+
+    def get_objects_list(self, request, **kwargs):
+        return get_sale_list(request, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        form = SaleListForm(request.data)
+        if not form.is_valid():
+            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        cld = form.cleaned_data
+        for key in cld.keys():
+            if not cld[key]:
+                cld.pop(key)
+
+        object_data = self.get_objects_list(request, **cld)
+        if isinstance(object_data, Exception):
+            return Response({'Error': object_data.args}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = SaleListSerializer(data=object_data)
+        if serializer.is_valid():
+            results = serializer.list_data(**cld)
+            if isinstance(results, Exception):
+                return Response({'Error': results.args}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(results, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

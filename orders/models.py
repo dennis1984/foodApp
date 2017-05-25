@@ -89,21 +89,53 @@ class Orders(models.Model):
             return e
 
     @classmethod
-    def get_objects_list(cls, **kwargs):
-        if 'user_id' not in kwargs:
-            return Exception('user_id must be not null')
+    def get_objects_list(cls, request, **kwargs):
+        opts = cls._meta
+        fields = []
+        for f in opts.concrete_fields:
+            fields.append(f.name)
 
         _kwargs = {}
-        if 'start_created' in kwargs:
-            _kwargs['created__gte'] = kwargs['start_created']
-        if 'end_created' in kwargs:
-            _kwargs['created__lte'] = kwargs['end_created']
-        if 'payment_status' in kwargs:
-            _kwargs['payment_status'] = kwargs['payment_status']
+        for key in kwargs:
+            if key not in fields:
+                continue
+            if 'start_created' in kwargs:
+                _kwargs['created__gte'] = kwargs['start_created']
+            elif 'end_created' in kwargs:
+                _kwargs['created__lte'] = kwargs['end_created']
+            else:
+                _kwargs[key] = kwargs[key]
         try:
-            return cls.objects.filter(user_id=kwargs['user_id'], **_kwargs)
+            return cls.objects.filter(user_id=request.user.id, **_kwargs)
         except Exception as e:
             return e
+
+
+def get_sale_list(request, **kwargs):
+    """
+    销售统计
+    """
+    # 支付状态为：已支付
+    kwargs['payment_status'] = 200
+    orders_list = Orders.get_objects_list(request, **kwargs)
+    if isinstance(orders_list, Exception):
+        return orders_list
+
+    sale_dict = {}
+    for item in orders_list:
+        datetime_day = item.created.date()
+        sale_detail = sale_dict.get(datetime_day, {'total_count': 0, 'total_payable': '0'})
+        sale_detail['total_count'] += 1
+        sale_detail['total_payable'] = Decimal(sale_detail['total_payable']) + Decimal(item.payable)
+        sale_dict[datetime_day] = sale_detail
+    results = []
+    for key, value in sale_dict.items():
+        sale_detail = value
+        sale_detail['date'] = str(key)
+        sale_detail['total_payable'] = str(sale_detail['total_payable'])
+        results.append(sale_detail)
+    results.sort(key=lambda x: x['date'], reverse=True)
+    return results
 
 
 def date_for_model():
