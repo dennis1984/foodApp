@@ -5,8 +5,8 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import status
 
-from users.serializers import UserSerializer, GroupSerializer, \
-    UserResponseSerializer, UserListSerializer
+from users.serializers import UserSerializer, UserInstanceSerializer, \
+    UserDetailSerializer, UserListSerializer
 from users.permissions import IsAdminOrReadOnly
 from users.models import BusinessUser, make_token_expire
 from users.forms import UsersInputForm, ChangePasswordForm, UserListForm
@@ -31,14 +31,8 @@ class UserAction(generics.GenericAPIView):
         except Exception as e:
             return Response({'Error': e.args}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = UserResponseSerializer(user)
+        serializer = UserInstanceSerializer(user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        # serializer = UserSerializer(data=cld)
-        # if serializer.is_valid():
-        #     serializer.save()
-        #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, *args, **kwargs):
         form = ChangePasswordForm(request.data)
@@ -52,13 +46,13 @@ class UserAction(generics.GenericAPIView):
         except Exception as e:
             return Response({'Error': e.args}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer_response = UserResponseSerializer(obj)
+        serializer_response = UserInstanceSerializer(obj)
         return Response(serializer_response.data, status=status.HTTP_206_PARTIAL_CONTENT)
 
 
 class UserDetail(generics.GenericAPIView):
     queryset = BusinessUser.objects.all()
-    serializer_class = UserResponseSerializer
+    serializer_class = UserDetailSerializer
     # permission_classes = (IsAdminOrReadOnly, )
 
     def post(self, request, *args, **kwargs):
@@ -66,7 +60,7 @@ class UserDetail(generics.GenericAPIView):
         if isinstance(user, Exception):
             return Response({'Error': user.args}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = UserResponseSerializer(data=user)
+        serializer = UserDetailSerializer(data=user)
         if serializer.is_valid():
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -74,7 +68,7 @@ class UserDetail(generics.GenericAPIView):
 
 class UserList(generics.GenericAPIView):
     queryset = BusinessUser.objects.all()
-    serializer_class = UserResponseSerializer
+    serializer_class = UserDetailSerializer
     permission_classes = (IsAdminOrReadOnly, )
 
     def get_objects_list(self, request, **kwargs):

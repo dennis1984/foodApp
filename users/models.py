@@ -143,10 +143,11 @@ class BusinessUser(AbstractBaseUser):
     @classmethod
     def join_user_and_food_court(cls, user_instance, food_court_instance):
         business_user = model_to_dict(user_instance)
+        business_user['user_id'] = business_user['id']
         if food_court_instance:
             business_user.update(**model_to_dict(food_court_instance))
             business_user['food_court_name'] = business_user['name']
-        business_user['user_id'] = business_user['id']
+        # business_user['user_id'] = business_user['id']
         if business_user['last_login'] is None:
             business_user['last_login'] = business_user['date_joined']
         return business_user

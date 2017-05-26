@@ -5,6 +5,7 @@ from rest_framework import serializers
 from users.models import BusinessUser
 from horizon.serializers import BaseListSerializer, timezoneStringTostring
 from django.conf import settings
+from horizon.models import model_to_dict
 import os
 
 
@@ -12,6 +13,8 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = BusinessUser
         fields = '__all__'
+        # fields = ('id', 'phone', 'business_name', 'head_picture',
+        #           'food_court_id')
 
     def update_password(self, instance, validated_data):
         password = validated_data.get('password', None)
@@ -21,7 +24,14 @@ class UserSerializer(serializers.ModelSerializer):
         return super(UserSerializer, self).update(instance, validated_data)
 
 
-class UserResponseSerializer(serializers.Serializer):
+class UserInstanceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BusinessUser
+        fields = ('id', 'phone', 'business_name', 'head_picture',
+                  'food_court_id')
+
+
+class UserDetailSerializer(serializers.Serializer):
     user_id = serializers.IntegerField()
     phone = serializers.CharField(max_length=20)
     business_name = serializers.CharField(max_length=100)
@@ -36,7 +46,7 @@ class UserResponseSerializer(serializers.Serializer):
 
     @property
     def data(self):
-        _data = super(UserResponseSerializer, self).data
+        _data = super(UserDetailSerializer, self).data
         if _data.get('user_id', None):
             _data['last_login'] = timezoneStringTostring(_data['last_login'])
             _data['head_picture_url'] = os.path.join(settings.DOMAIN_NAME, _data['head_picture'])
@@ -44,7 +54,7 @@ class UserResponseSerializer(serializers.Serializer):
 
 
 class UserListSerializer(BaseListSerializer):
-    child = UserResponseSerializer()
+    child = UserDetailSerializer()
 
 
 class GroupSerializer(serializers.HyperlinkedModelSerializer):
