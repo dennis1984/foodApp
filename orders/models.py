@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.utils.timezone import now
 from dishes.models import Dishes, FoodCourt
+from users.models import BusinessUser
 from horizon.models import model_to_dict
 from django.db import transaction
 from decimal import Decimal
@@ -96,6 +97,11 @@ class Orders(models.Model):
             fields.append(f.name)
 
         _kwargs = {}
+        if request.user.is_admin:
+            if 'user_id' in kwargs:
+                _kwargs['user_id'] = kwargs['user_id']
+        else:
+            _kwargs['user_id'] = request.user.id
         for key in kwargs:
             if key not in fields:
                 continue
@@ -105,18 +111,29 @@ class Orders(models.Model):
                 _kwargs['created__lte'] = kwargs['end_created']
             else:
                 _kwargs[key] = kwargs[key]
+
         try:
-            return cls.objects.filter(user_id=request.user.id, **_kwargs)
+            return cls.objects.filter(**_kwargs)
         except Exception as e:
             return e
 
 
 def get_sale_list(request, **kwargs):
+    if request.user.is_admin and 'user_id' not in kwargs:
+        return get_sale_list_by_admin(request, **kwargs)
+    else:
+        return get_sale_list_by_user(request, **kwargs)
+
+
+def get_sale_list_by_user(request, **kwargs):
     """
-    销售统计
+    销售统计（普通用户）
     """
     # 支付状态为：已支付
     kwargs['payment_status'] = 200
+    # 如果参数没有选择时间范围，默认选取当前时间至向前30天的数据
+    kwargs['start_created'] = now().date() - datetime.timedelta(days=30)
+    kwargs['end_created'] = now().date()
     orders_list = Orders.get_objects_list(request, **kwargs)
     if isinstance(orders_list, Exception):
         return orders_list
@@ -135,6 +152,43 @@ def get_sale_list(request, **kwargs):
         sale_detail['total_payable'] = str(sale_detail['total_payable'])
         results.append(sale_detail)
     results.sort(key=lambda x: x['date'], reverse=True)
+    return results
+
+
+def get_sale_list_by_admin(request, **kwargs):
+    """
+    销售统计（管理员）
+    """
+    # 支付状态为：已支付
+    kwargs['payment_status'] = 200
+    # 如果参数没有选择时间范围，默认选取当前时间至向前30天的数据
+    kwargs['start_created'] = now().date() - datetime.timedelta(days=30)
+    kwargs['end_created'] = now().date()
+    orders_list = Orders.get_objects_list(request, **kwargs)
+    if isinstance(orders_list, Exception):
+        return orders_list
+
+    users_list = BusinessUser.objects.all()
+    users_dict = {item.id: item for item in users_list}
+
+    sale_dict = {}
+    for item in orders_list:
+        user_obj = users_dict.get(item.user_id)
+        business_name = getattr(user_obj, 'business_name', 'none')
+        sale_detail = sale_dict.get(business_name, {'total_count': 0,
+                                                    'total_payable': '0',
+                                                    'user_id': item.user_id})
+        sale_detail['total_count'] += 1
+        sale_detail['total_payable'] = Decimal(sale_detail['total_payable']) + Decimal(item.payable)
+        sale_dict[business_name] = sale_detail
+    results = []
+    for key, value in sale_dict.items():
+        sale_detail = value
+        sale_detail['date'] = '%s--%s' % (kwargs['start_created'], kwargs['end_created'])
+        sale_detail['business_name'] = key
+        sale_detail['total_payable'] = str(sale_detail['total_payable'])
+        results.append(sale_detail)
+    results.sort(key=lambda x: x['business_name'], reverse=True)
     return results
 
 

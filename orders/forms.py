@@ -24,7 +24,7 @@ class OrdersUpdateForm(forms.Form):
 
 
 class SaleListForm(forms.Form):
-    # user_id = forms.IntegerField(required=False)
+    user_id = forms.IntegerField(required=False)
     start_created = forms.DateField(required=False)
     end_created = forms.DateField(required=False)
     payment_mode = forms.IntegerField(required=False, min_value=0, max_value=3)
