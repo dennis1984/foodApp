@@ -37,18 +37,5 @@ class SaleSerializer(serializers.Serializer):
     user_id = serializers.IntegerField(required=False)
 
 
-class SaleAdminSerializer(serializers.Serializer):
-    date_range = serializers.CharField()
-    business_name = serializers.CharField()
-    user_id = serializers.IntegerField()
-    total_count = serializers.IntegerField()
-    total_payable = serializers.CharField()
-
-
 class SaleListSerializer(BaseListSerializer):
     child = SaleSerializer()
-
-
-class SaleAdminListSerializer(BaseListSerializer):
-    child = SaleAdminSerializer()
-
