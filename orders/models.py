@@ -132,8 +132,9 @@ def get_sale_list_by_user(request, **kwargs):
     # 支付状态为：已支付
     kwargs['payment_status'] = 200
     # 如果参数没有选择时间范围，默认选取当前时间至向前30天的数据
-    kwargs['start_created'] = now().date() - datetime.timedelta(days=30)
-    kwargs['end_created'] = now().date()
+    if not ('start_created' in kwargs or 'end_created' in kwargs):
+        kwargs['start_created'] = now().date() - datetime.timedelta(days=30)
+        kwargs['end_created'] = now().date()
     orders_list = Orders.get_objects_list(request, **kwargs)
     if isinstance(orders_list, Exception):
         return orders_list
@@ -162,8 +163,9 @@ def get_sale_list_by_admin(request, **kwargs):
     # 支付状态为：已支付
     kwargs['payment_status'] = 200
     # 如果参数没有选择时间范围，默认选取当前时间至向前30天的数据
-    kwargs['start_created'] = now().date() - datetime.timedelta(days=30)
-    kwargs['end_created'] = now().date()
+    if not ('start_created' in kwargs or 'end_created' in kwargs):
+        kwargs['start_created'] = now().date() - datetime.timedelta(days=30)
+        kwargs['end_created'] = now().date()
     orders_list = Orders.get_objects_list(request, **kwargs)
     if isinstance(orders_list, Exception):
         return orders_list
@@ -177,14 +179,19 @@ def get_sale_list_by_admin(request, **kwargs):
         business_name = getattr(user_obj, 'business_name', 'none')
         sale_detail = sale_dict.get(business_name, {'total_count': 0,
                                                     'total_payable': '0',
-                                                    'user_id': item.user_id})
+                                                    'user_id': item.user_id,
+                                                    'start_created': now().date(),
+                                                    })
+        if item.created.date() < sale_detail['start_created']:
+            sale_detail['start_created'] = item.created.date()
         sale_detail['total_count'] += 1
         sale_detail['total_payable'] = Decimal(sale_detail['total_payable']) + Decimal(item.payable)
         sale_dict[business_name] = sale_detail
     results = []
     for key, value in sale_dict.items():
         sale_detail = value
-        sale_detail['date'] = '%s--%s' % (kwargs['start_created'], kwargs['end_created'])
+        sale_detail['date'] = '%s--%s' % (kwargs.get('start_created', sale_detail['start_created']),
+                                          kwargs.get('end_created', now().date()))
         sale_detail['business_name'] = key
         sale_detail['total_payable'] = str(sale_detail['total_payable'])
         results.append(sale_detail)
