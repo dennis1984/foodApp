@@ -102,14 +102,12 @@ class Orders(models.Model):
                 _kwargs['user_id'] = kwargs['user_id']
         else:
             _kwargs['user_id'] = request.user.id
+        if 'start_created' in kwargs:
+            _kwargs['created__gte'] = kwargs['start_created']
+        if 'end_created' in kwargs:
+            _kwargs['created__lte'] = kwargs['end_created']
         for key in kwargs:
-            if key not in fields:
-                continue
-            if 'start_created' in kwargs:
-                _kwargs['created__gte'] = kwargs['start_created']
-            elif 'end_created' in kwargs:
-                _kwargs['created__lte'] = kwargs['end_created']
-            else:
+            if key in fields:
                 _kwargs[key] = kwargs[key]
 
         try:
