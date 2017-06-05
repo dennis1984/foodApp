@@ -26,3 +26,9 @@ sudo apt-get install uwsgi-plugin-python
 # 安装php
 
 sudo apt-get install php5
+
+# 安装lxml库的依赖库
+sudo apt-get install libxml2 libxml2-dev
+sudo apt-get install libxslt-dev
+sudo apt-get install python-libxml2
+

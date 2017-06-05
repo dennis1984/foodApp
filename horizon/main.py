@@ -1,6 +1,12 @@
 #-*- coding:utf8 -*-
 from django.conf import settings
+from PAY.wxpay import settings as wx_settings
+from lxml import etree
 import datetime
+import qrcode
+import os
+import uuid
+from hashlib import md5
 
 
 def timezoneStringTostring(timezone_string):
@@ -21,4 +27,83 @@ def timezoneStringTostring(timezone_string):
     except:
         return ""
     return str(timezone)
+
+
+def make_qrcode(source_data, version=5):
+    """
+    生成二维码图片
+    """
+    qr = qrcode.QRCode(version=version,
+                       error_correction=qrcode.constants.ERROR_CORRECT_L,
+                       box_size=10,
+                       border=4)
+    qr.add_data(source_data)
+    qr.make(fit=True)
+    fname = "%s.png" % uuid.uuid4()
+    qrcode_dir = settings.PICTURE_DIRS['qrcode']
+    fname_path = os.path.join(qrcode_dir, fname)
+
+    if not os.path.isdir(qrcode_dir):
+        os.makedirs(qrcode_dir)
+    image = qr.make_image()
+    image.save(fname_path)
+    return fname_path
+
+
+def anaysize_xml_to_dict(source):
+    """
+    解析xml字符串
+    """
+    root = etree.fromstring(source)
+    result = {article.tag: article.text for article in root}
+    return result
+
+
+def make_dict_to_xml(source_dict, use_cdata=True):
+    """
+    生成xml字符串
+    """
+    if not isinstance(source_dict, dict):
+        raise ValueError('Parameter must be dict.')
+
+    xml = etree.Element('xml')
+    for _key, _value in source_dict.items():
+        _key_xml = etree.SubElement(xml, _key)
+        if _key == 'detail':
+            _key_xml.text = etree.CDATA(_value)
+        else:
+            if not isinstance(_value, (bytes, unicode)):
+                _value = unicode(_value)
+            if use_cdata:
+                _key_xml.text = etree.CDATA(_value)
+            else:
+                _key_xml.text = _value
+
+    xml_string = etree.tostring(xml,
+                                pretty_print=True,
+                                encoding="UTF-8",
+                                method="xml",
+                                xml_declaration=True,
+                                standalone=None)
+    return xml_string.split('\n', 1)[1]
+
+
+def make_sign_for_wxpay(source_dict):
+    """
+    生成签名（微信支付）
+    """
+    key_list = []
+    for _key in source_dict:
+        key_list.append({'key': _key, 'value': source_dict[_key]})
+    key_list.sort(key=lambda x: x['key'])
+
+    string_param = ''
+    for item in key_list:
+        string_param += '%s=%s&' % (item['key'], item['value'])
+        # 把密钥和其它参数组合起来
+    string_param += 'key=%s' % wx_settings.KEY
+    md5_string = md5(string_param.encode('utf8')).hexdigest()
+    return md5_string.upper()
+
+
 

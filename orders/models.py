@@ -75,6 +75,22 @@ class Orders(models.Model):
                        }
         return orders_data
 
+    @property
+    def dishes_ids_json_detail(self):
+        import json
+        results = []
+        instance_list = json.loads(self.dishes_ids)
+        for _instance in instance_list:
+            _ins_dict = {'count': _instance['count'],
+                         'id': _instance['id'],
+                         'is_recommend': _instance['is_recommend'],
+                         'price': _instance['price'],
+                         'size': _instance['size'],
+                         'title': _instance['title'],
+                         'user_id': _instance['user_id']}
+            results.append(_ins_dict)
+        return json.dumps(results)
+
     @classmethod
     def get_object(cls, *args, **kwargs):
         try:
@@ -114,6 +130,32 @@ class Orders(models.Model):
             return cls.objects.filter(**_kwargs)
         except Exception as e:
             return e
+
+    @classmethod
+    def update_payment_status_by_pay_callback(cls, orders_id, validated_data):
+        if not isinstance(validated_data, dict):
+            raise ValueError('Parameter error')
+
+        payment_status = validated_data.get('payment_status')
+        payment_mode = validated_data.get('payment_mode')
+        if payment_status not in (200, 400, 500):
+            raise ValueError('Payment status must in range [200, 400, 500]')
+        if payment_mode not in [2, 3]:    # 微信支付和支付宝支付
+            raise ValueError('Payment mode must in range [2, 3]')
+        instance = None
+        # 数据库加排它锁，保证更改信息是列队操作的，防止数据混乱
+        with transaction.atomic():
+            try:
+                _instance = cls.objects.select_for_update().get(orders_id=orders_id)
+            except cls.DoesNotExist:
+                raise cls.DoesNotExist
+            if _instance.payment_status != 0:
+                raise Exception('Cannot perform this action')
+            _instance.payment_status = payment_status
+            _instance.payment_mode = payment_mode
+            _instance.save()
+            instance = _instance
+        return instance
 
 
 def get_sale_list(request, **kwargs):

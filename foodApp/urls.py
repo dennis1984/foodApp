@@ -35,4 +35,7 @@ urlpatterns = [
     url(r'^orders/', include('orders.urls')),
     url(r'^dishes/', include('dishes.urls', namespace='dishes_app')),
     url(r'^auth/', include('users.urls')),
+
+    url(r'^wxpay/', include('PAY.wxpay.urls', namespace='wxpay')),
+    url(r'^alipay/', include('PAY.alipay.urls', namespace='alipay')),
 ]

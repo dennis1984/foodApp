@@ -56,6 +56,6 @@ class BaseListSerializer(serializers.ListSerializer):
                 if isinstance(dict_format[key], datetime.datetime):
                     item[key] = timezoneStringTostring(item[key])
                 if isinstance(dict_format[key], models.fields.files.ImageFieldFile):
-                    item['%s_url' % key] = os.path.join(settings.DOMAIN_NAME, item[key])
+                    item['%s_url' % key] = os.path.join(settings.WEB_URL_FIX, item[key])
         return ordered_dict
 

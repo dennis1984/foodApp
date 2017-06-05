@@ -1,3 +1,4 @@
+# -*- coding:utf8 -*-
 """
 Django settings for foodApp project.
 
@@ -43,6 +44,8 @@ INSTALLED_APPS = [
     'orders',
     'dishes',
     'users',
+    'PAY.wxpay',
+    'PAY.alipay',
 ]
 
 MIDDLEWARE = [
@@ -172,5 +175,18 @@ MAX_PAGE_SIZE = 500
 
 # domain name
 
-DOMAIN_NAME = 'http://121.42.249.43'
+DOMAIN_NAME = '121.42.249.43'
+
+# WEB URL FIX
+
+WEB_URL_FIX = os.path.join('http://', DOMAIN_NAME)
+
+# 菜品图片目录
+PICTURE_ROOT = os.path.join(STATIC_ROOT, 'picture')
+
+PICTURE_DIRS = {
+    'dishes': os.path.join(PICTURE_ROOT, 'dishes'),               # 菜品图片目录
+    'head_picture': os.path.join(PICTURE_ROOT, 'head_picture'),   # 用户头像图片目录
+    'qrcode': os.path.join(PICTURE_ROOT, 'qrcode'),               # 二维码图片目录
+}
 

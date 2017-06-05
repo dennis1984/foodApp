@@ -1,23 +1,18 @@
 # -*- coding: utf8 -*-
-from rest_framework.viewsets import ModelViewSet
-from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework import permissions
-
-from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from rest_framework import status
 from rest_framework.response import Response
 
-from rest_framework import mixins
 from rest_framework import generics
 from django.utils.six import BytesIO
 from orders.forms import OrdersInputForm, OrdersGetForm, OrdersUpdateForm,\
     OrdersListForm, SaleListForm
 from orders.models import Orders, get_sale_list
-from orders.serializers import OrdersSerializer, OrdersListSerializer, SaleListSerializer
+from orders.serializers import OrdersSerializer, OrdersListSerializer, \
+    SaleListSerializer, DishesIdsDetailSerializer
 from orders.permissoins import IsOwnerOrReadOnly
+
+from orders.pays import WXPay
 
 
 class OrdersAction(generics.GenericAPIView):
@@ -60,6 +55,7 @@ class OrdersAction(generics.GenericAPIView):
         :param args:
         :param kwargs: 'order_id': 订单ID
                        'payment_status': 订单支付状态
+                       'payment_mode': 订单支付方式
         :return: Orders instance
         """
         form = OrdersUpdateForm(request.data)
@@ -67,16 +63,30 @@ class OrdersAction(generics.GenericAPIView):
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
-        obj = Orders.get_object(**{'order_id': cld['order_id']})
+        obj = Orders.get_object(**{'orders_id': cld['orders_id']})
         if isinstance(obj, Exception):
             return Response({'Error': obj.args}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = OrdersSerializer(obj)
         try:
-            serializer.update_payment_status(obj, cld)
+            serializer.update_orders_status(obj, cld)
         except Exception as e:
             return Response({'Error': e.args}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.data, status=status.HTTP_206_PARTIAL_CONTENT)
+
+        payment_mode = cld['payment_mode']
+        if cld['payment_status'] or payment_mode == 1:
+            # 更新支付状态或支付模式为现金支付
+            return Response(serializer.data, status=status.HTTP_206_PARTIAL_CONTENT)
+        else:
+            if payment_mode == 2:     # 微信支付
+                _wxPay = WXPay(obj)
+                result = _wxPay.native()
+                if isinstance(result, Exception):
+                    return Response(result.args, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'code_url': result},
+                                status=status.HTTP_206_PARTIAL_CONTENT)
+            else:     # 支付宝支付
+                return Response({}, status=status.HTTP_206_PARTIAL_CONTENT)
 
 
 class OrdersDetail(generics.GenericAPIView):

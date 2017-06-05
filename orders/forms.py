@@ -20,7 +20,8 @@ class OrdersListForm(forms.Form):
 
 class OrdersUpdateForm(forms.Form):
     orders_id = forms.CharField(max_length=50)
-    payment_status = forms.CharField(max_length=50)
+    payment_status = forms.IntegerField(min_value=200, required=False)
+    payment_mode = forms.IntegerField(min_value=1, max_value=3)
 
 
 class SaleListForm(forms.Form):

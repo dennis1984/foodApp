@@ -9,6 +9,9 @@ urlpatterns = [
     url(r'^orders_action/$', orders_view.OrdersAction.as_view(), name='orders_action'),
     url(r'^orders_list/$', orders_view.OrdersList.as_view(), name='orders_list'),
 
+    # url(r'^payment_mode_action/$', orders_view.OrdersAction.as_view(), name='payment_mode'),
+    # url(r'^payment_finish_action/$', orders_view.OrdersAction.as_view(), name='payment_finish'),
+
     url(r'^sale_list/$', orders_view.SaleList.as_view(), name='sale_list'),
 ]
 

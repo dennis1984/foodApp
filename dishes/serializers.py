@@ -41,7 +41,7 @@ class DishesSerializer(serializers.ModelSerializer):
         if serializer.get('user_id', None):
             serializer['updated'] = timezoneStringTostring(serializer['updated'])
             serializer['created'] = timezoneStringTostring(serializer['created'])
-            serializer['image_url'] = os.path.join(settings.DOMAIN_NAME, serializer['image'])
+            serializer['image_url'] = os.path.join(settings.WEB_URL_FIX, serializer['image'])
         return serializer
 
 
