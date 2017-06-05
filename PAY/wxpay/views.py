@@ -62,24 +62,24 @@ class NativeCallback(APIView):
                                                    'return_msg': 'SIGN INCORRECT'}),
                             status=status.HTTP_200_OK)
 
+        return_xml = main.make_dict_to_xml(return_msg, use_cdata=True)
         if data_dict['result_code'] == 'SUCCESS':
             try:
-                Orders.update_payment_status_by_pay_callback(orders_id=self._orders_id,
-                                                             validated_data=update_data)
+                Orders.update_payment_status_by_pay_callback(
+                    orders_id=self._orders_id,
+                    validated_data=update_data)
             except:
-                pass
+                return Response(return_xml, status=status.HTTP_200_OK)
         else:
             try:
-                Orders.update_payment_status_by_pay_callback(orders_id=self._orders_id,
-                                                             validated_data={'payment_status': 500,
-                                                                             'payment_code': 2})
+                Orders.update_payment_status_by_pay_callback(
+                    orders_id=self._orders_id,
+                    validated_data={'payment_status': 500,
+                                    'payment_code': 2})
             except:
-                pass
+                return Response(return_xml, status=status.HTTP_200_OK)
         serializer = NativeResponseSerializer(self._wx_instance)
-        try:
-            serializer.update(self._wx_instance, data_dict)
-        except:
-            pass
+        serializer.update_wxpay_result(self._wx_instance, data_dict)
         return Response(main.make_dict_to_xml(return_msg, use_cdata=True),
                         status=status.HTTP_200_OK)
 

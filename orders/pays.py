@@ -1,6 +1,7 @@
 # -*- coding: utf8 -*-
 from PAY.wxpay import native, serializers
 from orders.models import Orders
+from users.models import BusinessUser
 from horizon import main
 from django.conf import settings
 import os
@@ -15,7 +16,9 @@ class WXPay(object):
         self.orders_id = instance.orders_id
         self.total_fee = int(Decimal(instance.payable) * 100)
         self.kwargs = {'detail': instance.dishes_ids_json_detail}
-        self.body = u'吟食支付'
+
+        user_info = self.get_user_info(instance.user_id)
+        self.body = u'%s-%s' % (user_info.business_name, instance.orders_id)
 
     def native(self):
         """
@@ -43,3 +46,7 @@ class WXPay(object):
         return os.path.join(settings.WEB_URL_FIX,
                             'static',
                             qrcode_path.split('/static/', 1)[1])
+
+    def get_user_info(self, user_id):
+        return BusinessUser.get_object(pk=user_id)
+

@@ -25,6 +25,9 @@ class NativeResponseSerializer(serializers.ModelSerializer):
         """
         微信回调信息写入数据库
         """
-        return super(NativeResponseSerializer, self).update(instance, validated_data)
+        try:
+            return super(NativeResponseSerializer, self).update(instance, validated_data)
+        except Exception as e:
+            return e
 
 
