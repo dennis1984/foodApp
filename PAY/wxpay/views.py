@@ -80,7 +80,8 @@ class NativeCallback(APIView):
             serializer.update(self._wx_instance, data_dict)
         except:
             pass
-        return Response(main.make_dict_to_xml(return_msg), status=status.HTTP_200_OK)
+        return Response(main.make_dict_to_xml(return_msg, use_cdata=True),
+                        status=status.HTTP_200_OK)
 
     def is_sign_valid(self, request_data):
         """
