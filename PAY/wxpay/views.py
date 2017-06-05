@@ -90,20 +90,12 @@ class NativeCallback(APIView):
             return False
 
         param_dict = json.loads(instance.request_data)
-        callback_dict = {}
-        for key in WXPAY_REQUEST_DATA:
-            if key not in request_data:
-                return False
-        for key in request_data:
-            if key in param_dict:
-                callback_dict[key] = request_data[key]
-        sign = param_dict.pop('sign')
+        if request_data['total_fee'] != param_dict['total_fee']:
+            return False
+        sign = request_data.pop('sign')
 
-        for key in param_dict:
-            if key not in callback_dict:
-                callback_dict[key] = param_dict[key]
-        callback_sign = main.make_sign_for_wxpay(callback_dict)
-        if callback_sign == sign:
+        _sign = main.make_sign_for_wxpay(request_data)
+        if _sign == sign:
             return True
         else:
             return False
