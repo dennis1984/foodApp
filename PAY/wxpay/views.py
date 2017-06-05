@@ -35,6 +35,11 @@ class NativeCallback(APIView):
     authentication_classes = api_settings.PAY_CALLBACK_AUTHENTICATION_CLASSES
     permission_classes = api_settings.PAY_CALLBACK_PERMISSION_CLASSES
 
+    def __init__(self, **kwargs):
+        self._orders_id = None
+        self._wx_instance = None
+        super(NativeCallback, self).__init__(**kwargs)
+
     def post(self, request, *args, **kwargs):
         """
         微信支付回调请求
@@ -59,22 +64,20 @@ class NativeCallback(APIView):
 
         if data_dict['result_code'] == 'SUCCESS':
             try:
-                Orders.update_payment_status_by_pay_callback(orders_id='',
+                Orders.update_payment_status_by_pay_callback(orders_id=self._orders_id,
                                                              validated_data=update_data)
             except:
                 pass
         else:
             try:
-                Orders.update_payment_status_by_pay_callback(orders_id='',
+                Orders.update_payment_status_by_pay_callback(orders_id=self._orders_id,
                                                              validated_data={'payment_status': 500,
                                                                              'payment_code': 2})
             except:
                 pass
-        orders_id = data_dict['out_trade_no']
-        instance = WXPayResult.get_object_by_orders_id(orders_id)
-        serializer = NativeResponseSerializer(instance)
+        serializer = NativeResponseSerializer(self._wx_instance)
         try:
-            serializer.update(instance, data_dict)
+            serializer.update(self._wx_instance, data_dict)
         except:
             pass
         return Response(main.make_dict_to_xml(return_msg), status=status.HTTP_200_OK)
@@ -89,8 +92,13 @@ class NativeCallback(APIView):
         if isinstance(instance, Exception):
             return False
 
+        if not self._orders_id:
+            self._orders_id = orders_id
+        if not self._wx_instance:
+            self._wx_instance = instance
+
         param_dict = json.loads(instance.request_data)
-        if request_data['total_fee'] != param_dict['total_fee']:
+        if int(request_data['total_fee']) != int(param_dict['total_fee']):
             return False
         sign = request_data.pop('sign')
 
