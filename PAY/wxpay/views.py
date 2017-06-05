@@ -91,9 +91,10 @@ class NativeCallback(APIView):
 
         param_dict = json.loads(instance.request_data)
         callback_dict = {}
-        for key in request_data:
-            if key not in WXPAY_REQUEST_DATA:
+        for key in WXPAY_REQUEST_DATA:
+            if key not in request_data:
                 return False
+        for key in request_data:
             if key in param_dict:
                 callback_dict[key] = request_data[key]
         sign = param_dict.pop('sign')
