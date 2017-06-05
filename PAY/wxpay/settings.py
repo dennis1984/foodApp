@@ -13,7 +13,7 @@ APPID = 'wx55da5a50194f8c73'
 MCH_ID = '1448533802'
 
 # 回调地址
-NOTIFY_URL = os.path.join(settings.WEB_URL_FIX, 'wxpay/native_callback')
+NOTIFY_URL = os.path.join(settings.WEB_URL_FIX, 'wxpay/native_callback/')
 # NOTIFY_URL = reverse('WXPay:native_callback',
 #                      current_app=self.request.resolver_match.namespace)
 
