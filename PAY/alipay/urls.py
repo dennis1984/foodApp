@@ -1,10 +1,10 @@
 # -*- coding:utf8 -*-
 from django.conf.urls import url, include
 from rest_framework.urlpatterns import format_suffix_patterns
-from dishes import views as dishes_view
+from PAY.alipay import views
 
 urlpatterns = [
-    url(r'^dishes_action/$', dishes_view.DishesAction.as_view()),
+    url(r'^precreate_callback/$', views.PreCreateCallback.as_view(), name='precreate_callback'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

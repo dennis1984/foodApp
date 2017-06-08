@@ -1,10 +1,6 @@
 #-*- coding:utf8 -*-
 from PAY.wxpay.models import WXPayResult
 from rest_framework import serializers
-from django.core.paginator import Paginator
-from django.conf import settings
-from horizon.serializers import BaseListSerializer, timezoneStringTostring
-import datetime, os
 
 
 class NativeRequestSerializer(serializers.ModelSerializer):

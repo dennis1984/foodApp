@@ -12,7 +12,7 @@ from orders.serializers import OrdersSerializer, OrdersListSerializer, \
     SaleListSerializer, DishesIdsDetailSerializer
 from orders.permissoins import IsOwnerOrReadOnly
 
-from orders.pays import WXPay
+from orders.pays import WXPay, AliPay
 
 
 class OrdersAction(generics.GenericAPIView):
@@ -74,10 +74,13 @@ class OrdersAction(generics.GenericAPIView):
             return Response({'Error': e.args}, status=status.HTTP_400_BAD_REQUEST)
 
         payment_mode = cld['payment_mode']
-        if cld['payment_status'] or payment_mode == 1:
-            # 更新支付状态或支付模式为现金支付
+        if cld['payment_status']:
+            # 更新支付状态为现金支付
             return Response(serializer.data, status=status.HTTP_206_PARTIAL_CONTENT)
         else:
+            if payment_mode == 1:     # 现金支付
+                return Response({'code_url': ''},
+                                status=status.HTTP_206_PARTIAL_CONTENT)
             if payment_mode == 2:     # 微信支付
                 _wxPay = WXPay(obj)
                 result = _wxPay.native()
@@ -86,7 +89,12 @@ class OrdersAction(generics.GenericAPIView):
                 return Response({'code_url': result},
                                 status=status.HTTP_206_PARTIAL_CONTENT)
             else:     # 支付宝支付
-                return Response({}, status=status.HTTP_206_PARTIAL_CONTENT)
+                _alipay = AliPay(obj)
+                result = _alipay.pre_create()
+                if isinstance(result, Exception):
+                    return Response(result.args, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'code_url': result},
+                                status=status.HTTP_206_PARTIAL_CONTENT)
 
 
 class OrdersDetail(generics.GenericAPIView):

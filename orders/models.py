@@ -78,6 +78,11 @@ class Orders(models.Model):
     @property
     def dishes_ids_json_detail(self):
         import json
+        results = self.dishes_ids_detail
+        return json.dumps(results)
+
+    @property
+    def dishes_ids_detail(self):
         results = []
         instance_list = json.loads(self.dishes_ids)
         for _instance in instance_list:
@@ -89,7 +94,7 @@ class Orders(models.Model):
                          'title': _instance['title'],
                          'user_id': _instance['user_id']}
             results.append(_ins_dict)
-        return json.dumps(results)
+        return results
 
     @classmethod
     def get_object(cls, *args, **kwargs):

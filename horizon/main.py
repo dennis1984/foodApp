@@ -1,12 +1,19 @@
 #-*- coding:utf8 -*-
-from django.conf import settings
 from PAY.wxpay import settings as wx_settings
+from PAY.alipay import settings as ali_settings
+from django.conf import settings
 from lxml import etree
 import datetime
 import qrcode
+import json
 import os
 import uuid
 from hashlib import md5
+import base64
+
+from Crypto.PublicKey import RSA
+from Crypto.Signature import PKCS1_v1_5
+from Crypto.Hash import SHA256
 
 
 def timezoneStringTostring(timezone_string):
@@ -94,16 +101,42 @@ def make_sign_for_wxpay(source_dict):
     """
     key_list = []
     for _key in source_dict:
+        if not source_dict[_key] or _key == 'sign':
+            continue
         key_list.append({'key': _key, 'value': source_dict[_key]})
     key_list.sort(key=lambda x: x['key'])
 
     string_param = ''
     for item in key_list:
         string_param += '%s=%s&' % (item['key'], item['value'])
-        # 把密钥和其它参数组合起来
+    # 把密钥和其它参数组合起来
     string_param += 'key=%s' % wx_settings.KEY
     md5_string = md5(string_param.encode('utf8')).hexdigest()
     return md5_string.upper()
 
 
+def verify_sign_for_alipay(json_params, source_sign):
+    """
+    支付宝支付验证签名（公钥验证签名）
+    """
+    # params_list = []
+    # for key, value in source_dict.items():
+    #     if not value or key == 'sign':
+    #         continue
+    #     params_list.append({'key': key, 'value': value})
+    # params_list.sort(key=lambda x: x['key'])
+    # params_str = ''
+    # for item in params_list:
+    #     params_str += '%s=%s&' % (item['key'], item['value'])
+    # else:
+    #     params_str = params_str[:-1]
 
+    params_str = json_params.split(':', 1)[1]
+    params_str = params_str.split('}', 1)[0]
+    params_str = '%s}' % params_str
+
+    pub_key = RSA.importKey(open(ali_settings.ALI_PUBLIC_KEY_FILE_PATH))
+    source_sign = base64.b64decode(source_sign)
+    _sign = SHA256.new(params_str)
+    verifer = PKCS1_v1_5.new(pub_key)
+    return verifer.verify(_sign, source_sign)

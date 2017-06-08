@@ -46,42 +46,40 @@ class NativeCallback(APIView):
         :param request:
         :return:
         """
-        return_msg = {'return_code': 'SUCCESS',
-                      'return_msg': 'OK'}
-        update_data = {'payment_status': 200,
-                       'payment_mode': 2}
+        success_message = {'return_code': 'SUCCESS',
+                           'return_msg': 'OK'}
+        fail_message = {'return_code': 'FAIL',
+                        'return_msg': 'SIGN INCORRECT'}
+        success_data = {'payment_status': 200,
+                        'payment_mode': 2}
+        fail_data = {'payment_status': 500,
+                     'payment_code': 2}
 
         data_dict = main.anaysize_xml_to_dict(request.body)
         # 微信支付时返回通讯失败
         if data_dict['return_code'] == 'FAIL':
-            return Response(main.make_dict_to_xml({'return_code': 'FAIL',
-                                                   'return_msg': 'ERROR'}),
-                            status=status.HTTP_200_OK)
+            return Response(main.make_dict_to_xml(fail_message), status=status.HTTP_200_OK)
         if not self.is_sign_valid(data_dict):
-            return Response(main.make_dict_to_xml({'return_code': 'FAIL',
-                                                   'return_msg': 'SIGN INCORRECT'}),
-                            status=status.HTTP_200_OK)
+            return Response(main.make_dict_to_xml(fail_message), status=status.HTTP_200_OK)
 
-        return_xml = main.make_dict_to_xml(return_msg, use_cdata=True)
+        return_xml = main.make_dict_to_xml(success_message, use_cdata=True)
         if data_dict['result_code'] == 'SUCCESS':
             try:
                 Orders.update_payment_status_by_pay_callback(
                     orders_id=self._orders_id,
-                    validated_data=update_data)
+                    validated_data=success_data)
             except:
                 return Response(return_xml, status=status.HTTP_200_OK)
         else:
             try:
                 Orders.update_payment_status_by_pay_callback(
                     orders_id=self._orders_id,
-                    validated_data={'payment_status': 500,
-                                    'payment_code': 2})
+                    validated_data=fail_data)
             except:
                 return Response(return_xml, status=status.HTTP_200_OK)
         serializer = NativeResponseSerializer(self._wx_instance)
         serializer.update_wxpay_result(self._wx_instance, data_dict)
-        return Response(main.make_dict_to_xml(return_msg, use_cdata=True),
-                        status=status.HTTP_200_OK)
+        return Response(return_xml, status=status.HTTP_200_OK)
 
     def is_sign_valid(self, request_data):
         """

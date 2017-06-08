@@ -16,6 +16,7 @@ django-oauth-toolkit>=0.12.0
 uwsgi
 lxml>=3.7.0
 qrcode
+pycrypto>=2.6.0
 
 # 管理uwsgi进程
 supervisor
