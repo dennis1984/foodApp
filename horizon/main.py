@@ -119,18 +119,6 @@ def verify_sign_for_alipay(json_params, source_sign):
     """
     支付宝支付验证签名（公钥验证签名）
     """
-    # params_list = []
-    # for key, value in source_dict.items():
-    #     if not value or key == 'sign':
-    #         continue
-    #     params_list.append({'key': key, 'value': value})
-    # params_list.sort(key=lambda x: x['key'])
-    # params_str = ''
-    # for item in params_list:
-    #     params_str += '%s=%s&' % (item['key'], item['value'])
-    # else:
-    #     params_str = params_str[:-1]
-
     params_str = json_params.split(':', 1)[1]
     params_str = params_str.split('}', 1)[0]
     params_str = '%s}' % params_str
@@ -140,3 +128,21 @@ def verify_sign_for_alipay(json_params, source_sign):
     _sign = SHA256.new(params_str)
     verifer = PKCS1_v1_5.new(pub_key)
     return verifer.verify(_sign, source_sign)
+
+
+def make_dict_to_verify_string(params_dict):
+    """
+    将参数字典转换成待签名的字符串
+    """
+    params_list = []
+    for key, value in params_dict.items():
+        if not value or key == 'sign':
+            continue
+        params_list.append({'key': key, 'value': value})
+    params_list.sort(key=lambda x: x['key'])
+    params_str = ''
+    for item in params_list:
+        params_str += '%s=%s&' % (item['key'], item['value'])
+    else:
+        params_str = params_str[:-1]
+    return params_str

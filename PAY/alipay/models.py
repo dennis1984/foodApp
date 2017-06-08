@@ -12,15 +12,16 @@ class AliPayResult(models.Model):
     orders_id = models.CharField('订单ID', max_length=32, db_index=True, unique=True)
 
     trade_status = models.CharField('交易状态', max_length=32, null=True)
-    subject = models.CharField('订单主题', max_length=256, null=True)
-    body = models.CharField('商品描述', max_length=128, null=True)
-    trade_no = models.CharField('支付宝交易号', max_length=128, null=True)
     app_id = models.CharField('支付宝分配给开发者的应用Id', max_length=32, null=True)
+    subject = models.CharField('订单主题', max_length=256, null=True)
+    trade_no = models.CharField('支付宝交易号', max_length=128, null=True)
     out_trade_no = models.CharField('商户订单号', max_length=32, null=True)
     total_amount = models.CharField('订单金额', max_length=16, null=True)
     receipt_amount = models.CharField('商家在交易中实际收到的款项（单位为元）', max_length=16, null=True)
 
     out_biz_no = models.CharField('商户业务号', max_length=32, null=True)
+    body = models.CharField('商品描述', max_length=128, null=True)
+
     open_id = models.CharField('买家支付宝用户号', max_length=32, null=True)
     buyer_logon_id = models.CharField('买家支付宝账号', max_length=32, null=True)
     buyer_id = models.CharField('买家的支付宝用户Uid', max_length=32, null=True)
@@ -53,6 +54,6 @@ class AliPayResult(models.Model):
     def get_object_by_orders_id(cls, orders_id):
         try:
             return cls.objects.get(orders_id=orders_id)
-        except cls.DoesNotExist:
-            return cls.DoesNotExist
+        except cls.DoesNotExist as e:
+            return Exception(e)
 

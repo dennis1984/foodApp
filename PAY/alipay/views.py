@@ -7,6 +7,7 @@ from horizon import main
 from PAY.alipay.models import AliPayResult
 from PAY.alipay.serializers import PreCreateResponseSerializer
 from PAY.wxpay.views import api_settings
+from PAY.alipay.forms import PreCreateCallbackForm
 from orders.models import Orders
 from decimal import Decimal
 import json
@@ -22,7 +23,7 @@ class PreCreateCallback(APIView):
         self._ali_instance = None
         super(PreCreateCallback, self).__init__(**kwargs)
 
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         """
         支付宝支付回调请求
         :param request:
@@ -37,12 +38,15 @@ class PreCreateCallback(APIView):
         fail_data = {'payment_status': 500,
                      'payment_code': 3}
 
-        _request_data = request.data
-        self.request_data = _request_data
+        form = PreCreateCallbackForm(request.data)
+        if not form.is_valid():
+            return Response(fail_message, status=status.HTTP_200_OK)
+
+        self.request_data = _request_data = form.cleaned_data
         if not self.is_sign_valid():
             return Response(fail_message, status=status.HTTP_200_OK)
 
-        if _request_data['trade_status'] == 'SUCCESS':
+        if _request_data['trade_status'] == 'TRADE_SUCCESS':
             try:
                 Orders.update_payment_status_by_pay_callback(
                     orders_id=self._orders_id,
@@ -81,9 +85,7 @@ class PreCreateCallback(APIView):
                 Decimal(param_dict['receipt_amount ']):
             return False
         sign = self.request_data.pop('sign')
+        self.request_data.pop('sign_type')
+        params_str = main.make_dict_to_verify_string(self.request_data)
 
-        _sign = main.verify_sign_for_alipay(self.request_data, '')
-        if _sign == sign:
-            return True
-        else:
-            return False
+        return main.verify_sign_for_alipay(params_str, sign)

@@ -39,6 +39,6 @@ class WXPayResult(models.Model):
     def get_object_by_orders_id(cls, orders_id):
         try:
             return cls.objects.get(orders_id=orders_id)
-        except cls.DoesNotExist:
-            return cls.DoesNotExist
+        except cls.DoesNotExist as e:
+            return Exception(e)
 
