@@ -123,7 +123,10 @@ class AliPay(object):
         """
         验证支付宝返回结果的有效性
         """
-        is_valid = main.verify_sign_for_alipay(json_params, source_sign=_sign)
+        params_str = json_params.split(':', 1)[1]
+        params_str = params_str.split('}', 1)[0]
+        params_str = '%s}' % params_str
+        is_valid = main.verify_sign_for_alipay(params_str, source_sign=_sign)
 
         if is_valid:
             return True

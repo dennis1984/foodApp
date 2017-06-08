@@ -80,9 +80,10 @@ class PreCreateCallback(APIView):
             self._ali_instance = instance
 
         param_dict = json.loads(instance.request_data)
-        if Decimal(self.request_data['total_amount ']) != \
-                Decimal(param_dict['total_amount']) != \
-                Decimal(param_dict['receipt_amount ']):
+        biz_content = json.loads(param_dict['biz_content'])
+        if Decimal(str(biz_content['total_amount'])) != \
+                Decimal(self.request_data['total_amount']) != \
+                Decimal(self.request_data['receipt_amount ']):
             return False
         sign = self.request_data.pop('sign')
         self.request_data.pop('sign_type')

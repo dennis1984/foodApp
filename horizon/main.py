@@ -115,14 +115,10 @@ def make_sign_for_wxpay(source_dict):
     return md5_string.upper()
 
 
-def verify_sign_for_alipay(json_params, source_sign):
+def verify_sign_for_alipay(params_str, source_sign):
     """
     支付宝支付验证签名（公钥验证签名）
     """
-    params_str = json_params.split(':', 1)[1]
-    params_str = params_str.split('}', 1)[0]
-    params_str = '%s}' % params_str
-
     pub_key = RSA.importKey(open(ali_settings.ALI_PUBLIC_KEY_FILE_PATH))
     source_sign = base64.b64decode(source_sign)
     _sign = SHA256.new(params_str)
