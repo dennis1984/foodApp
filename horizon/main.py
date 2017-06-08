@@ -138,7 +138,7 @@ def make_dict_to_verify_string(params_dict):
     params_list.sort(key=lambda x: x['key'])
     params_str = ''
     for item in params_list:
-        params_str += '%s=%s&' % (item['key'], item['value'])
+        params_str += '%s=%s&' % (item['key'], (item['value']).encode('utf8'))
     else:
         params_str = params_str[:-1]
     return params_str
