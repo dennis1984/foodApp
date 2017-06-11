@@ -190,3 +190,11 @@ PICTURE_DIRS = {
     'qrcode': os.path.join(PICTURE_ROOT, 'qrcode'),               # 二维码图片目录
 }
 
+# 缓存服务器配置
+REDIS_SETTINGS = {
+    'host': '121.42.249.43',
+    'port': 6379,
+    'db_set': {
+        'default': 0,
+    }
+}

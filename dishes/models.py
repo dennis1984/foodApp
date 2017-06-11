@@ -24,8 +24,8 @@ class Dishes(models.Model):
     description = models.TextField('菜品描述', default='')
     size = models.IntegerField('菜品规格', default=10)         # 默认：10，小份：11，中份：12，大份：13
     price = models.CharField('价格', max_length=50, null=False)
-    image = models.ImageField('菜品图片', upload_to='static/picture/',
-                              default='static/picture/noImage.png', null=True)
+    image = models.ImageField('菜品图片', upload_to='static/picture/dishes/',
+                              default='static/picture/dishes/noImage.png', null=True)
     user_id = models.IntegerField('创建者ID', null=False)
     created = models.DateTimeField('创建时间', default=now)
     updated = models.DateTimeField('最后修改时间', auto_now=True)

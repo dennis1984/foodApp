@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
-from django import forms
+# from django import forms
 from django.conf import settings
+from horizon import forms
 
 
 class DishesInputForm(forms.Form):
@@ -14,7 +15,7 @@ class DishesInputForm(forms.Form):
 
 
 class DishesUpdateForm(forms.Form):
-    # title = forms.CharField(max_length=200, required=False)
+    title = forms.CharField(max_length=200, required=False)
     pk = forms.IntegerField(min_value=1)
     subtitle = forms.CharField(max_length=200, required=False)
     description = forms.CharField(max_length=500, required=False)
@@ -31,7 +32,7 @@ class DishesDeleteForm(forms.Form):
 
 class DishesListForm(forms.Form):
     user_id = forms.IntegerField(required=False)
-    page_size = forms.IntegerField(min_value=1, required=False)
+    page_size = forms.IntegerField(min_value=1, max_value=settings.MAX_PAGE_SIZE, required=False)
     page_index = forms.IntegerField(min_value=1, required=False)
 
 

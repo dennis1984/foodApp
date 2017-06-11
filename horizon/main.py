@@ -2,6 +2,7 @@
 from PAY.wxpay import settings as wx_settings
 from PAY.alipay import settings as ali_settings
 from django.conf import settings
+from django.utils.timezone import now
 from lxml import etree
 import datetime
 import qrcode
@@ -14,6 +15,11 @@ import base64
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA256
+
+
+class TimeDelta(object):
+    def minutes_30_plus(self):
+        return now() + datetime.timedelta(minutes=30)
 
 
 def timezoneStringTostring(timezone_string):

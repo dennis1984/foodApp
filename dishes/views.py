@@ -8,12 +8,19 @@ from rest_framework import generics
 from rest_framework import permissions
 
 from dishes.models import Dishes, FoodCourt
-from dishes.serializers import DishesSerializer, FoodCourtSerializer, \
-    DishesListSerializer, FoodCourtListSerializer
-from dishes.forms import DishesInputForm, DishesGetForm, FoodCourtListForm, \
-    FoodCourtGetForm, DishesUpdateForm, DishesDeleteForm, DishesListForm
+from dishes.serializers import (DishesSerializer,
+                                FoodCourtSerializer,
+                                DishesListSerializer,
+                                FoodCourtListSerializer)
+from dishes.forms import (DishesGetForm,
+                          FoodCourtListForm,
+                          FoodCourtGetForm,
+                          DishesUpdateForm,
+                          DishesDeleteForm,
+                          DishesListForm)
 from dishes.permissions import IsOwnerOrReadOnly
 from users.permissions import IsAdminOrReadOnly
+from dishes.caches import DishesCache
 
 
 class DishesAction(mixins.CreateModelMixin, generics.GenericAPIView):
@@ -69,10 +76,6 @@ class DishesAction(mixins.CreateModelMixin, generics.GenericAPIView):
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
-        for key in cld.keys():
-            if cld[key] is None:
-                cld.pop(key)
-
         obj = Dishes.get_object(**{'pk': cld['pk']})
         cld.pop('pk')
         if isinstance(obj, Exception):
@@ -127,10 +130,6 @@ class DishesDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
-        for key in cld.keys():
-            if not cld[key]:
-                cld.pop(key)
-
         if not cld:
             return Response(cld, status=status.HTTP_200_OK)
 
@@ -153,7 +152,8 @@ class DishesList(generics.GenericAPIView):
     permission_classes = (IsOwnerOrReadOnly, )
 
     def get_object_list(self, request, **kwargs):
-        return Dishes.get_object_list(request, **kwargs)
+        dishes_cache = DishesCache()
+        return dishes_cache.get_dishes_list(request, **kwargs)
 
     def post(self, request, *args, **kwargs):
         """
@@ -171,10 +171,6 @@ class DishesList(generics.GenericAPIView):
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
-        for key in cld.keys():
-            if not cld[key]:
-                cld.pop(key)
-
         object_data = self.get_object_list(request, **cld)
         if isinstance(object_data, Exception):
             return Response({'detail': object_data.args}, status=status.HTTP_400_BAD_REQUEST)
@@ -237,9 +233,6 @@ class FoodCourtList(generics.GenericAPIView):
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
-        for key in cld.keys():
-            if not cld[key]:
-                cld.pop(key)
         try:
             filter_list = self.get_object_list(**cld)
         except Exception as e:
@@ -272,9 +265,6 @@ class FoodCourtDetail(generics.GenericAPIView):
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
-        for key in cld.keys():
-            if not cld[key]:
-                cld.pop(key)
         try:
             obj = self.get_object_detail(**cld)
         except Exception as e:

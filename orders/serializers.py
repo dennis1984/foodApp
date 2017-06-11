@@ -2,6 +2,7 @@
 from orders.models import Orders
 from rest_framework import serializers
 from horizon.serializers import BaseListSerializer, timezoneStringTostring
+from django.utils.timezone import now
 
 
 class OrdersSerializer(serializers.ModelSerializer):
@@ -13,7 +14,7 @@ class OrdersSerializer(serializers.ModelSerializer):
 
     def update_orders_status(self, instance, validated_data):
         if instance.payment_status != 0:
-            raise Exception('Cannot perform this action!')
+            raise Exception('The orders already paid or expired!')
         if validated_data['payment_mode'] not in [1, 2, 3]:
             raise ValueError('Payment mode must be within [1, 2, 3]')
 

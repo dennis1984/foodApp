@@ -6,11 +6,27 @@ from django.utils.timezone import now
 from dishes.models import Dishes, FoodCourt
 from users.models import BusinessUser
 from horizon.models import model_to_dict
+from horizon.main import TimeDelta
 from django.db import transaction
 from decimal import Decimal
 
 import json
 import datetime
+
+
+class OrdersManager(models.Manager):
+    def get(self, *args, **kwargs):
+        object_data = super(OrdersManager, self).get(*args, **kwargs)
+        if now() >= object_data.expires and object_data.payment_status == 0:
+            object_data.payment_status = 400
+        return object_data
+
+    def filter(self, *args, **kwargs):
+        object_data = super(OrdersManager, self).filter(*args, **kwargs)
+        for item in object_data:
+            if now() >= item.expires and item.payment_status == 0:
+                item.payment_status = 400
+        return object_data
 
 
 class Orders(models.Model):
@@ -31,13 +47,18 @@ class Orders(models.Model):
 
     created = models.DateTimeField('创建时间', default=now)
     updated = models.DateTimeField('最后修改时间', auto_now=True)
+    expires = models.DateTimeField('订单过期时间', default=TimeDelta().minutes_30_plus)
     extend = models.TextField('扩展信息', default='', blank=True)
+
+    objects = OrdersManager()
 
     class Meta:
         db_table = 'ys_orders'
+        ordering = ['-orders_id']
 
     def __unicode__(self):
         return self.orders_id
+
 
     @classmethod
     def get_dishes_by_id(cls, pk):

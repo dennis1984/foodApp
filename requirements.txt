@@ -17,6 +17,7 @@ uwsgi
 lxml>=3.7.0
 qrcode
 pycrypto>=2.6.0
+redis>=2.10.5
 
 # 管理uwsgi进程
 supervisor

@@ -5,13 +5,16 @@ from rest_framework.response import Response
 
 from rest_framework import generics
 from django.utils.six import BytesIO
-from orders.forms import OrdersInputForm, OrdersGetForm, OrdersUpdateForm,\
-    OrdersListForm, SaleListForm
+from orders.forms import (OrdersInputForm,
+                          OrdersGetForm,
+                          OrdersUpdateForm,
+                          OrdersListForm,
+                          SaleListForm)
 from orders.models import Orders, get_sale_list
-from orders.serializers import OrdersSerializer, OrdersListSerializer, \
-    SaleListSerializer, DishesIdsDetailSerializer
+from orders.serializers import (OrdersSerializer,
+                                OrdersListSerializer,
+                                SaleListSerializer)
 from orders.permissoins import IsOwnerOrReadOnly
-
 from orders.pays import WXPay, AliPay
 
 
@@ -74,7 +77,7 @@ class OrdersAction(generics.GenericAPIView):
             return Response({'Error': e.args}, status=status.HTTP_400_BAD_REQUEST)
 
         payment_mode = cld['payment_mode']
-        if cld['payment_status']:
+        if cld.get('payment_status'):
             # 更新支付状态为现金支付
             return Response(serializer.data, status=status.HTTP_206_PARTIAL_CONTENT)
         else:
@@ -120,10 +123,6 @@ class OrdersDetail(generics.GenericAPIView):
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
-        for key in cld.keys():
-            if not cld[key]:
-                cld.pop(key)
-
         object_data = Orders.get_object_by_orders_id(**cld)
         if isinstance(object_data, Exception):
             return Response({'Error': object_data.args}, status=status.HTTP_400_BAD_REQUEST)
@@ -152,10 +151,6 @@ class OrdersList(generics.GenericAPIView):
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
-        for key in cld.keys():
-            if not cld[key]:
-                cld.pop(key)
-
         object_data = self.get_objects_list(request, **cld)
         if isinstance(object_data, Exception):
             return Response({'Error': object_data.args}, status=status.HTTP_400_BAD_REQUEST)
@@ -181,10 +176,6 @@ class SaleList(generics.GenericAPIView):
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
-        for key in cld.keys():
-            if not cld[key]:
-                cld.pop(key)
-
         object_data = self.get_objects_list(request, **cld)
         if isinstance(object_data, Exception):
             return Response({'Error': object_data.args}, status=status.HTTP_400_BAD_REQUEST)

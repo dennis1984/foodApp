@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
-from django import forms
+# from django import forms
+from horizon import forms
 
 
 class OrdersInputForm(forms.Form):
@@ -29,5 +30,5 @@ class SaleListForm(forms.Form):
     start_created = forms.DateField(required=False)
     end_created = forms.DateField(required=False)
     payment_mode = forms.IntegerField(required=False, min_value=1, max_value=3)
-    page_size = forms.IntegerField(required=False)
-    page_index = forms.IntegerField(required=False)
+    page_size = forms.IntegerField(min_value=1, required=False)
+    page_index = forms.IntegerField(min_value=1, required=False)

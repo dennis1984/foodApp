@@ -32,3 +32,6 @@ sudo apt-get install libxml2 libxml2-dev
 sudo apt-get install libxslt-dev
 sudo apt-get install python-libxml2
 
+# 安装redis server
+sudo apt-get install redis-server
+
