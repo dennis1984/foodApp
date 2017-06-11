@@ -47,6 +47,10 @@ class DishesCache(object):
     def get_dishes_list_key(self, request):
         return 'dishes_list_key:%s' % request.user.id
 
+    def delete_dishes_list(self, request):
+        key = self.get_dishes_list_key(request)
+        self.handle.delete(key)
+
     @classmethod
     def get_dishes_list_with_sale(cls, dishes_list, orders_list):
         sale_list = []

@@ -28,8 +28,8 @@ class DishesAction(mixins.CreateModelMixin, generics.GenericAPIView):
     serializer_class = DishesSerializer
     permission_classes = (IsOwnerOrReadOnly, )
 
-    # def get(self, request, *args, **kwargs):
-    #     return self.retrieve(request, *args, **kwargs)
+    # def make_cache_expired(self, request, *args, **kwargs):
+    #     DishesCache().delete_dishes_list(request)
 
     def post(self, request, *args, **kwargs):
         """
@@ -44,14 +44,9 @@ class DishesAction(mixins.CreateModelMixin, generics.GenericAPIView):
                         }
         :return: Dishes object
         """
-        # form = DishesInputForm(request.data)
-        # if not form.is_valid():
-        #     return Response(request.data, status=status.HTTP_400_BAD_REQUEST)
-        #
-        # cld = form.cleaned_data
         serializer = DishesSerializer(_request=request)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(request)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -104,7 +99,7 @@ class DishesAction(mixins.CreateModelMixin, generics.GenericAPIView):
             return Response({'Error': obj.args}, status=status.HTTP_400_BAD_REQUEST)
         serializer = DishesSerializer(obj)
         try:
-            serializer.delete(obj)
+            serializer.delete(request, obj)
         except Exception as e:
             return Response({'Error': e.args}, status=status.HTTP_400_BAD_REQUEST)
 

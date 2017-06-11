@@ -5,6 +5,15 @@ from django.core.paginator import Paginator
 from django.conf import settings
 from horizon.serializers import BaseListSerializer, timezoneStringTostring
 import datetime, os
+from dishes.caches import DishesCache
+
+
+def make_cache_expired(func):
+    def decorator(self, request, *args, **kwargs):
+        result = func(self, request, *args, **kwargs)
+        DishesCache().delete_dishes_list(request)
+        return result
+    return decorator
 
 
 class DishesSerializer(serializers.ModelSerializer):
@@ -29,10 +38,16 @@ class DishesSerializer(serializers.ModelSerializer):
         #           'price', 'image_url', 'user_id', 'extend')
         fields = '__all__'
 
-    def delete(self, obj):
-        validated_data = {'status': 2}
-        super(DishesSerializer, self).update(obj, validated_data)
+    @make_cache_expired
+    def save(self, request, **kwargs):
+        return super(DishesSerializer, self).save(**kwargs)
 
+    @make_cache_expired
+    def delete(self, request, obj):
+        validated_data = {'status': 2}
+        return super(DishesSerializer, self).update(obj, validated_data)
+
+    @make_cache_expired
     def update_dishes(self, request, instance, validated_data):
         """
         权限控制：1. 只有管理员能设置is_recommend字段

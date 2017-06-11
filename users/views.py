@@ -80,10 +80,6 @@ class UserList(generics.GenericAPIView):
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
-        for key in cld.keys():
-            if not cld[key]:
-                cld.pop(key)
-
         _objects = self.get_objects_list(request, **kwargs)
         if isinstance(_objects, Exception):
             return Response({'detail': _objects.args}, status=status.HTTP_400_BAD_REQUEST)
