@@ -17,9 +17,8 @@ from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA256
 
 
-class TimeDelta(object):
-    def minutes_30_plus(self):
-        return now() + datetime.timedelta(minutes=30)
+def minutes_30_plus(self):
+    return now() + datetime.timedelta(minutes=30)
 
 
 def timezoneStringTostring(timezone_string):

@@ -6,7 +6,7 @@ from django.utils.timezone import now
 from dishes.models import Dishes, FoodCourt
 from users.models import BusinessUser
 from horizon.models import model_to_dict
-from horizon.main import TimeDelta
+from horizon.main import minutes_30_plus
 from django.db import transaction
 from decimal import Decimal
 
@@ -47,7 +47,7 @@ class Orders(models.Model):
 
     created = models.DateTimeField('创建时间', default=now)
     updated = models.DateTimeField('最后修改时间', auto_now=True)
-    expires = models.DateTimeField('订单过期时间', default=TimeDelta().minutes_30_plus)
+    expires = models.DateTimeField('订单过期时间', default=minutes_30_plus)
     extend = models.TextField('扩展信息', default='', blank=True)
 
     objects = OrdersManager()
