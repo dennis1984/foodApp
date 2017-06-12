@@ -17,7 +17,7 @@ from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA256
 
 
-def minutes_30_plus(self):
+def minutes_30_plus():
     return now() + datetime.timedelta(minutes=30)
 
 
