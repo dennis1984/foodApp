@@ -16,19 +16,13 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from rest_framework import routers
-from django.contrib import admin
-# admin.autodiscover()
 
-from users import views
-router = routers.DefaultRouter()
-router.register(r'users', views.UserViewSet)
+# from users import views
+# router = routers.DefaultRouter()
+# router.register(r'users', views.UserViewSet)
 
 urlpatterns = [
-    # url(r'^admin/', admin.site.urls),
-
-    #url(r'^', include(router.urls)),
-
-    url(r'^api-auth', include('rest_framework.urls', namespace='rest_framework')),
+    # url(r'^api-auth', include('rest_framework.urls', namespace='rest_framework')),
     # url(r'^api-token-auth/', authtoken_views.obtain_auth_token),
     url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 
