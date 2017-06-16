@@ -181,8 +181,8 @@ DOMAIN_NAME = '121.42.249.43'
 
 WEB_URL_FIX = os.path.join('http://', DOMAIN_NAME)
 
-# 菜品图片目录
-PICTURE_ROOT = os.path.join(STATIC_ROOT, 'picture')
+# 图片目录
+PICTURE_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'static', 'business', 'picture')
 
 PICTURE_DIRS = {
     'dishes': os.path.join(PICTURE_ROOT, 'dishes'),               # 菜品图片目录
@@ -198,3 +198,6 @@ REDIS_SETTINGS = {
         'default': 0,
     }
 }
+
+# 默认文件存储器
+DEFAULT_FILE_STORAGE = 'horizon.storage.YSFileSystemStorage'

@@ -1,4 +1,4 @@
-#-*- coding:utf8 -*-
+# -*- coding:utf8 -*-
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.utils.timezone import now
@@ -6,7 +6,9 @@ from django.contrib.auth.hashers import make_password
 from oauth2_provider.models import AccessToken
 from horizon.models import model_to_dict
 from dishes.models import FoodCourt
+from django.conf import settings
 import datetime
+import os
 
 
 class BusinessUserManager(BaseUserManager):
@@ -40,6 +42,8 @@ class BusinessUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
+USER_PICTURE_DIR = settings.PICTURE_DIRS['head_picture']
+
 
 class BusinessUser(AbstractBaseUser):
     # username = models.CharField(max_length=50, unique=True)
@@ -52,8 +56,9 @@ class BusinessUser(AbstractBaseUser):
     business_name = models.CharField(u'商户名称', max_length=100, default='')
     food_court_id = models.IntegerField(u'所属美食城', default=0)
     phone = models.CharField(u'手机号', max_length=20, unique=True, db_index=True)
-    head_picture = models.ImageField(u'头像', upload_to='static/picture/head_picture/',
-                                     default='static/picture/head_picture/noImage.png', null=True)
+    head_picture = models.ImageField(u'头像',
+                                     upload_to=USER_PICTURE_DIR,
+                                     default=os.path.join(USER_PICTURE_DIR, 'noImage.png'),)
 
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)

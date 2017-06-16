@@ -66,6 +66,12 @@ class DishesSerializer(serializers.ModelSerializer):
             serializer['updated'] = timezoneStringTostring(serializer['updated'])
             serializer['created'] = timezoneStringTostring(serializer['created'])
             serializer['image_url'] = os.path.join(settings.WEB_URL_FIX, serializer['image'])
+            base_dir = serializer['image'].split('static', 1)[1]
+            if base_dir.startswith(os.path.sep):
+                base_dir = base_dir[1:]
+            serializer['image_url'] = os.path.join(settings.WEB_URL_FIX,
+                                                   'static',
+                                                   base_dir)
         return serializer
 
 

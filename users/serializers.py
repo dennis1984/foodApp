@@ -49,7 +49,12 @@ class UserDetailSerializer(serializers.Serializer):
         _data = super(UserDetailSerializer, self).data
         if _data.get('user_id', None):
             _data['last_login'] = timezoneStringTostring(_data['last_login'])
-            _data['head_picture_url'] = os.path.join(settings.WEB_URL_FIX, _data['head_picture'])
+            base_dir = _data['head_picture'].split('static', 1)[1]
+            if base_dir.startswith(os.path.sep):
+                base_dir = base_dir[1:]
+            _data['head_picture_url'] = os.path.join(settings.WEB_URL_FIX,
+                                                     'static',
+                                                     base_dir)
         return _data
 
 
