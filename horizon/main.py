@@ -52,7 +52,7 @@ def make_qrcode(source_data, version=5):
     qr.add_data(source_data)
     qr.make(fit=True)
     fname = "%s.png" % uuid.uuid4()
-    qrcode_dir = settings.PICTURE_DIRS['qrcode']
+    qrcode_dir = settings.PICTURE_DIRS['business']['qrcode']
     fname_path = os.path.join(qrcode_dir, fname)
 
     if not os.path.isdir(qrcode_dir):

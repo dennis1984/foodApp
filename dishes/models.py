@@ -17,7 +17,7 @@ class DishesManager(models.Manager):
         return object_data
 
 
-DISHES_PICTURE_DIR = settings.PICTURE_DIRS['dishes']
+DISHES_PICTURE_DIR = settings.PICTURE_DIRS['business']['dishes']
 
 
 class Dishes(models.Model):

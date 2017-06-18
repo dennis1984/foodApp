@@ -42,7 +42,7 @@ class BusinessUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-USER_PICTURE_DIR = settings.PICTURE_DIRS['head_picture']
+USER_PICTURE_DIR = settings.PICTURE_DIRS['business']['head_picture']
 
 
 class BusinessUser(AbstractBaseUser):

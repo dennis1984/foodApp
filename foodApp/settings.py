@@ -185,9 +185,14 @@ WEB_URL_FIX = os.path.join('http://', DOMAIN_NAME)
 PICTURE_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'static', 'business', 'picture')
 
 PICTURE_DIRS = {
-    'dishes': os.path.join(PICTURE_ROOT, 'dishes'),               # 菜品图片目录
-    'head_picture': os.path.join(PICTURE_ROOT, 'head_picture'),   # 用户头像图片目录
-    'qrcode': os.path.join(PICTURE_ROOT, 'qrcode'),               # 二维码图片目录
+    'consumer': {
+        'head_picture': os.path.join(PICTURE_ROOT, 'head_picture'),   # 用户头像图片目录
+    },
+    'business': {
+        'dishes': os.path.join(PICTURE_ROOT, 'dishes'),               # 菜品图片目录
+        'head_picture': os.path.join(PICTURE_ROOT, 'head_picture'),   # 用户头像图片目录
+        'qrcode': os.path.join(PICTURE_ROOT, 'qrcode'),               # 二维码图片目录
+    }
 }
 
 # 缓存服务器配置
@@ -195,7 +200,8 @@ REDIS_SETTINGS = {
     'host': '121.42.249.43',
     'port': 6379,
     'db_set': {
-        'default': 0,
+        'business': 0,
+        'consumer': 1,
     }
 }
 
