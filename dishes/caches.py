@@ -11,7 +11,6 @@ from dishes.models import Dishes
 from orders.models import Orders
 
 
-
 # 过期时间（单位：秒）
 EXPIRE_SECONDS = 10 * 60 * 60
 
