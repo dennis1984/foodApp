@@ -1,4 +1,4 @@
-#-*- coding:utf8 -*-
+# -*- coding:utf8 -*-
 from dishes.models import Dishes, FoodCourt
 from rest_framework import serializers
 from django.core.paginator import Paginator
@@ -22,6 +22,7 @@ class DishesSerializer(serializers.ModelSerializer):
             request = kwargs['_request']
             data = request.data.copy()
             data['user_id'] = request.user.id
+            data['food_court_id'] = request.user.food_court_id
 
             # 处理管理后台上传图片图片名字没有后缀的问题
             if 'image' in data:
