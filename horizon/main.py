@@ -60,7 +60,8 @@ def timezoneStringTostring(timezone_string):
     return str(timezone)
 
 
-def make_qrcode(source_data, version=5):
+def make_qrcode(source_data, save_path=settings.PICTURE_DIRS['business']['qrcode'],
+                version=5):
     """
     生成二维码图片
     """
@@ -70,12 +71,11 @@ def make_qrcode(source_data, version=5):
                        border=4)
     qr.add_data(source_data)
     qr.make(fit=True)
-    fname = "%s.png" % uuid.uuid4()
-    qrcode_dir = settings.PICTURE_DIRS['business']['qrcode']
-    fname_path = os.path.join(qrcode_dir, fname)
+    fname = "%s.png" % make_random_string_char_and_number(20)
+    fname_path = os.path.join(save_path, fname)
 
-    if not os.path.isdir(qrcode_dir):
-        os.makedirs(qrcode_dir)
+    if not os.path.isdir(save_path):
+        os.makedirs(save_path)
     image = qr.make_image()
     image.save(fname_path)
     return fname_path

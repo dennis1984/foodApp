@@ -63,40 +63,39 @@ class OrdersAction(generics.GenericAPIView):
         """
         form = OrdersUpdateForm(request.data)
         if not form.is_valid():
-            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'Detail': form.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
         obj = Orders.get_object(**{'orders_id': cld['orders_id']})
         if isinstance(obj, Exception):
-            return Response({'Error': obj.args}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'Detail': obj.args}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = OrdersSerializer(obj)
         try:
             serializer.update_orders_status(obj, cld)
         except Exception as e:
-            return Response({'Error': e.args}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'Detail': e.args}, status=status.HTTP_400_BAD_REQUEST)
 
         payment_mode = cld['payment_mode']
         if cld.get('payment_status'):
             # 更新支付状态为现金支付
             return Response(serializer.data, status=status.HTTP_206_PARTIAL_CONTENT)
         else:
-            if payment_mode == 1:     # 现金支付
+            if payment_mode == 'cash':     # 现金支付
                 return Response({'code_url': ''},
                                 status=status.HTTP_206_PARTIAL_CONTENT)
-            if payment_mode == 2:     # 微信支付
+            else:     # 扫码支付
                 _wxPay = WXPay(obj)
-                result = _wxPay.native()
-                if isinstance(result, Exception):
-                    return Response(result.args, status=status.HTTP_400_BAD_REQUEST)
-                return Response({'code_url': result},
-                                status=status.HTTP_206_PARTIAL_CONTENT)
-            else:     # 支付宝支付
+                wx_result = _wxPay.native()
+                if isinstance(wx_result, Exception):
+                    return Response(wx_result.args, status=status.HTTP_400_BAD_REQUEST)
+
                 _alipay = AliPay(obj)
-                result = _alipay.pre_create()
-                if isinstance(result, Exception):
-                    return Response(result.args, status=status.HTTP_400_BAD_REQUEST)
-                return Response({'code_url': result},
+                ali_result = _alipay.pre_create()
+                if isinstance(ali_result, Exception):
+                    return Response(ali_result.args, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'ali_code_url': ali_result,
+                                 'wx_code_url': wx_result},
                                 status=status.HTTP_206_PARTIAL_CONTENT)
 
 

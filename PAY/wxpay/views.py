@@ -53,7 +53,7 @@ class NativeCallback(APIView):
         success_data = {'payment_status': 200,
                         'payment_mode': 2}
         fail_data = {'payment_status': 500,
-                     'payment_code': 2}
+                     'payment_mode': 2}
 
         data_dict = main.anaysize_xml_to_dict(request.body)
         # 微信支付时返回通讯失败

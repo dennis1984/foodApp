@@ -8,15 +8,17 @@ from django.utils.timezone import now
 class OrdersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Orders
-        # fields = ('id', 'orders_id', 'user_id', 'city', 'meal_center',
-        #           'meal_ids', 'payable', 'payment_status', 'extend')
         fields = '__all__'
 
     def update_orders_status(self, instance, validated_data):
         if instance.payment_status != 0:
             raise Exception('The orders already paid or expired!')
-        if validated_data['payment_mode'] not in [1, 2, 3]:
-            raise ValueError('Payment mode must be within [1, 2, 3]')
+
+        if validated_data['payment_mode'] == 'cash':
+            validated_data['payment_mode'] = 1
+        else:
+            if 'payment_status' in validated_data:
+                validated_data.pop('payment_status')
 
         if validated_data.get('payment_status', None):
             return self.update_payment_status(instance, validated_data)
@@ -65,10 +67,11 @@ class OrdersSerializer(serializers.ModelSerializer):
         """
         更新订单支付方式
         """
-        return super(OrdersSerializer, self).update(
-            instance,
-            {'payment_mode': validated_data['payment_mode']}
-        )
+        return instance
+        # return super(OrdersSerializer, self).update(
+        #     instance,
+        #     {'payment_mode': validated_data['payment_mode']}
+        # )
 
     @property
     def data(self):
