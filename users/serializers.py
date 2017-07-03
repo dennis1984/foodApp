@@ -1,9 +1,11 @@
-#-*- coding:utf8 -*-
-from django.contrib.auth.models import User, Group
+# -*- coding:utf8 -*-
 from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
-from users.models import BusinessUser
-from horizon.serializers import BaseListSerializer, timezoneStringTostring
+from users.models import BusinessUser, IdentifyingCode
+from horizon.serializers import (BaseListSerializer,
+                                 BaseModelSerializer,
+                                 BaseSerializer,
+                                 timezoneStringTostring)
 from django.conf import settings
 from horizon.models import model_to_dict
 import os
@@ -13,15 +15,20 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = BusinessUser
         fields = '__all__'
-        # fields = ('id', 'phone', 'business_name', 'head_picture',
-        #           'food_court_id')
 
-    def update_password(self, instance, validated_data):
+    def update(self, instance, validated_data):
         password = validated_data.get('password', None)
         if password is None:
             raise ValueError('Password is cannot be empty.')
         validated_data['password'] = make_password(password)
         return super(UserSerializer, self).update(instance, validated_data)
+
+    def update_password(self, instance, validated_data):
+        password = validated_data.get('password', None)
+        if password is None:
+            raise ValueError('Password is cannot be empty.')
+        kwargs = {'password': make_password(password)}
+        return super(UserSerializer, self).update(instance, kwargs)
 
 
 class UserInstanceSerializer(serializers.ModelSerializer):
@@ -62,8 +69,8 @@ class UserListSerializer(BaseListSerializer):
     child = UserDetailSerializer()
 
 
-class GroupSerializer(serializers.HyperlinkedModelSerializer):
+class IdentifyingCodeSerializer(BaseModelSerializer):
     class Meta:
-        model = Group
-        fields = ('url', 'name')
+        model = IdentifyingCode
+        fields = '__all__'
 

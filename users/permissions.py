@@ -1,4 +1,4 @@
-#-*- coding:utf8 -*-
+# -*- coding:utf8 -*-
 from rest_framework import permissions
 
 
@@ -24,3 +24,10 @@ class IsAdminOrReadOnly(permissions.IsAuthenticated):
             if request.method == 'POST':
                 return request.user.is_admin
         return is_authenticated
+
+
+class IsAuthenticated(permissions.IsAuthenticated):
+    """
+    自定义权限，只有创建者才能编辑
+    """
+

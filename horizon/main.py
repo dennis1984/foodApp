@@ -1,6 +1,7 @@
-#-*- coding:utf8 -*-
+# -*- coding:utf8 -*-
 from PAY.wxpay import settings as wx_settings
 from PAY.alipay import settings as ali_settings
+from oauthlib.common import generate_token
 from django.conf import settings
 from django.utils.timezone import now
 from lxml import etree
@@ -11,14 +12,32 @@ import os
 import uuid
 from hashlib import md5
 import base64
+import random
 
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA256
 
 
+def minutes_5_plus():
+    return now() + datetime.timedelta(minutes=5)
+
+
+def minutes_15_plus():
+    return now() + datetime.timedelta(minutes=15)
+
+
 def minutes_30_plus():
     return now() + datetime.timedelta(minutes=30)
+
+
+def make_time_delta(days=0, minutes=0, seconds=0):
+    """
+    设置时间增量
+    """
+    return now() + datetime.timedelta(days=days,
+                                      minutes=minutes,
+                                      seconds=seconds)
 
 
 def timezoneStringTostring(timezone_string):
@@ -147,3 +166,59 @@ def make_dict_to_verify_string(params_dict):
     else:
         params_str = params_str[:-1]
     return params_str
+
+
+def make_random_string_number(str_length=6):
+    """
+    生成数字型的随机字符串（最大长度：128位）
+    """
+    if str_length > 128:
+        str_length = 128
+    random_str = _random_str = str(random.random()).split('.')[1]
+    for i in range(str_length / len(_random_str)):
+        random_str += str(random.random()).split('.')[1]
+    index_start = random.randint(0, len(random_str) - str_length)
+    return random_str[index_start: index_start + str_length]
+
+
+def make_random_string_char_and_number(str_length=32):
+    """
+    生成英文字符和数字混合型的字符串（最大长度：128位）
+    """
+    if str_length > 128:
+        str_length = 128
+    return generate_token(length=str_length)
+
+
+def send_identifying_code_to_phone(params, receive_phones, template_name=None):
+    """
+    使用阿里云的短信服务发送短信
+    """
+    from horizon.http_requests import send_http_request
+    import urllib
+    url = 'http://sms.market.alicloudapi.com/singleSendSms'
+    AppCode = '2e8a1a8a3e22486b9be6ac46c3d2c6ec'
+    sign_names = ('吟食',)
+    template_dict = {'register': 'SMS_71365776'}
+
+    if not template_name:
+        template = template_dict['register']
+    else:
+        if template_name not in template_dict.keys():
+            return ValueError('Params template incorrect')
+        template = template_dict[template_name]
+    if isinstance(params, (str, unicode)):
+        params_query = params
+    elif isinstance(params, dict):
+        params_query = urllib.quote(json.dumps(params))
+    else:
+        return TypeError('params must be unicode or dictionary')
+
+    if not isinstance(receive_phones, (tuple, list)):
+        return TypeError('receive phones type must be list or tuple')
+    query = {'RecNum': ','.join(receive_phones),
+             'TemplateCode': template,
+             'SignName': sign_names[0]}
+    query_str = '%s&ParamString=%s' % (urllib.urlencode(query), params_query)
+
+    return send_http_request(url, query_str, add_header={'Authorization': 'APPCODE %s' % AppCode})

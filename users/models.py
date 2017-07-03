@@ -7,8 +7,25 @@ from oauth2_provider.models import AccessToken
 from horizon.models import model_to_dict
 from dishes.models import FoodCourt
 from django.conf import settings
+
+from horizon import main
 import datetime
 import os
+
+
+def make_token_expire(request):
+    """
+    置token过期
+    """
+    header = request.META
+    token = header['HTTP_AUTHORIZATION'].split()[1]
+    try:
+        _instance = AccessToken.objects.get(token=token)
+        _instance.expires = now()
+        _instance.save()
+    except:
+        pass
+    return True
 
 
 class BusinessUserManager(BaseUserManager):
@@ -64,8 +81,6 @@ class BusinessUser(AbstractBaseUser):
     is_admin = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=now)
 
-    # create_objects = BusinessUserManager()
-    # objects = BaseUserManager()
     objects = BusinessUserManager()
 
     USERNAME_FIELD = 'phone'
@@ -82,8 +97,8 @@ class BusinessUser(AbstractBaseUser):
     def get_object(cls, **kwargs):
         try:
             return cls.objects.get(**kwargs)
-        except cls.DoesNotExist:
-            return None
+        except Exception as e:
+            return e
 
     @classmethod
     def get_user_detail(cls, request):
@@ -158,17 +173,22 @@ class BusinessUser(AbstractBaseUser):
         return business_user
 
 
-def make_token_expire(request):
-    """
-    置token过期
-    """
-    header = request.META
-    token = header['HTTP_AUTHORIZATION'].split()[1]
-    try:
-        _instance = AccessToken.objects.get(token=token)
-        _instance.expires = now()
-        _instance.save()
-    except:
-        pass
-    return True
+class IdentifyingCode(models.Model):
+    phone = models.CharField(u'手机号', max_length=20, db_index=True)
+    identifying_code = models.CharField(u'手机验证码', max_length=6)
+    expires = models.DateTimeField(u'过期时间', default=main.minutes_15_plus)
 
+    class Meta:
+        db_table = 'ys_identifying_code'
+        ordering = ['-expires']
+
+    def __unicode__(self):
+        return self.phone
+
+    @classmethod
+    def get_object_by_phone(cls, phone):
+        instances = cls.objects.filter(**{'phone': phone, 'expires__gt': now()})
+        if instances:
+            return instances[0]
+        else:
+            return None

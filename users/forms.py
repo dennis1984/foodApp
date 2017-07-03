@@ -31,5 +31,14 @@ class UserListForm(forms.Form):
     page_index = forms.IntegerField(min_value=1, required=False)
 
 
+class SendIdentifyingCodeForm(forms.Form):
+    username = forms.CharField(max_length=18, required=False)
 
+
+class BusinessUserChangePasswordForm(ChangePasswordForm):
+    identifying_code = forms.CharField(min_length=6, max_length=6)
+
+
+class BusinessUserNoAuthResetPasswordForm(BusinessUserChangePasswordForm):
+    username = forms.CharField(max_length=18)
 
