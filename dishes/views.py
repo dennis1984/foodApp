@@ -1,18 +1,16 @@
 # -*- coding: utf8 -*-
-from rest_framework.renderers import JSONRenderer
-from rest_framework.parsers import JSONParser
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework import mixins
 from rest_framework import generics
 from rest_framework import permissions
 
-from dishes.models import Dishes, FoodCourt
+from dishes.models import Dishes, FoodCourt, DISHES_SIZE_DICT
 from dishes.serializers import (DishesSerializer,
                                 FoodCourtSerializer,
                                 DishesListSerializer,
                                 FoodCourtListSerializer)
 from dishes.forms import (DishesGetForm,
+                          DishesInputForm,
                           FoodCourtListForm,
                           FoodCourtGetForm,
                           DishesUpdateForm,
@@ -23,13 +21,24 @@ from users.permissions import IsAdminOrReadOnly
 from dishes.caches import DishesCache
 
 
-class DishesAction(mixins.CreateModelMixin, generics.GenericAPIView):
-    queryset = Dishes.objects.all()
-    serializer_class = DishesSerializer
+class DishesAction(generics.GenericAPIView):
+    # queryset = Dishes.objects.all()
+    # serializer_class = DishesSerializer
     permission_classes = (IsOwnerOrReadOnly, )
 
-    # def make_cache_expired(self, request, *args, **kwargs):
-    #     DishesCache().delete_dishes_list(request)
+    def is_valid_request_data(self, cld):
+        size = cld.get('size', DISHES_SIZE_DICT['default'])
+        if size not in DISHES_SIZE_DICT.values():
+            return False, ValueError('Size fields is incorrect')
+        if size == DISHES_SIZE_DICT['custom']:
+            if not cld.get('size_detail'):
+                return False, ValueError('When size is 20, size detail is required')
+        return True, None
+
+    def get_dishes_object(self, request, cld):
+        kwargs = {'user_id': request.user.id,
+                  'pk': cld['pk']}
+        return Dishes.get_object(**kwargs)
 
     def post(self, request, *args, **kwargs):
         """
@@ -44,9 +53,20 @@ class DishesAction(mixins.CreateModelMixin, generics.GenericAPIView):
                         }
         :return: Dishes object
         """
-        serializer = DishesSerializer(_request=request)
+        form = DishesInputForm(request.data)
+        if not form.is_valid():
+            return Response({'Detail': form.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        cld = form.cleaned_data
+        result = self.is_valid_request_data(cld)
+        if not result[0]:
+            return Response({'Detail': result[1].args}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = DishesSerializer(data=cld, request=request)
         if serializer.is_valid():
-            serializer.save(request)
+            result = serializer.save(request)
+            if isinstance(result, Exception):
+                return Response({'Detail': result.args}, status=status.HTTP_400_BAD_REQUEST)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -71,44 +91,43 @@ class DishesAction(mixins.CreateModelMixin, generics.GenericAPIView):
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
-        obj = Dishes.get_object(**{'pk': cld['pk']})
-        cld.pop('pk')
+        result = self.is_valid_request_data(cld)
+        if not result[0]:
+            return Response({'Detail': result[1].args}, status=status.HTTP_400_BAD_REQUEST)
+        obj = self.get_dishes_object(request, cld)
         if isinstance(obj, Exception):
-            return Response({'Error': obj.args}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'Detail': obj.args}, status=status.HTTP_400_BAD_REQUEST)
         serializer = DishesSerializer(obj)
         try:
             serializer.update_dishes(request, obj, cld)
         except Exception as e:
-            return Response({'Error': e.args}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'Detail': e.args}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.data, status=status.HTTP_206_PARTIAL_CONTENT)
 
     def delete(self, request, *args, **kwargs):
         """
         删除菜品
-        :param request:
-        :param args:
-        :param kwargs: pk
         :return: Dishes object
         """
         form = DishesDeleteForm(request.data)
         if not form.is_valid():
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        obj = Dishes.get_object(**{'pk': form.cleaned_data['pk']})
+        obj = self.get_dishes_object(request, form.cleaned_data)
         if isinstance(obj, Exception):
-            return Response({'Error': obj.args}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'Detail': obj.args}, status=status.HTTP_400_BAD_REQUEST)
         serializer = DishesSerializer(obj)
         try:
             serializer.delete(request, obj)
         except Exception as e:
-            return Response({'Error': e.args}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'Detail': e.args}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
 
 
-class DishesDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
-    queryset = Dishes.objects.all()
-    serializer_class = DishesSerializer
+class DishesDetail(generics.GenericAPIView):
+    # queryset = Dishes.objects.all()
+    # serializer_class = DishesSerializer
     permission_classes = (IsOwnerOrReadOnly,)
 
     def get_object(self, *args, **kwargs):
@@ -142,8 +161,8 @@ class DishesDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
 
 
 class DishesList(generics.GenericAPIView):
-    queryset = Dishes.objects.all()
-    serializer_class = DishesSerializer
+    # queryset = Dishes.objects.all()
+    # serializer_class = DishesSerializer
     permission_classes = (IsOwnerOrReadOnly, )
 
     def get_object_list(self, request, **kwargs):
@@ -179,8 +198,8 @@ class DishesList(generics.GenericAPIView):
 
 
 class FoodCourtAction(generics.GenericAPIView):
-    queryset = FoodCourt.objects.all()
-    serializer_class = FoodCourtSerializer
+    # queryset = FoodCourt.objects.all()
+    # serializer_class = FoodCourtSerializer
     permission_classes = (IsAdminOrReadOnly, )
 
     def post(self, request, *args, **kwargs):
@@ -202,8 +221,8 @@ class FoodCourtAction(generics.GenericAPIView):
 
 
 class FoodCourtList(generics.GenericAPIView):
-    queryset = FoodCourt.objects.all()
-    serializer_class = FoodCourtSerializer
+    # queryset = FoodCourt.objects.all()
+    # serializer_class = FoodCourtSerializer
     permission_classes = (IsAdminOrReadOnly, )
 
     def get_object_list(self, **kwargs):
@@ -241,8 +260,8 @@ class FoodCourtList(generics.GenericAPIView):
 
 
 class FoodCourtDetail(generics.GenericAPIView):
-    queryset = FoodCourt.objects.all()
-    serializer_class = FoodCourtSerializer
+    # queryset = FoodCourt.objects.all()
+    # serializer_class = FoodCourtSerializer
     permission_classes = (IsAdminOrReadOnly, )
 
     def get_object_detail(self, **kwargs):

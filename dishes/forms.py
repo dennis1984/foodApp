@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# from django import forms
 from django.conf import settings
 from horizon import forms
 
@@ -8,8 +7,9 @@ class DishesInputForm(forms.Form):
     title = forms.CharField(max_length=200)
     subtitle = forms.CharField(max_length=200, required=False)
     description = forms.CharField(max_length=500, required=False)
-    price = forms.CharField(max_length=50)
-    size = forms.IntegerField(min_value=10, max_value=13, required=False)
+    price = forms.CharField(max_length=16)
+    size = forms.IntegerField(min_value=10, max_value=20, required=False)
+    size_detail = forms.CharField(min_length=2, max_length=30, required=False)
     image = forms.ImageField(required=False)
     extend = forms.CharField(max_length=500, required=False)
 
@@ -20,7 +20,8 @@ class DishesUpdateForm(forms.Form):
     subtitle = forms.CharField(max_length=200, required=False)
     description = forms.CharField(max_length=500, required=False)
     price = forms.CharField(max_length=50, required=False)
-    size = forms.IntegerField(min_value=10, max_value=13, required=False)
+    size = forms.IntegerField(min_value=10, max_value=20, required=False)
+    size_detail = forms.CharField(min_length=2, max_length=30, required=False)
     image = forms.ImageField(required=False)
     is_recommend = forms.IntegerField(min_value=0, max_value=1, required=False)
     extend = forms.CharField(max_length=500, required=False)
