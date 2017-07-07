@@ -140,7 +140,7 @@ class BusinessUserAction(generics.GenericAPIView):
         """
         form = BusinessUserChangePasswordForm(request.data)
         if not form.is_valid():
-            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'Detail': form.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
         if not self.is_valid_identifying_code(request.user.phone, cld['identifying_code']):
@@ -174,7 +174,7 @@ class BusinessUserNoAuthAction(APIView):
         """
         form = BusinessUserNoAuthResetPasswordForm(request.data)
         if not form.is_valid():
-            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'Detail': form.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
         if not self.is_valid_identifying_code(cld['username'], cld['identifying_code']):
