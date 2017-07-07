@@ -53,7 +53,7 @@ class IDYCodeAction(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         serializer.save()
-        # 发送到短线平台
+        # 发送到短信平台
         main.send_identifying_code_to_phone({'code': identifying_code}, (cld['username'],))
         return Response(status=status.HTTP_200_OK)
 
@@ -74,7 +74,7 @@ class IDYCodeAuthAction(generics.GenericAPIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         serializer.save()
-        # 发送到短线平台
+        # 发送到短信平台
         main.send_identifying_code_to_phone({'code': identifying_code}, (request.user.phone,))
         return Response(status=status.HTTP_200_OK)
 

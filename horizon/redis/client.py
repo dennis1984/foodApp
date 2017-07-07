@@ -48,5 +48,3 @@ class Redis(redis.Redis):
 
     def translate_str_to_instance(self, *values):
         return [pickle.loads(arg) for arg in values]
-
-

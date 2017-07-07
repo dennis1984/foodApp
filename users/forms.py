@@ -32,7 +32,7 @@ class UserListForm(forms.Form):
 
 
 class SendIdentifyingCodeForm(forms.Form):
-    username = forms.CharField(max_length=18, required=False)
+    username = forms.CharField(max_length=18)
 
 
 class BusinessUserChangePasswordForm(ChangePasswordForm):
