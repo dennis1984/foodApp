@@ -10,7 +10,9 @@ from orders.forms import (OrdersInputForm,
                           OrdersUpdateForm,
                           OrdersListForm,
                           SaleListForm)
-from orders.models import Orders, get_sale_list
+from orders.models import (Orders,
+                           SaleListAction,
+                           VerifyOrders)
 from orders.serializers import (OrdersSerializer,
                                 OrdersListSerializer,
                                 SaleListSerializer)
@@ -130,12 +132,42 @@ class OrdersDetail(generics.GenericAPIView):
 
 
 class OrdersList(generics.GenericAPIView):
-    queryset = Orders.objects.all()
-    serializer_class = OrdersSerializer
     permissions = (IsOwnerOrReadOnly,)
 
     def get_objects_list(self, request, **kwargs):
         return Orders.get_objects_list(request, **kwargs)
+
+    def get_all_list(self, request, cld):
+        kwargs = {'user_id': request.user.id}
+    #     pay_orders = PayOrders.filter_valid_orders_detail(**kwargs)
+    #     consume_orders = ConsumeOrders.filter_objects_detail(**kwargs)
+    #     pay_expired = PayOrders.filter_expired_orders_detail(**kwargs)
+    #     orders_list = pay_orders + consume_orders
+    #     orders_list.sort(key=lambda x: x['updated'], reverse=True)
+    #     return orders_list + pay_expired
+
+    def get_pay_list(self, request, cld):
+        return Orders.filter_paying_orders_list(request)
+
+    def get_consume_list(self, request, cld):
+        kwargs = {'user_id': request.user.id}
+        # return VerifyOrders.filter_consume_objects_detail(**kwargs)
+
+    def get_finished_list(self, request, cld):
+        business_orders = Orders.filter_finished_orders_list(request)
+        verify_orders = VerifyOrders
+        return business_orders + verify_orders
+
+    def get_orders_list(self, request, cld):
+        _filter = cld.get('filter', 'all')
+        if _filter == 'all':
+            return self.get_all_list(request, cld)
+        elif _filter == 'pay':
+            return self.get_pay_list(request, cld)
+        elif _filter == 'consume':
+            return self.get_consume_list(request, cld)
+        elif _filter == 'finished':
+            return self.get_finished_list(request, cld)
 
     def post(self, request, *args, **kwargs):
         """
@@ -167,7 +199,7 @@ class SaleList(generics.GenericAPIView):
     permissions = (IsOwnerOrReadOnly,)
 
     def get_objects_list(self, request, **kwargs):
-        return get_sale_list(request, **kwargs)
+        return SaleListAction.get_sale_list(request, **kwargs)
 
     def post(self, request, *args, **kwargs):
         form = SaleListForm(request.data)

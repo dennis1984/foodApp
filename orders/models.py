@@ -6,12 +6,21 @@ from django.utils.timezone import now
 from dishes.models import Dishes, FoodCourt
 from users.models import BusinessUser
 from horizon.models import model_to_dict
-from horizon.main import minutes_30_plus
+from horizon.main import minutes_15_plus
 from django.db import transaction
 from decimal import Decimal
 
 import json
 import datetime
+
+ORDERS_PAYMENT_STATUS = {
+    'unpaid': 0,
+    'paid': 200,
+    'consuming': 201,
+    'finished': 206,
+    'expired': 400,
+    'failed': 500,
+}
 
 
 class OrdersManager(models.Manager):
@@ -32,22 +41,32 @@ class OrdersManager(models.Manager):
 class Orders(models.Model):
     orders_id = models.CharField('订单ID', db_index=True, unique=True, max_length=30)
     user_id = models.IntegerField('用户ID', db_index=True)
+    food_court_id = models.IntegerField('美食城ID')
     food_court_name = models.CharField('美食城名字', max_length=200)
-    city = models.CharField('所属城市', max_length=100, null=False)
-    district = models.CharField('所属市区', max_length=100, null=False)
-    mall = models.CharField('所属购物中心', max_length=200, default='')
+    business_name = models.CharField('商户名字', max_length=100)
 
     dishes_ids = models.TextField('订购列表', default='')
+    # 订购列表详情
+    # [
+    #  {'id': 1, ...},   # 菜品详情
+    #  {'id': 2, ...}, ...
+    # ]
+    #
+    total_amount = models.CharField('订单总计', max_length=16)
+    member_discount = models.CharField('会员优惠', max_length=16, default='0')
+    other_discount = models.CharField('其他优惠', max_length=16, default='0')
     payable = models.CharField('订单总计', max_length=50, default='')
 
     # 0:未支付 200:已支付 400: 已过期 500:支付失败
     payment_status = models.IntegerField('订单支付状态', default=0)
     # 支付方式：0:未指定支付方式 1：现金支付 2：微信支付 3：支付宝支付
     payment_mode = models.IntegerField('订单支付方式', default=0)
+    # 订单类型 0: 未指定 101: 在线订单 102：堂食订单 103：外卖订单
+    orders_type = models.IntegerField('订单类型', default=102)
 
     created = models.DateTimeField('创建时间', default=now)
     updated = models.DateTimeField('最后修改时间', auto_now=True)
-    expires = models.DateTimeField('订单过期时间', default=minutes_30_plus)
+    expires = models.DateTimeField('订单过期时间', default=minutes_15_plus)
     extend = models.TextField('扩展信息', default='', blank=True)
 
     objects = OrdersManager()
@@ -70,7 +89,9 @@ class Orders(models.Model):
     @classmethod
     def make_orders_by_dishes_ids(cls, request, dishes_ids):
         meal_ids = []
-        total_payable = '0'
+        total_amount = '0'
+        member_discount = '0'
+        other_discount = '0'
         for item in dishes_ids:
             object_data = cls.get_dishes_by_id(item['dishes_id'])
             if isinstance(object_data, Exception):
@@ -79,7 +100,8 @@ class Orders(models.Model):
             object_dict = model_to_dict(object_data)
             object_dict['count'] = item['count']
             meal_ids.append(object_dict)
-            total_payable = str(Decimal(total_payable) + Decimal(object_data.price) * item['count'])
+            total_amount = str(Decimal(total_amount) +
+                               Decimal(object_data.price) * item['count'])
 
         food_court_obj = FoodCourt.get_object(pk=request.user.food_court_id)
         if isinstance(food_court_obj, Exception):
@@ -87,12 +109,17 @@ class Orders(models.Model):
 
         orders_data = {'user_id': request.user.id,
                        'orders_id': OrdersIdGenerator.get_orders_id(),
+                       'food_court_id': request.user.food_court_id,
                        'food_court_name': food_court_obj.name,
-                       'city': food_court_obj.city,
-                       'district': food_court_obj.district,
-                       'mall': food_court_obj.mall,
-                       'dishes_ids': json.dumps(meal_ids, ensure_ascii=False, cls=DatetimeEncode),
-                       'payable': total_payable,
+                       'business_name': request.user.business_name,
+                       'dishes_ids': json.dumps(meal_ids, ensure_ascii=False,
+                                                cls=DatetimeEncode),
+                       'total_amount': total_amount,
+                       'member_discount': member_discount,
+                       'other_discount': other_discount,
+                       'payable': str(Decimal(total_amount) -
+                                      Decimal(member_discount) -
+                                      Decimal(other_discount))
                        }
         return orders_data
 
@@ -158,6 +185,23 @@ class Orders(models.Model):
             return e
 
     @classmethod
+    def filter_paying_orders_list(cls, request, **kwargs):
+        """
+        获取待支付订单
+        """
+        kwargs['payment_status'] = ORDERS_PAYMENT_STATUS['unpaid']
+        kwargs['expires__gt'] = now()
+        return cls.get_objects_list(request, **kwargs)
+
+    @classmethod
+    def filter_finished_orders_list(cls, request, **kwargs):
+        """
+        获取已支付完成订单
+        """
+        kwargs['payment_status'] = ORDERS_PAYMENT_STATUS['finished']
+        return cls.get_objects_list(request, **kwargs)
+
+    @classmethod
     def update_payment_status_by_pay_callback(cls, orders_id, validated_data):
         if not isinstance(validated_data, dict):
             raise ValueError('Parameter error')
@@ -184,85 +228,136 @@ class Orders(models.Model):
         return instance
 
 
-def get_sale_list(request, **kwargs):
-    if request.user.is_admin and 'user_id' not in kwargs:
-        return get_sale_list_by_admin(request, **kwargs)
-    else:
-        return get_sale_list_by_user(request, **kwargs)
-
-
-def get_sale_list_by_user(request, **kwargs):
+class VerifyOrders(models.Model):
     """
-    销售统计（普通用户）
+    核销订单
     """
-    # 支付状态为：已支付
-    kwargs['payment_status'] = 200
-    # 如果参数没有选择时间范围，默认选取当前时间至向前30天的数据
-    if not ('start_created' in kwargs or 'end_created' in kwargs):
-        kwargs['start_created'] = now().date() - datetime.timedelta(days=30)
-        kwargs['end_created'] = now().date()
-    orders_list = Orders.get_objects_list(request, **kwargs)
-    if isinstance(orders_list, Exception):
-        return orders_list
+    orders_id = models.CharField('订单ID', db_index=True, unique=True, max_length=32)
+    user_id = models.IntegerField('用户ID', db_index=True)
 
-    sale_dict = {}
-    for item in orders_list:
-        datetime_day = item.created.date()
-        sale_detail = sale_dict.get(datetime_day, {'total_count': 0, 'total_payable': '0'})
-        sale_detail['total_count'] += 1
-        sale_detail['total_payable'] = Decimal(sale_detail['total_payable']) + Decimal(item.payable)
-        sale_dict[datetime_day] = sale_detail
-    results = []
-    for key, value in sale_dict.items():
-        sale_detail = value
-        sale_detail['date'] = str(key)
-        sale_detail['total_payable'] = str(sale_detail['total_payable'])
-        results.append(sale_detail)
-    results.sort(key=lambda x: x['date'], reverse=True)
-    return results
+    business_name = models.CharField('商户名字', max_length=200)
+    food_court_id = models.IntegerField('美食城ID')
+    food_court_name = models.CharField('美食城名字', max_length=200)
+    consumer_id = models.IntegerField('消费者ID')
+
+    dishes_ids = models.TextField('订购列表', default='')
+
+    total_amount = models.CharField('订单总计', max_length=16)
+    member_discount = models.CharField('会员优惠', max_length=16, default='0')
+    other_discount = models.CharField('其他优惠', max_length=16, default='0')
+    payable = models.CharField('应付金额', max_length=16)
+
+    # 0:未支付 200:已支付 201:待消费 206:已完成 400: 已过期 500:支付失败
+    payment_status = models.IntegerField('订单支付状态', default=201)
+    # 支付方式：0:未指定支付方式 1：钱包支付 2：微信支付 3：支付宝支付
+    payment_mode = models.IntegerField('订单支付方式', default=0)
+    # 订单类型 0: 未指定 101: 在线订单 102：堂食订单 103：外卖订单
+    orders_type = models.IntegerField('订单类型', default=101)
+
+    created = models.DateTimeField('创建时间', default=now)
+    updated = models.DateTimeField('最后修改时间', auto_now=True)
+    expires = models.DateTimeField('订单过期时间', default=minutes_15_plus)
+    extend = models.TextField('扩展信息', default='', blank=True)
+
+    # objects = OrdersManager()
+
+    class Meta:
+        db_table = 'ys_verify_orders'
+        ordering = ['-orders_id']
+
+    def __unicode__(self):
+        return self.orders_id
 
 
-def get_sale_list_by_admin(request, **kwargs):
+class SaleListAction(object):
     """
-    销售统计（管理员）
+    销售统计
     """
-    # 支付状态为：已支付
-    kwargs['payment_status'] = 200
-    # 如果参数没有选择时间范围，默认选取当前时间至向前30天的数据
-    if not ('start_created' in kwargs or 'end_created' in kwargs):
-        kwargs['start_created'] = now().date() - datetime.timedelta(days=30)
-        kwargs['end_created'] = now().date()
-    orders_list = Orders.get_objects_list(request, **kwargs)
-    if isinstance(orders_list, Exception):
-        return orders_list
+    @classmethod
+    def get_sale_list(cls, request, **kwargs):
+        if request.user.is_admin and 'user_id' not in kwargs:
+            return cls.get_sale_list_by_admin(request, **kwargs)
+        else:
+            return cls.get_sale_list_by_user(request, **kwargs)
 
-    users_list = BusinessUser.objects.all()
-    users_dict = {item.id: item for item in users_list}
+    @classmethod
+    def get_sale_list_by_user(cls, request, **kwargs):
+        """
+        销售统计（普通用户）
+        """
+        # 支付状态为：已支付
+        kwargs['payment_status'] = 200
+        # 如果参数没有选择时间范围，默认选取当前时间至向前30天的数据
+        if not ('start_created' in kwargs or 'end_created' in kwargs):
+            kwargs['start_created'] = now().date() - datetime.timedelta(days=30)
+            kwargs['end_created'] = now().date()
+        orders_list = Orders.get_objects_list(request, **kwargs)
+        if isinstance(orders_list, Exception):
+            return orders_list
 
-    sale_dict = {}
-    for item in orders_list:
-        user_obj = users_dict.get(item.user_id)
-        business_name = getattr(user_obj, 'business_name', 'none')
-        sale_detail = sale_dict.get(business_name, {'total_count': 0,
-                                                    'total_payable': '0',
-                                                    'user_id': item.user_id,
-                                                    'start_created': now().date(),
-                                                    })
-        if item.created.date() < sale_detail['start_created']:
-            sale_detail['start_created'] = item.created.date()
-        sale_detail['total_count'] += 1
-        sale_detail['total_payable'] = Decimal(sale_detail['total_payable']) + Decimal(item.payable)
-        sale_dict[business_name] = sale_detail
-    results = []
-    for key, value in sale_dict.items():
-        sale_detail = value
-        sale_detail['date'] = '%s--%s' % (kwargs.get('start_created', sale_detail['start_created']),
-                                          kwargs.get('end_created', now().date()))
-        sale_detail['business_name'] = key
-        sale_detail['total_payable'] = str(sale_detail['total_payable'])
-        results.append(sale_detail)
-    results.sort(key=lambda x: x['business_name'], reverse=True)
-    return results
+        sale_dict = {}
+        for item in orders_list:
+            datetime_day = item.created.date()
+            sale_detail = sale_dict.get(datetime_day, {'total_count': 0,
+                                                       'total_payable': '0'})
+            sale_detail['total_count'] += 1
+            sale_detail['total_payable'] = Decimal(sale_detail['total_payable']) + \
+                                           Decimal(item.payable)
+            sale_dict[datetime_day] = sale_detail
+        results = []
+        for key, value in sale_dict.items():
+            sale_detail = value
+            sale_detail['date'] = str(key)
+            sale_detail['total_payable'] = str(sale_detail['total_payable'])
+            results.append(sale_detail)
+        results.sort(key=lambda x: x['date'], reverse=True)
+        return results
+
+    @classmethod
+    def get_sale_list_by_admin(cls, request, **kwargs):
+        """
+        销售统计（管理员）
+        """
+        # 支付状态为：已支付
+        kwargs['payment_status'] = 200
+        # 如果参数没有选择时间范围，默认选取当前时间至向前30天的数据
+        if not ('start_created' in kwargs or 'end_created' in kwargs):
+            kwargs['start_created'] = now().date() - datetime.timedelta(days=30)
+            kwargs['end_created'] = now().date()
+        orders_list = Orders.get_objects_list(request, **kwargs)
+        if isinstance(orders_list, Exception):
+            return orders_list
+
+        users_list = BusinessUser.objects.all()
+        users_dict = {item.id: item for item in users_list}
+
+        sale_dict = {}
+        for item in orders_list:
+            user_obj = users_dict.get(item.user_id)
+            business_name = getattr(user_obj, 'business_name', 'none')
+            sale_detail = sale_dict.get(business_name, {'total_count': 0,
+                                                        'total_payable': '0',
+                                                        'user_id': item.user_id,
+                                                        'start_created': now().date(),
+                                                        })
+            if item.created.date() < sale_detail['start_created']:
+                sale_detail['start_created'] = item.created.date()
+            sale_detail['total_count'] += 1
+            sale_detail['total_payable'] = Decimal(sale_detail['total_payable']) + \
+                                           Decimal(item.payable)
+            sale_dict[business_name] = sale_detail
+        results = []
+        for key, value in sale_dict.items():
+            sale_detail = value
+            sale_detail['date'] = '%s--%s' % (kwargs.get('start_created',
+                                                         sale_detail['start_created']),
+                                              kwargs.get('end_created',
+                                                         now().date()))
+            sale_detail['business_name'] = key
+            sale_detail['total_payable'] = str(sale_detail['total_payable'])
+            results.append(sale_detail)
+        results.sort(key=lambda x: x['business_name'], reverse=True)
+        return results
 
 
 def date_for_model():

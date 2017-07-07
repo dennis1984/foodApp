@@ -1,11 +1,13 @@
-#-*- coding:utf8 -*-
-from orders.models import Orders
+# -*- coding:utf8 -*-
+from orders.models import Orders, VerifyOrders
 from rest_framework import serializers
-from horizon.serializers import BaseListSerializer, timezoneStringTostring
+from horizon.serializers import (BaseListSerializer,
+                                 BaseSerializer,
+                                 BaseModelSerializer)
 from django.utils.timezone import now
 
 
-class OrdersSerializer(serializers.ModelSerializer):
+class OrdersSerializer(BaseModelSerializer):
     class Meta:
         model = Orders
         fields = '__all__'
@@ -68,24 +70,13 @@ class OrdersSerializer(serializers.ModelSerializer):
         更新订单支付方式
         """
         return instance
-        # return super(OrdersSerializer, self).update(
-        #     instance,
-        #     {'payment_mode': validated_data['payment_mode']}
-        # )
-
-    @property
-    def data(self):
-        serializer = super(OrdersSerializer, self).data
-        serializer['updated'] = timezoneStringTostring(serializer['updated'])
-        serializer['created'] = timezoneStringTostring(serializer['created'])
-        return serializer
 
 
 class OrdersListSerializer(BaseListSerializer):
     child = OrdersSerializer()
 
 
-class SaleSerializer(serializers.Serializer):
+class SaleSerializer(BaseSerializer):
     date = serializers.CharField()
     total_count = serializers.IntegerField()
     total_payable = serializers.CharField()
@@ -97,7 +88,7 @@ class SaleListSerializer(BaseListSerializer):
     child = SaleSerializer()
 
 
-class DishesIdsDetailSerializer(serializers.Serializer):
+class DishesIdsDetailSerializer(BaseSerializer):
     count = serializers.IntegerField()
     id = serializers.IntegerField()
     is_recommend = serializers.BooleanField()
@@ -107,5 +98,8 @@ class DishesIdsDetailSerializer(serializers.Serializer):
     user_id = serializers.IntegerField()
 
 
-# class dishesIdsListSerializer(BaseListSerializer):
-#     child = DishesIdsDetailSerializer()
+class VerifySerializer(BaseModelSerializer):
+    class Meta:
+        model = VerifyOrders
+        fields = '__all__'
+
