@@ -64,7 +64,7 @@ class IDYCodeAuthAction(generics.GenericAPIView):
     """
     permission_classes = (IsAuthenticated, )
 
-    def post(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         """
         发送验证码
         """
