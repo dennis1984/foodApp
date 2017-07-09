@@ -210,6 +210,7 @@ class Orders(models.Model):
         detail_list = []
         for orders in orders_list:
             item_dict = model_to_dict(orders)
+            item_dict['dishes_ids'] = json.loads(item_dict['dishes_ids'])
             item_dict['is_master'] = True
             item_dict['consumer_id'] = None
         return detail_list
@@ -339,6 +340,7 @@ class VerifyOrders(models.Model):
         detail_list = []
         for orders in orders_list:
             item_dict = model_to_dict(orders)
+            item_dict['dishes_ids'] = json.loads(item_dict['dishes_ids'])
             item_dict['is_master'] = False
         return detail_list
 
