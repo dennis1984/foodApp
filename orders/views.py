@@ -134,29 +134,24 @@ class OrdersDetail(generics.GenericAPIView):
 class OrdersList(generics.GenericAPIView):
     permissions = (IsOwnerOrReadOnly,)
 
-    def get_objects_list(self, request, **kwargs):
-        return Orders.get_objects_list(request, **kwargs)
-
     def get_all_list(self, request, cld):
-        kwargs = {'user_id': request.user.id}
-    #     pay_orders = PayOrders.filter_valid_orders_detail(**kwargs)
-    #     consume_orders = ConsumeOrders.filter_objects_detail(**kwargs)
-    #     pay_expired = PayOrders.filter_expired_orders_detail(**kwargs)
-    #     orders_list = pay_orders + consume_orders
-    #     orders_list.sort(key=lambda x: x['updated'], reverse=True)
-    #     return orders_list + pay_expired
+        pay_orders = self.get_pay_list(request, cld)
+        consume_orders = self.get_consume_list(request, cld)
+        finished_orders = self.get_finished_list(request, cld)
+        orders_list = pay_orders + consume_orders + finished_orders
+        return sorted(orders_list, key=lambda x: x['created'], reverse=True)
 
     def get_pay_list(self, request, cld):
-        return Orders.filter_paying_orders_list(request)
+        return Orders.filter_paying_orders_list(request, **cld)
 
     def get_consume_list(self, request, cld):
-        kwargs = {'user_id': request.user.id}
-        # return VerifyOrders.filter_consume_objects_detail(**kwargs)
+        return VerifyOrders.filter_consuming_orders_list(request, **cld)
 
     def get_finished_list(self, request, cld):
-        business_orders = Orders.filter_finished_orders_list(request)
-        verify_orders = VerifyOrders
-        return business_orders + verify_orders
+        business_orders = Orders.filter_finished_orders_list(request, **cld)
+        verify_orders = VerifyOrders.filter_finished_orders_list(request, **cld)
+        orders_list = business_orders + verify_orders
+        return sorted(orders_list, key=lambda key: key.created, reverse=True)
 
     def get_orders_list(self, request, cld):
         _filter = cld.get('filter', 'all')
@@ -182,7 +177,7 @@ class OrdersList(generics.GenericAPIView):
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
-        object_data = self.get_objects_list(request, **cld)
+        object_data = self.get_orders_list(request, **cld)
         if isinstance(object_data, Exception):
             return Response({'Error': object_data.args}, status=status.HTTP_400_BAD_REQUEST)
 

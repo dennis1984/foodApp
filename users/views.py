@@ -239,7 +239,7 @@ class UserList(generics.GenericAPIView):
 class AuthLogout(generics.GenericAPIView):
     permission_classes = (IsAuthenticated,)
 
-    def post(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         """
         用户认证：登出
         """

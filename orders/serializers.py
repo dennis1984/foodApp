@@ -72,8 +72,36 @@ class OrdersSerializer(BaseModelSerializer):
         return instance
 
 
+class OrdersDetailSerializer(BaseSerializer):
+    id = serializers.IntegerField()
+    orders_id = serializers.CharField(max_length=32)
+    user_id = serializers.IntegerField()
+    food_court_id = serializers.IntegerField()
+    food_court_name = serializers.CharField(max_length=200)
+    business_name = serializers.CharField(max_length=200)
+
+    consumer_id = serializers.IntegerField(required=False, allow_null=True)
+
+    dishes_ids = serializers.ListField()
+
+    total_amount = serializers.CharField(max_length=16)
+    member_discount = serializers.CharField(max_length=16)
+    other_discount = serializers.CharField(max_length=16)
+    payable = serializers.CharField(max_length=16)
+
+    payment_status = serializers.IntegerField()
+    payment_mode = serializers.IntegerField()
+    orders_type = serializers.IntegerField()
+
+    is_master = serializers.BooleanField()
+
+    created = serializers.DateTimeField()
+    updated = serializers.DateTimeField()
+    expires = serializers.DateTimeField()
+
+
 class OrdersListSerializer(BaseListSerializer):
-    child = OrdersSerializer()
+    child = OrdersDetailSerializer()
 
 
 class SaleSerializer(BaseSerializer):

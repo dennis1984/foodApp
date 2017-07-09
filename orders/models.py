@@ -52,10 +52,10 @@ class Orders(models.Model):
     #  {'id': 2, ...}, ...
     # ]
     #
-    total_amount = models.CharField('订单总计', max_length=16)
+    total_amount = models.CharField('订单总计', max_length=16, default='0')
     member_discount = models.CharField('会员优惠', max_length=16, default='0')
     other_discount = models.CharField('其他优惠', max_length=16, default='0')
-    payable = models.CharField('订单总计', max_length=50, default='')
+    payable = models.CharField('订单总计', max_length=16, default='0')
 
     # 0:未支付 200:已支付 400: 已过期 500:支付失败
     payment_status = models.IntegerField('订单支付状态', default=0)
@@ -191,15 +191,28 @@ class Orders(models.Model):
         """
         kwargs['payment_status'] = ORDERS_PAYMENT_STATUS['unpaid']
         kwargs['expires__gt'] = now()
-        return cls.get_objects_list(request, **kwargs)
+        orders_list = cls.get_objects_list(request, **kwargs)
+        return cls.make_instances_to_dict(orders_list)
 
     @classmethod
     def filter_finished_orders_list(cls, request, **kwargs):
         """
         获取已支付完成订单
         """
-        kwargs['payment_status'] = ORDERS_PAYMENT_STATUS['finished']
-        return cls.get_objects_list(request, **kwargs)
+        kwargs['payment_status'] = ORDERS_PAYMENT_STATUS['paid']
+        orders_list = cls.get_objects_list(request, **kwargs)
+        return cls.make_instances_to_dict(orders_list)
+
+    @classmethod
+    def make_instances_to_dict(cls, orders_list):
+        if isinstance(orders_list, cls):
+            orders_list = [orders_list]
+        detail_list = []
+        for orders in orders_list:
+            item_dict = model_to_dict(orders)
+            item_dict['is_master'] = True
+            item_dict['consumer_id'] = None
+        return detail_list
 
     @classmethod
     def update_payment_status_by_pay_callback(cls, orders_id, validated_data):
@@ -267,6 +280,67 @@ class VerifyOrders(models.Model):
 
     def __unicode__(self):
         return self.orders_id
+
+    @classmethod
+    def get_object(cls, **kwargs):
+        try:
+            return cls.objects.get(**kwargs)
+        except Exception as e:
+            return e
+
+    @classmethod
+    def get_objects_list(cls, request, **kwargs):
+        opts = cls._meta
+        fields = []
+        for f in opts.concrete_fields:
+            fields.append(f.name)
+
+        _kwargs = {}
+        if request.user.is_admin:
+            if 'user_id' in kwargs:
+                _kwargs['user_id'] = kwargs['user_id']
+        else:
+            _kwargs['user_id'] = request.user.id
+        if 'start_created' in kwargs:
+            _kwargs['created__gte'] = kwargs['start_created']
+        if 'end_created' in kwargs:
+            _kwargs['created__lte'] = kwargs['end_created']
+        for key in kwargs:
+            if key in fields:
+                _kwargs[key] = kwargs[key]
+
+        try:
+            return cls.objects.filter(**_kwargs)
+        except Exception as e:
+            return e
+
+    @classmethod
+    def filter_consuming_orders_list(cls, request, **kwargs):
+        """
+        获取待消费订单
+        """
+        kwargs['payment_status'] = ORDERS_PAYMENT_STATUS['consuming']
+        orders_list = cls.get_objects_list(request, **kwargs)
+        return cls.make_instances_to_dict(orders_list)
+
+    @classmethod
+    def filter_finished_orders_list(cls, request, **kwargs):
+        """
+        获取已完成订单
+        """
+        kwargs['payment_status'] = ORDERS_PAYMENT_STATUS['finished']
+        orders_list = cls.get_objects_list(request, **kwargs)
+        return cls.make_instances_to_dict(orders_list)
+
+    @classmethod
+    def make_instances_to_dict(cls, orders_list):
+        if isinstance(orders_list, cls):
+            orders_list = [orders_list]
+        detail_list = []
+        for orders in orders_list:
+            item_dict = model_to_dict(orders)
+            item_dict['is_master'] = False
+        return detail_list
 
 
 class SaleListAction(object):
