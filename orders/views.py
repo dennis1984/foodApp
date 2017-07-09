@@ -151,7 +151,7 @@ class OrdersList(generics.GenericAPIView):
         business_orders = Orders.filter_finished_orders_list(request, **cld)
         verify_orders = VerifyOrders.filter_finished_orders_list(request, **cld)
         orders_list = business_orders + verify_orders
-        return sorted(orders_list, key=lambda key: key.created, reverse=True)
+        return sorted(orders_list, key=lambda key: key['created'], reverse=True)
 
     def get_orders_list(self, request, cld):
         _filter = cld.get('filter', 'all')

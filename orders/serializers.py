@@ -78,7 +78,7 @@ class OrdersDetailSerializer(BaseSerializer):
     user_id = serializers.IntegerField()
     food_court_id = serializers.IntegerField()
     food_court_name = serializers.CharField(max_length=200)
-    business_name = serializers.CharField(max_length=200)
+    business_name = serializers.CharField(max_length=200, allow_blank=True)
 
     consumer_id = serializers.IntegerField(required=False, allow_null=True)
 

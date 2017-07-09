@@ -175,6 +175,8 @@ class Orders(models.Model):
             _kwargs['created__gte'] = kwargs['start_created']
         if 'end_created' in kwargs:
             _kwargs['created__lte'] = kwargs['end_created']
+        if 'expires__gt' in kwargs:
+            _kwargs['expires__gt'] = kwargs['expires__gt']
         for key in kwargs:
             if key in fields:
                 _kwargs[key] = kwargs[key]
