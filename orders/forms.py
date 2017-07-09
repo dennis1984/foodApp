@@ -12,6 +12,12 @@ class OrdersGetForm(forms.Form):
 
 
 class OrdersListForm(forms.Form):
+    filter = forms.ChoiceField(choices=(('all', 1),
+                                        ('pay', 2),
+                                        ('consume', 3),
+                                        ('finished', 4),
+                                        ('expired', 5)),
+                               required=False)
     start_created = forms.DateField(required=False)
     end_created = forms.DateField(required=False)
     payment_status = forms.IntegerField(required=False, max_value=500)
