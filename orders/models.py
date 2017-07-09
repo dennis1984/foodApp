@@ -342,6 +342,7 @@ class VerifyOrders(models.Model):
             item_dict = model_to_dict(orders)
             item_dict['dishes_ids'] = json.loads(item_dict['dishes_ids'])
             item_dict['is_master'] = False
+            detail_list.append(item_dict)
         return detail_list
 
 

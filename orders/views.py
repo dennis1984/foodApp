@@ -177,11 +177,13 @@ class OrdersList(generics.GenericAPIView):
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
-        object_data = self.get_orders_list(request, **cld)
+        object_data = self.get_orders_list(request, cld)
         if isinstance(object_data, Exception):
             return Response({'Error': object_data.args}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = OrdersListSerializer(object_data)
+        serializer = OrdersListSerializer(data=object_data)
+        if not serializer.is_valid():
+            return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         results = serializer.list_data(**cld)
         if isinstance(results, Exception):
             return Response({'Error': results.args}, status=status.HTTP_400_BAD_REQUEST)
