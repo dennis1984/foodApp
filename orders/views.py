@@ -9,7 +9,8 @@ from orders.forms import (OrdersInputForm,
                           OrdersGetForm,
                           OrdersUpdateForm,
                           OrdersListForm,
-                          VerifyOrdersDetailForm,
+                          VerifyOrdersListForm,
+                          VerifyOrdersActionForm,
                           SaleListForm)
 from orders.models import (Orders,
                            SaleListAction,
@@ -17,6 +18,7 @@ from orders.models import (Orders,
 from orders.serializers import (OrdersSerializer,
                                 OrdersListSerializer,
                                 VerifyOrdersListSerializer,
+                                VerifySerializer,
                                 SaleListSerializer)
 from orders.permissoins import IsOwnerOrReadOnly
 from orders.pays import WXPay, AliPay
@@ -194,6 +196,9 @@ class OrdersList(generics.GenericAPIView):
 
 
 class VerifyOrdersList(generics.GenericAPIView):
+    """
+    获取核销订单信息
+    """
     permissions = (IsOwnerOrReadOnly,)
 
     def get_verify_orders_list(self, request, consumer_id):
@@ -201,9 +206,9 @@ class VerifyOrdersList(generics.GenericAPIView):
         return VerifyOrders.filter_consuming_orders_list(request=request, **kwargs)
 
     def is_request_data_valid(self, request):
-        form = VerifyOrdersDetailForm(request.data)
+        form = VerifyOrdersListForm(request.data)
         if not form.is_valid():
-            return False, form.errors
+            return False, Exception(form.errors)
 
         cld = form.cleaned_data
         result = ConfirmConsume.get_object(**cld)
@@ -217,17 +222,56 @@ class VerifyOrdersList(generics.GenericAPIView):
             return Response({'Detail': instance.args}, status=status.HTTP_400_BAD_REQUEST)
 
         consumer_id = instance.user_id
-        result = self.get_verify_orders_list(request, consumer_id)
-        if isinstance(result, Exception):
-            return Response({'Detail': result.args}, status=status.HTTP_400_BAD_REQUEST)
+        results = self.get_verify_orders_list(request, consumer_id)
+        if isinstance(results, Exception):
+            return Response({'Detail': results.args}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = OrdersListSerializer(data=result)
+        serializer = VerifyOrdersListSerializer(data=results)
         if not serializer.is_valid():
             return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         results = serializer.list_data()
         if isinstance(results, Exception):
             return Response({'Detail': results.args}, status=status.HTTP_400_BAD_REQUEST)
         return Response(results, status=status.HTTP_200_OK)
+
+
+class VerifyOrdersAction(generics.GenericAPIView):
+    """
+    核销订单
+    """
+    def get_verify_orders_list(self, request, consumer_id):
+        kwargs = {'consumer_id': consumer_id}
+        return VerifyOrders.filter_consuming_orders_list(request=request, is_detail=False, **kwargs)
+
+    def is_request_data_valid(self, request):
+        form = VerifyOrdersActionForm(request.data)
+        if not form.is_valid():
+            return False, Exception(form.errors)
+
+        cld = form.cleaned_data
+        result = ConfirmConsume.get_object(**cld)
+        if isinstance(result, Exception):
+            return False, result
+        return True, result
+
+    def put(self, request, *args, **kwargs):
+        is_valid, instance = self.is_request_data_valid(request)
+        if not is_valid:
+            return Response({'Detail': instance.args}, status=status.HTTP_400_BAD_REQUEST)
+
+        consumer_id = instance.user_id
+        results = self.get_verify_orders_list(request, consumer_id)
+        if isinstance(results, Exception):
+            return Response({'Detail': results.args}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = VerifySerializer()
+        result_data = serializer.confirm_consume(results)
+        if isinstance(result_data, Exception):
+            return Response({'Detail': result_data.args}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = VerifyOrdersListSerializer(result_data)
+        results = serializer.list_data()
+        return Response(results, status=status.HTTP_206_PARTIAL_CONTENT)
 
 
 class SaleList(generics.GenericAPIView):

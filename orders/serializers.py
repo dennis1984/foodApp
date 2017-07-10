@@ -1,5 +1,7 @@
 # -*- coding:utf8 -*-
-from orders.models import Orders, VerifyOrders
+from orders.models import (Orders,
+                           VerifyOrders,
+                           ORDERS_PAYMENT_STATUS)
 from rest_framework import serializers
 from horizon.serializers import (BaseListSerializer,
                                  BaseSerializer,
@@ -134,4 +136,19 @@ class VerifySerializer(BaseModelSerializer):
     class Meta:
         model = VerifyOrders
         fields = '__all__'
+
+    def confirm_consume(self, instances):
+        if not isinstance(instances, (tuple, list)):
+            if isinstance(instances, VerifyOrders):
+                instances = [instances]
+            else:
+                return TypeError('Data type error')
+
+        validated_data = {'payment_status': ORDERS_PAYMENT_STATUS['finished']}
+        for ins in instances:
+            try:
+                super(VerifySerializer, self).update(ins, validated_data)
+            except Exception as e:
+                return e
+        return instances
 

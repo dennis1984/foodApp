@@ -33,7 +33,12 @@ class OrdersUpdateForm(forms.Form):
                                               ('scan', 2)))
 
 
-class VerifyOrdersDetailForm(forms.Form):
+class VerifyOrdersListForm(forms.Form):
+    random_string = forms.CharField(max_length=32)
+
+
+class VerifyOrdersActionForm(forms.Form):
+    # orders_list = forms.CharField(required=False)
     random_string = forms.CharField(max_length=32)
 
 

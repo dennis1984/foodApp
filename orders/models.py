@@ -319,22 +319,28 @@ class VerifyOrders(models.Model):
             return e
 
     @classmethod
-    def filter_consuming_orders_list(cls, request, **kwargs):
+    def filter_consuming_orders_list(cls, request, is_detail=True, **kwargs):
         """
         获取待消费订单
         """
         kwargs['payment_status'] = ORDERS_PAYMENT_STATUS['consuming']
         orders_list = cls.get_objects_list(request, **kwargs)
-        return cls.make_instances_to_dict(orders_list)
+        if is_detail:
+            return cls.make_instances_to_dict(orders_list)
+        else:
+            return orders_list
 
     @classmethod
-    def filter_finished_orders_list(cls, request, **kwargs):
+    def filter_finished_orders_list(cls, request, is_detail=True, **kwargs):
         """
         获取已完成订单
         """
         kwargs['payment_status'] = ORDERS_PAYMENT_STATUS['finished']
         orders_list = cls.get_objects_list(request, **kwargs)
-        return cls.make_instances_to_dict(orders_list)
+        if is_detail:
+            return cls.make_instances_to_dict(orders_list)
+        else:
+            return orders_list
 
     @classmethod
     def make_instances_to_dict(cls, orders_list):

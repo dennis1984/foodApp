@@ -10,6 +10,7 @@ urlpatterns = [
     url(r'^orders_list/$', orders_view.OrdersList.as_view(), name='orders_list'),
 
     url(r'^verify_orders_list/$', orders_view.VerifyOrdersList.as_view()),
+    url(r'^verify_orders_action/$', orders_view.VerifyOrdersAction.as_view()),
 
     url(r'^sale_list/$', orders_view.SaleList.as_view(), name='sale_list'),
 ]
