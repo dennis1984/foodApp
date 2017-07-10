@@ -33,6 +33,10 @@ class OrdersUpdateForm(forms.Form):
                                               ('scan', 2)))
 
 
+class VerifyOrdersDetailForm(forms.Form):
+    random_string = forms.CharField(max_length=32)
+
+
 class SaleListForm(forms.Form):
     user_id = forms.IntegerField(required=False)
     start_created = forms.DateField(required=False)

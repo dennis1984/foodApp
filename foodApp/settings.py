@@ -90,9 +90,18 @@ DATABASES = {
         'PASSWORD': 'Con!082%Trib',
         'HOST': '127.0.0.1',
         'PORT': 3306,
-    }
+    },
+    'consumer': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'yinShi_CS',
+        'USER': 'yinShi_project',
+        'PASSWORD': 'Con!082%Trib',
+        'HOST': '127.0.0.1',
+        'PORT': 3306,
+    },
 }
 
+DATABASE_ROUTERS = ['Consumer_App.router.ConsumerAppRouter']
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators

@@ -104,6 +104,10 @@ class OrdersListSerializer(BaseListSerializer):
     child = OrdersDetailSerializer()
 
 
+class VerifyOrdersListSerializer(BaseListSerializer):
+    child = OrdersDetailSerializer()
+
+
 class SaleSerializer(BaseSerializer):
     date = serializers.CharField()
     total_count = serializers.IntegerField()

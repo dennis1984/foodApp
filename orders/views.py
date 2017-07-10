@@ -9,15 +9,18 @@ from orders.forms import (OrdersInputForm,
                           OrdersGetForm,
                           OrdersUpdateForm,
                           OrdersListForm,
+                          VerifyOrdersDetailForm,
                           SaleListForm)
 from orders.models import (Orders,
                            SaleListAction,
                            VerifyOrders)
 from orders.serializers import (OrdersSerializer,
                                 OrdersListSerializer,
+                                VerifyOrdersListSerializer,
                                 SaleListSerializer)
 from orders.permissoins import IsOwnerOrReadOnly
 from orders.pays import WXPay, AliPay
+from Consumer_App.cs_orders.models import ConfirmConsume
 
 
 class OrdersAction(generics.GenericAPIView):
@@ -45,7 +48,7 @@ class OrdersAction(generics.GenericAPIView):
 
         object_data = Orders.make_orders_by_dishes_ids(request, dishes_ids=dishes_ids)
         if isinstance(object_data, Exception):
-            return Response({'Error': object_data.args}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'Detail': object_data.args}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = OrdersSerializer(data=object_data)
         if serializer.is_valid():
@@ -126,7 +129,7 @@ class OrdersDetail(generics.GenericAPIView):
         cld = form.cleaned_data
         object_data = Orders.get_object_by_orders_id(**cld)
         if isinstance(object_data, Exception):
-            return Response({'Error': object_data.args}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'Detail': object_data.args}, status=status.HTTP_400_BAD_REQUEST)
         serializer = OrdersSerializer(object_data)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -179,14 +182,51 @@ class OrdersList(generics.GenericAPIView):
         cld = form.cleaned_data
         object_data = self.get_orders_list(request, cld)
         if isinstance(object_data, Exception):
-            return Response({'Error': object_data.args}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'Detail': object_data.args}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = OrdersListSerializer(data=object_data)
         if not serializer.is_valid():
             return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         results = serializer.list_data(**cld)
         if isinstance(results, Exception):
-            return Response({'Error': results.args}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'Detail': results.args}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(results, status=status.HTTP_200_OK)
+
+
+class VerifyOrdersDetail(generics.GenericAPIView):
+    permissions = (IsOwnerOrReadOnly,)
+
+    def get_verify_orders_list(self, request, consumer_id):
+        kwargs = {'consumer_id': consumer_id}
+        return VerifyOrders.filter_consuming_orders_list(request=request, **kwargs)
+
+    def is_request_data_valid(self, request):
+        form = VerifyOrdersDetailForm(request.data)
+        if not form.is_valid():
+            return False, form.errors
+
+        cld = form.cleaned_data
+        result = ConfirmConsume.get_object(**cld)
+        if isinstance(result, Exception):
+            return False, result
+        return True, result
+
+    def post(self, request, *args, **kwargs):
+        is_valid, instance = self.is_request_data_valid(request)
+        if not is_valid:
+            return Response({'Detail': instance.args}, status=status.HTTP_400_BAD_REQUEST)
+
+        consumer_id = instance.user_id
+        result = self.get_verify_orders_list(request, consumer_id)
+        if isinstance(result, Exception):
+            return Response({'Detail': result.args}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = OrdersListSerializer(data=result)
+        if not serializer.is_valid():
+            return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        results = serializer.list_data()
+        if isinstance(results, Exception):
+            return Response({'Detail': results.args}, status=status.HTTP_400_BAD_REQUEST)
         return Response(results, status=status.HTTP_200_OK)
 
 
@@ -206,12 +246,12 @@ class SaleList(generics.GenericAPIView):
         cld = form.cleaned_data
         object_data = self.get_objects_list(request, **cld)
         if isinstance(object_data, Exception):
-            return Response({'Error': object_data.args}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'Detail': object_data.args}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = SaleListSerializer(data=object_data)
         if serializer.is_valid():
             results = serializer.list_data(**cld)
             if isinstance(results, Exception):
-                return Response({'Error': results.args}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'Detail': results.args}, status=status.HTTP_400_BAD_REQUEST)
             return Response(results, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
