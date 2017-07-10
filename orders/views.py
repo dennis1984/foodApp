@@ -244,6 +244,9 @@ class VerifyOrdersAction(generics.GenericAPIView):
         kwargs = {'consumer_id': consumer_id}
         return VerifyOrders.filter_consuming_orders_list(request=request, is_detail=False, **kwargs)
 
+    def get_orders_detail(self, instances):
+        return VerifyOrders.make_instances_to_dict(instances)
+
     def is_request_data_valid(self, request):
         form = VerifyOrdersActionForm(request.data)
         if not form.is_valid():
@@ -270,7 +273,8 @@ class VerifyOrdersAction(generics.GenericAPIView):
         if isinstance(result_data, Exception):
             return Response({'Detail': result_data.args}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = VerifyOrdersActionResponseSerializer(result_data)
+        detail_list = self.get_orders_detail(result_data)
+        serializer = VerifyOrdersActionResponseSerializer(data=detail_list)
         results = serializer.list_data()
         return Response(results, status=status.HTTP_206_PARTIAL_CONTENT)
 
