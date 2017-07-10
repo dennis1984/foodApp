@@ -152,7 +152,3 @@ class VerifySerializer(BaseModelSerializer):
                 return e
         return instances
 
-
-class VerifyOrdersActionResponseSerializer(BaseListSerializer):
-    child = VerifySerializer()
-

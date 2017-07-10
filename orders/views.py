@@ -19,7 +19,7 @@ from orders.serializers import (OrdersSerializer,
                                 OrdersListSerializer,
                                 VerifyOrdersListSerializer,
                                 VerifySerializer,
-                                VerifyOrdersActionResponseSerializer,
+                                OrdersDetailSerializer,
                                 SaleListSerializer)
 from orders.permissoins import IsOwnerOrReadOnly
 from orders.pays import WXPay, AliPay
@@ -29,6 +29,9 @@ from Consumer_App.cs_orders.models import ConfirmConsume
 class OrdersAction(generics.GenericAPIView):
     queryset = Orders.objects.all()
     serializer_class = OrdersSerializer
+
+    def get_orders_detail(self, instance):
+        return VerifyOrders.make_instances_to_dict(instance)[0]
 
     def post(self, request, *args, **kwargs):
         """
@@ -56,7 +59,12 @@ class OrdersAction(generics.GenericAPIView):
         serializer = OrdersSerializer(data=object_data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+            orders_detail = self.get_orders_detail(serializer.instance)
+            res_serializer = OrdersDetailSerializer(data=orders_detail)
+            if not res_serializer.is_valid():
+                return Response({'Detail': res_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(res_serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, *args, **kwargs):
