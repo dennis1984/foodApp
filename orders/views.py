@@ -31,7 +31,7 @@ class OrdersAction(generics.GenericAPIView):
     serializer_class = OrdersSerializer
 
     def get_orders_detail(self, instance):
-        return VerifyOrders.make_instances_to_dict(instance)[0]
+        return Orders.make_instances_to_dict(instance)[0]
 
     def post(self, request, *args, **kwargs):
         """
