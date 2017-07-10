@@ -19,6 +19,7 @@ from orders.serializers import (OrdersSerializer,
                                 OrdersListSerializer,
                                 VerifyOrdersListSerializer,
                                 VerifySerializer,
+                                VerifyOrdersActionResponseSerializer,
                                 SaleListSerializer)
 from orders.permissoins import IsOwnerOrReadOnly
 from orders.pays import WXPay, AliPay
@@ -269,7 +270,7 @@ class VerifyOrdersAction(generics.GenericAPIView):
         if isinstance(result_data, Exception):
             return Response({'Detail': result_data.args}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = VerifyOrdersListSerializer(result_data)
+        serializer = VerifyOrdersActionResponseSerializer(result_data)
         results = serializer.list_data()
         return Response(results, status=status.HTTP_206_PARTIAL_CONTENT)
 

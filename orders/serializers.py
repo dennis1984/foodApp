@@ -95,7 +95,7 @@ class OrdersDetailSerializer(BaseSerializer):
     payment_mode = serializers.IntegerField()
     orders_type = serializers.IntegerField()
 
-    is_master = serializers.NullBooleanField(required=False)
+    is_master = serializers.NullBooleanField()
 
     created = serializers.DateTimeField()
     updated = serializers.DateTimeField()
@@ -151,4 +151,8 @@ class VerifySerializer(BaseModelSerializer):
             except Exception as e:
                 return e
         return instances
+
+
+class VerifyOrdersActionResponseSerializer(BaseListSerializer):
+    child = VerifySerializer()
 
