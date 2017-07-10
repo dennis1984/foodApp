@@ -95,7 +95,7 @@ class OrdersDetailSerializer(BaseSerializer):
     payment_mode = serializers.IntegerField()
     orders_type = serializers.IntegerField()
 
-    is_master = serializers.BooleanField()
+    is_master = serializers.NullBooleanField(required=False)
 
     created = serializers.DateTimeField()
     updated = serializers.DateTimeField()
