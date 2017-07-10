@@ -328,7 +328,7 @@ class VerifyOrders(models.Model):
         if is_detail:
             return cls.make_instances_to_dict(orders_list)
         else:
-            return orders_list
+            return list(orders_list)
 
     @classmethod
     def filter_finished_orders_list(cls, request, is_detail=True, **kwargs):
@@ -340,7 +340,7 @@ class VerifyOrders(models.Model):
         if is_detail:
             return cls.make_instances_to_dict(orders_list)
         else:
-            return orders_list
+            return list(orders_list)
 
     @classmethod
     def make_instances_to_dict(cls, orders_list):
