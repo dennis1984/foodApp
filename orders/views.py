@@ -275,7 +275,11 @@ class VerifyOrdersAction(generics.GenericAPIView):
 
         detail_list = self.get_orders_detail(result_data)
         serializer = VerifyOrdersActionResponseSerializer(data=detail_list)
+        if not serializer.is_valid():
+            return Response({'Detail': serializer.errors}, status=status.HTTP_206_PARTIAL_CONTENT)
         results = serializer.list_data()
+        if isinstance(results, Exception):
+            return Response({'Detail': results.args}, status=status.HTTP_400_BAD_REQUEST)
         return Response(results, status=status.HTTP_206_PARTIAL_CONTENT)
 
 
