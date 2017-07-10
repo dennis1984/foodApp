@@ -193,7 +193,7 @@ class OrdersList(generics.GenericAPIView):
         return Response(results, status=status.HTTP_200_OK)
 
 
-class VerifyOrdersDetail(generics.GenericAPIView):
+class VerifyOrdersList(generics.GenericAPIView):
     permissions = (IsOwnerOrReadOnly,)
 
     def get_verify_orders_list(self, request, consumer_id):
