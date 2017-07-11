@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'users',
     'PAY.wxpay',
     'PAY.alipay',
+    'wallet',
 ]
 
 MIDDLEWARE = [

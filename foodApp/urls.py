@@ -26,9 +26,10 @@ urlpatterns = [
     # url(r'^api-token-auth/', authtoken_views.obtain_auth_token),
     url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 
-    url(r'^orders/', include('orders.urls')),
+    url(r'^orders/', include('orders.urls', namespace='orders_app')),
     url(r'^dishes/', include('dishes.urls', namespace='dishes_app')),
-    url(r'^auth/', include('users.urls')),
+    url(r'^auth/', include('users.urls', namespace='user_app')),
+    url(r'wallet/', include('wallet.urls', namespace='wallet_app')),
 
     url(r'^wxpay/', include('PAY.wxpay.urls', namespace='wxpay')),
     url(r'^alipay/', include('PAY.alipay.urls', namespace='alipay')),
