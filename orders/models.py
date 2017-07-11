@@ -405,20 +405,20 @@ class SaleListAction(object):
                                                        'yspay': {'count': 0, 'payable': '0'},
                                                        })
             sale_detail['total_count'] += 1
-            sale_detail['total_payable'] = Decimal(sale_detail['total_payable']) + \
-                                           Decimal(item.payable)
+            sale_detail['total_payable'] = str(Decimal(sale_detail['total_payable']) +
+                                               Decimal(item.payable))
             if item.payment_mode == ORDERS_PAYMENT_MODE['cash']:
                 sale_detail['cash']['count'] += 1
-                sale_detail['cash']['payable'] = Decimal(sale_detail['cash']['payable']) + \
-                                                 Decimal(item.payable)
+                sale_detail['cash']['payable'] = str(Decimal(sale_detail['cash']['payable']) +
+                                                     Decimal(item.payable))
             elif item.payment_mode == ORDERS_PAYMENT_MODE['wxpay']:
                 sale_detail['wxpay']['count'] += 1
-                sale_detail['wxpay']['payable'] = Decimal(sale_detail['wxpay']['payable']) + \
-                                                  Decimal(item.payable)
+                sale_detail['wxpay']['payable'] = str(Decimal(sale_detail['wxpay']['payable']) +
+                                                      Decimal(item.payable))
             elif item.payment_mode == ORDERS_PAYMENT_MODE['alipay']:
                 sale_detail['alipay']['count'] += 1
-                sale_detail['alipay']['payable'] = Decimal(sale_detail['alipay']['payable']) + \
-                                                   Decimal(item.payable)
+                sale_detail['alipay']['payable'] = str(Decimal(sale_detail['alipay']['payable']) +
+                                                       Decimal(item.payable))
             else:
                 pass
             sale_dict[datetime_day] = sale_detail
@@ -433,17 +433,17 @@ class SaleListAction(object):
                                                        'yspay': {'count': 0, 'payable': '0'},
                                                        })
             sale_detail['total_count'] += 1
-            sale_detail['total_payable'] = Decimal(sale_detail['total_payable']) + \
-                                           Decimal(item.payable)
+            sale_detail['total_payable'] = str(Decimal(sale_detail['total_payable']) +
+                                               Decimal(item.payable))
             sale_detail['yspay']['count'] += 1
-            sale_detail['yspay']['payable'] = Decimal(sale_detail['yspay']['payable']) + \
-                                              Decimal(item.payable)
+            sale_detail['yspay']['payable'] = str(Decimal(sale_detail['yspay']['payable']) +
+                                                  Decimal(item.payable))
+            sale_detail[datetime_day] = sale_detail
 
         results = []
         for key, value in sale_dict.items():
             sale_detail = value
             sale_detail['date'] = str(key)
-            sale_detail['total_payable'] = str(sale_detail['total_payable'])
             results.append(sale_detail)
         results.sort(key=lambda x: x['date'], reverse=True)
         return results
