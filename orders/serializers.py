@@ -166,9 +166,8 @@ class VerifySerializer(BaseModelSerializer):
                 return e
             else:
                 # 钱包余额更新 (订单收入)
-                result = WalletAction().income(request, instances)
+                result = WalletAction().income(request, ins)
                 if isinstance(result, Exception):
                     return result
-
         return instances
 
