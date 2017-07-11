@@ -465,7 +465,7 @@ class SaleListAction(object):
             return verify_orders_list
 
         dishes_dict = {}
-        for item in orders_list + verify_orders_list:
+        for item in list(orders_list) + list(verify_orders_list):
             datetime_day = item.created.date()
             sale_detail = dishes_dict.get(datetime_day, {})
             for dishes_item in json.loads(item.dishes_ids):
@@ -473,7 +473,7 @@ class SaleListAction(object):
                 sale_tmp = {'dishes_id': dishes_id,
                             'title': dishes_item['title'],
                             'size': dishes_item['size'],
-                            'size_detail': dishes_item['size_detail'],
+                            'size_detail': dishes_item.get('size_detail'),
                             'count': dishes_item['count']}
                 sale_dishes = sale_detail.get(dishes_id, None)
                 if not sale_dishes:
@@ -485,9 +485,9 @@ class SaleListAction(object):
         sale_list = []
         for date_key in dishes_dict:
             tmp_list = dishes_dict[date_key].values()
-            sale_list.append({'date': date_key,
-                              'sale_list': sorted(tmp_list, key=lambda x: x['count'], reverse=True)})
-        return sorted(sale_list, key=lambda x: x['date'])
+            sale_list.append({'date': str(date_key),
+                              'sale_list': sorted(tmp_list, key=lambda x: x['count'], reverse=True)[:6]})
+        return sorted(sale_list, key=lambda x: x['date'], reverse=True)
 
 
     @classmethod
