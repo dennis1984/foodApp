@@ -6,6 +6,7 @@ from rest_framework import serializers
 from horizon.serializers import (BaseListSerializer,
                                  BaseSerializer,
                                  BaseModelSerializer)
+from wallet.models import WalletAction
 from django.utils.timezone import now
 
 
@@ -150,7 +151,7 @@ class VerifySerializer(BaseModelSerializer):
         model = VerifyOrders
         fields = '__all__'
 
-    def confirm_consume(self, instances):
+    def confirm_consume(self, request, instances):
         if not isinstance(instances, (tuple, list)):
             if isinstance(instances, VerifyOrders):
                 instances = [instances]
@@ -163,5 +164,11 @@ class VerifySerializer(BaseModelSerializer):
                 super(VerifySerializer, self).update(ins, validated_data)
             except Exception as e:
                 return e
+            else:
+                # 钱包余额更新 (订单收入)
+                result = WalletAction().income(request, instances)
+                if isinstance(result, Exception):
+                    return result
+
         return instances
 

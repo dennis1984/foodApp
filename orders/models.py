@@ -30,6 +30,14 @@ ORDERS_PAYMENT_MODE = {
     'alipay': 3,
 }
 
+ORDERS_ORDERS_TYPE = {
+    'unknown': 0,
+    'online': 101,
+    'business': 102,
+    'take_out': 103,
+    'wallet_withdraw': 203,
+}
+
 
 class OrdersManager(models.Manager):
     def get(self, *args, **kwargs):
@@ -86,6 +94,31 @@ class Orders(models.Model):
     def __unicode__(self):
         return self.orders_id
 
+    @property
+    def is_expired(self):
+        if now() >= self.expires:
+            return True
+        return False
+
+    @property
+    def is_success(self):
+        """
+        订单是否完成
+        :return:
+        """
+        if self.payment_status == ORDERS_PAYMENT_STATUS['paid']:
+            return True
+        return False
+
+    @property
+    def is_consume_orders(self):
+        """
+        消费订单
+        """
+        if self.orders_type not in (ORDERS_ORDERS_TYPE['wallet_withdraw'],
+                                    ORDERS_ORDERS_TYPE['unknown']):
+            return True
+        return False
 
     @classmethod
     def get_dishes_by_id(cls, pk):
@@ -292,6 +325,32 @@ class VerifyOrders(models.Model):
 
     def __unicode__(self):
         return self.orders_id
+
+    @property
+    def is_expired(self):
+        if now() >= self.expires:
+            return True
+        return False
+
+    @property
+    def is_success(self):
+        """
+        订单是否完成
+        :return:
+        """
+        if self.payment_status == ORDERS_PAYMENT_STATUS['finished']:
+            return True
+        return False
+
+    @property
+    def is_consume_orders(self):
+        """
+        消费订单
+        """
+        if self.orders_type not in (ORDERS_ORDERS_TYPE['wallet_withdraw'],
+                                    ORDERS_ORDERS_TYPE['unknown']):
+            return True
+        return False
 
     @classmethod
     def get_object(cls, **kwargs):

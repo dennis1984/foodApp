@@ -9,6 +9,8 @@ from PAY.alipay.serializers import PreCreateResponseSerializer
 from PAY.wxpay.views import api_settings
 from PAY.alipay.forms import PreCreateCallbackForm
 from orders.models import Orders
+from wallet.models import WalletAction
+
 from decimal import Decimal
 import json
 import copy
@@ -48,11 +50,16 @@ class PreCreateCallback(APIView):
 
         if _request_data['trade_status'] == 'TRADE_SUCCESS':
             try:
-                Orders.update_payment_status_by_pay_callback(
+                orders = Orders.update_payment_status_by_pay_callback(
                     orders_id=self._orders_id,
                     validated_data=success_data)
             except:
                 return Response(success_message, status=status.HTTP_200_OK)
+            else:
+                # 钱包余额更新 (订单收入)
+                result = WalletAction().income(None, orders, gateway='pay_callback')
+                if isinstance(result, Exception):
+                    return result
         else:
             try:
                 Orders.update_payment_status_by_pay_callback(

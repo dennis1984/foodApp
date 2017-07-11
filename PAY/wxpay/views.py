@@ -8,6 +8,8 @@ from horizon import main
 from PAY.wxpay.models import WXPayResult
 from PAY.wxpay.serializers import NativeResponseSerializer
 from orders.models import Orders
+from wallet.models import WalletAction
+
 import json
 import copy
 
@@ -65,11 +67,16 @@ class NativeCallback(APIView):
         return_xml = main.make_dict_to_xml(success_message, use_cdata=True)
         if data_dict['result_code'] == 'SUCCESS':
             try:
-                Orders.update_payment_status_by_pay_callback(
+                orders = Orders.update_payment_status_by_pay_callback(
                     orders_id=self._orders_id,
                     validated_data=success_data)
             except:
                 return Response(return_xml, status=status.HTTP_200_OK)
+            else:
+                # 钱包余额更新 (订单收入)
+                result = WalletAction().income(None, orders, gateway='pay_callback')
+                if isinstance(result, Exception):
+                    return result
         else:
             try:
                 Orders.update_payment_status_by_pay_callback(

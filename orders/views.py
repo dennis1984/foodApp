@@ -278,7 +278,7 @@ class VerifyOrdersAction(generics.GenericAPIView):
             return Response({'Detail': results.args}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = VerifySerializer()
-        result_data = serializer.confirm_consume(results)
+        result_data = serializer.confirm_consume(request, results)
         if isinstance(result_data, Exception):
             return Response({'Detail': result_data.args}, status=status.HTTP_400_BAD_REQUEST)
 
