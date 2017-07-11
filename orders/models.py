@@ -414,7 +414,7 @@ class SaleListAction(object):
         sale_dict = {}
         for item in orders_list:
             datetime_day = item.created.date()
-            sale_detail = sale_dict.get(datetime_day, init_dict)
+            sale_detail = sale_dict.get(datetime_day, copy.deepcopy(init_dict))
             sale_detail['total_count'] += 1
             sale_detail['total_payable'] = str(Decimal(sale_detail['total_payable']) +
                                                Decimal(item.payable))
@@ -436,7 +436,7 @@ class SaleListAction(object):
 
         for item in verify_orders_list:
             datetime_day = item.created.date()
-            sale_detail = sale_dict.get(datetime_day, init_dict)
+            sale_detail = sale_dict.get(datetime_day, copy.deepcopy(init_dict))
             sale_detail['total_count'] += 1
             sale_detail['total_payable'] = str(Decimal(sale_detail['total_payable']) +
                                                Decimal(item.payable))
