@@ -12,7 +12,8 @@ urlpatterns = [
     url(r'^verify_orders_list/$', orders_view.VerifyOrdersList.as_view()),
     url(r'^verify_orders_action/$', orders_view.VerifyOrdersAction.as_view()),
 
-    url(r'^sale_list/$', orders_view.SaleList.as_view(), name='sale_list'),
+    url(r'^sale_orders_list/$', orders_view.SaleOrdersList.as_view(), name='sale_orders_list'),
+    url(r'^sale_dishes_list/$', orders_view.SaleDishesList.as_view(), name='sale_dishes_list'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

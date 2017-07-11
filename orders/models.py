@@ -372,15 +372,16 @@ class SaleListAction(object):
         if request.user.is_admin and 'user_id' not in kwargs:
             return cls.get_sale_list_by_admin(request, **kwargs)
         else:
-            return cls.get_sale_list_by_user(request, **kwargs)
+            return cls.get_orders_sale_list(request, **kwargs)
 
     @classmethod
-    def get_sale_list_by_user(cls, request, **kwargs):
+    def get_finished_orders_list(cls, request, **kwargs):
         """
-        销售统计（普通用户）
+        获取支付完成和核销完成的订单列表
         """
-        # 支付状态为：已支付
+        # 支付订单支付状态为：已支付
         kwargs['payment_status'] = ORDERS_PAYMENT_STATUS['paid']
+        # 和小订单支付状态为：已完成
         v_kwargs = copy.deepcopy(kwargs)
         v_kwargs['payment_status'] = ORDERS_PAYMENT_STATUS['finished']
         # 如果参数没有选择时间范围，默认选取当前时间至向前30天的数据
@@ -388,22 +389,32 @@ class SaleListAction(object):
             kwargs['start_created'] = now().date() - datetime.timedelta(days=30)
             kwargs['end_created'] = now().date()
         orders_list = Orders.get_objects_list(request, **kwargs)
+        verify_orders_list = VerifyOrders.get_objects_list(request, **v_kwargs)
+        return orders_list, verify_orders_list
+
+
+    @classmethod
+    def get_orders_sale_list(cls, request, **kwargs):
+        """
+        订单销售统计（普通用户）
+        """
+        orders_list, verify_orders_list = cls.get_finished_orders_list(request, **kwargs)
         if isinstance(orders_list, Exception):
             return orders_list
-        verify_orders_list = VerifyOrders.get_objects_list(request, **v_kwargs)
         if isinstance(verify_orders_list, Exception):
             return verify_orders_list
 
+        init_dict = {'total_count': 0,
+                     'total_payable': '0',
+                     'cash': {'count': 0, 'payable': '0'},
+                     'wxpay': {'count': 0, 'payable': '0'},
+                     'alipay': {'count': 0, 'payable': '0'},
+                     'yspay': {'count': 0, 'payable': '0'},
+                     }
         sale_dict = {}
         for item in orders_list:
             datetime_day = item.created.date()
-            sale_detail = sale_dict.get(datetime_day, {'total_count': 0,
-                                                       'total_payable': '0',
-                                                       'cash': {'count': 0, 'payable': '0'},
-                                                       'wxpay': {'count': 0, 'payable': '0'},
-                                                       'alipay': {'count': 0, 'payable': '0'},
-                                                       'yspay': {'count': 0, 'payable': '0'},
-                                                       })
+            sale_detail = sale_dict.get(datetime_day, init_dict)
             sale_detail['total_count'] += 1
             sale_detail['total_payable'] = str(Decimal(sale_detail['total_payable']) +
                                                Decimal(item.payable))
@@ -425,13 +436,7 @@ class SaleListAction(object):
 
         for item in verify_orders_list:
             datetime_day = item.created.date()
-            sale_detail = sale_dict.get(datetime_day, {'total_count': 0,
-                                                       'total_payable': '0',
-                                                       'cash': {'count': 0, 'payable': '0'},
-                                                       'wxpay': {'count': 0, 'payable': '0'},
-                                                       'alipay': {'count': 0, 'payable': '0'},
-                                                       'yspay': {'count': 0, 'payable': '0'},
-                                                       })
+            sale_detail = sale_dict.get(datetime_day, init_dict)
             sale_detail['total_count'] += 1
             sale_detail['total_payable'] = str(Decimal(sale_detail['total_payable']) +
                                                Decimal(item.payable))
@@ -449,9 +454,46 @@ class SaleListAction(object):
         return results
 
     @classmethod
+    def get_dishes_sale_list(cls, request, **kwargs):
+        """
+        菜品销量统计
+        """
+        orders_list, verify_orders_list = cls.get_finished_orders_list(request, **kwargs)
+        if isinstance(orders_list, Exception):
+            return orders_list
+        if isinstance(verify_orders_list, Exception):
+            return verify_orders_list
+
+        dishes_dict = {}
+        for item in orders_list + verify_orders_list:
+            datetime_day = item.created.date()
+            sale_detail = dishes_dict.get(datetime_day, {})
+            for dishes_item in json.loads(item.dishes_ids):
+                dishes_id = dishes_item['id']
+                sale_tmp = {'dishes_id': dishes_id,
+                            'title': dishes_item['title'],
+                            'size': dishes_item['size'],
+                            'size_detail': dishes_item['size_detail'],
+                            'count': dishes_item['count']}
+                sale_dishes = sale_detail.get(dishes_id, None)
+                if not sale_dishes:
+                    sale_detail[dishes_id] = sale_tmp
+                else:
+                    sale_detail[dishes_id]['count'] += dishes_item['count']
+            dishes_dict[datetime_day] = sale_detail
+
+        sale_list = []
+        for date_key in dishes_dict:
+            tmp_list = dishes_dict[date_key].values()
+            sale_list.append({'date': date_key,
+                              'sale_list': sorted(tmp_list, key=lambda x: x['count'], reverse=True)})
+        return sorted(sale_list, key=lambda x: x['date'])
+
+
+    @classmethod
     def get_sale_list_by_admin(cls, request, **kwargs):
         """
-        销售统计（管理员）
+        订单销售统计（管理员）
         """
         # 支付状态为：已支付
         kwargs['payment_status'] = 200

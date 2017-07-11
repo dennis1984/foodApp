@@ -20,7 +20,8 @@ from orders.serializers import (OrdersSerializer,
                                 VerifyOrdersListSerializer,
                                 VerifySerializer,
                                 OrdersDetailSerializer,
-                                SaleListSerializer)
+                                SaleOrdersListSerializer,
+                                SaleDishesListSerializer)
 from orders.permissoins import IsOwnerOrReadOnly
 from orders.pays import WXPay, AliPay
 from Consumer_App.cs_orders.models import ConfirmConsume
@@ -291,7 +292,7 @@ class VerifyOrdersAction(generics.GenericAPIView):
         return Response(results, status=status.HTTP_206_PARTIAL_CONTENT)
 
 
-class SaleList(generics.GenericAPIView):
+class SaleOrdersList(generics.GenericAPIView):
     permissions = (IsOwnerOrReadOnly,)
 
     def get_objects_list(self, request, **kwargs):
@@ -307,7 +308,32 @@ class SaleList(generics.GenericAPIView):
         if isinstance(object_data, Exception):
             return Response({'Detail': object_data.args}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = SaleListSerializer(data=object_data)
+        serializer = SaleOrdersListSerializer(data=object_data)
+        if serializer.is_valid():
+            results = serializer.list_data(**cld)
+            if isinstance(results, Exception):
+                return Response({'Detail': results.args}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(results, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SaleDishesList(generics.GenericAPIView):
+    permissions = (IsOwnerOrReadOnly,)
+
+    def get_objects_list(self, request, **kwargs):
+        return SaleListAction.get_dishes_sale_list(request, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        form = SaleListForm(request.data)
+        if not form.is_valid():
+            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        cld = form.cleaned_data
+        object_data = self.get_objects_list(request, **cld)
+        if isinstance(object_data, Exception):
+            return Response({'Detail': object_data.args}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = SaleDishesListSerializer(data=object_data)
         if serializer.is_valid():
             results = serializer.list_data(**cld)
             if isinstance(results, Exception):

@@ -110,7 +110,7 @@ class VerifyOrdersListSerializer(BaseListSerializer):
     child = OrdersDetailSerializer()
 
 
-class SaleSerializer(BaseSerializer):
+class SaleOrdersSerializer(BaseSerializer):
     date = serializers.CharField()
     total_count = serializers.IntegerField()
     total_payable = serializers.CharField()
@@ -122,8 +122,17 @@ class SaleSerializer(BaseSerializer):
     user_id = serializers.IntegerField(required=False)
 
 
-class SaleListSerializer(BaseListSerializer):
-    child = SaleSerializer()
+class SaleOrdersListSerializer(BaseListSerializer):
+    child = SaleOrdersSerializer()
+
+
+class SaleDishesSerializer(BaseSerializer):
+    date = serializers.CharField()
+    sale_list = serializers.ListField()
+
+
+class SaleDishesListSerializer(BaseListSerializer):
+    child = SaleDishesSerializer()
 
 
 class DishesIdsDetailSerializer(BaseSerializer):
