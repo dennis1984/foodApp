@@ -114,6 +114,10 @@ class SaleSerializer(BaseSerializer):
     date = serializers.CharField()
     total_count = serializers.IntegerField()
     total_payable = serializers.CharField()
+    cash = serializers.DictField()
+    wxpay = serializers.DictField()
+    alipay = serializers.DictField()
+    yspay = serializers.DictField()
     business_name = serializers.CharField(required=False)
     user_id = serializers.IntegerField(required=False)
 

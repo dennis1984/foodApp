@@ -438,7 +438,7 @@ class SaleListAction(object):
             sale_detail['yspay']['count'] += 1
             sale_detail['yspay']['payable'] = str(Decimal(sale_detail['yspay']['payable']) +
                                                   Decimal(item.payable))
-            sale_detail[datetime_day] = sale_detail
+            sale_dict[datetime_day] = sale_detail
 
         results = []
         for key, value in sale_dict.items():
