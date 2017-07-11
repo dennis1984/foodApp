@@ -292,8 +292,6 @@ class VerifyOrdersAction(generics.GenericAPIView):
 
 
 class SaleList(generics.GenericAPIView):
-    queryset = Orders.objects.all()
-    serializer_class = OrdersSerializer
     permissions = (IsOwnerOrReadOnly,)
 
     def get_objects_list(self, request, **kwargs):

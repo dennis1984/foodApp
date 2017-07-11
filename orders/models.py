@@ -10,6 +10,7 @@ from horizon.main import minutes_15_plus
 from django.db import transaction
 from decimal import Decimal
 
+import copy
 import json
 import datetime
 
@@ -20,6 +21,13 @@ ORDERS_PAYMENT_STATUS = {
     'finished': 206,
     'expired': 400,
     'failed': 500,
+}
+
+ORDERS_PAYMENT_MODE = {
+    'unknown': 0,
+    'cash': 1,
+    'wxpay': 2,
+    'alipay': 3,
 }
 
 
@@ -372,7 +380,9 @@ class SaleListAction(object):
         销售统计（普通用户）
         """
         # 支付状态为：已支付
-        kwargs['payment_status'] = 200
+        kwargs['payment_status'] = ORDERS_PAYMENT_STATUS['paid']
+        v_kwargs = copy.deepcopy(kwargs)
+        v_kwargs['payment_status'] = ORDERS_PAYMENT_STATUS['finished']
         # 如果参数没有选择时间范围，默认选取当前时间至向前30天的数据
         if not ('start_created' in kwargs or 'end_created' in kwargs):
             kwargs['start_created'] = now().date() - datetime.timedelta(days=30)
@@ -380,16 +390,55 @@ class SaleListAction(object):
         orders_list = Orders.get_objects_list(request, **kwargs)
         if isinstance(orders_list, Exception):
             return orders_list
+        verify_orders_list = VerifyOrders.get_objects_list(request, **v_kwargs)
+        if isinstance(verify_orders_list, Exception):
+            return verify_orders_list
 
         sale_dict = {}
         for item in orders_list:
             datetime_day = item.created.date()
             sale_detail = sale_dict.get(datetime_day, {'total_count': 0,
-                                                       'total_payable': '0'})
+                                                       'total_payable': '0',
+                                                       'cash': {'count': 0, 'payable': '0'},
+                                                       'wxpay': {'count': 0, 'payable': '0'},
+                                                       'alipay': {'count': 0, 'payable': '0'},
+                                                       'yspay': {'count': 0, 'payable': '0'},
+                                                       })
             sale_detail['total_count'] += 1
             sale_detail['total_payable'] = Decimal(sale_detail['total_payable']) + \
                                            Decimal(item.payable)
+            if item.payment_mode == ORDERS_PAYMENT_MODE['cash']:
+                sale_detail['cash']['count'] += 1
+                sale_detail['cash']['payable'] = Decimal(sale_detail['cash']['payable']) + \
+                                                 Decimal(item.payable)
+            elif item.payment_mode == ORDERS_PAYMENT_MODE['wxpay']:
+                sale_detail['wxpay']['count'] += 1
+                sale_detail['wxpay']['payable'] = Decimal(sale_detail['wxpay']['payable']) + \
+                                                  Decimal(item.payable)
+            elif item.payment_mode == ORDERS_PAYMENT_MODE['alipay']:
+                sale_detail['alipay']['count'] += 1
+                sale_detail['alipay']['payable'] = Decimal(sale_detail['alipay']['payable']) + \
+                                                   Decimal(item.payable)
+            else:
+                pass
             sale_dict[datetime_day] = sale_detail
+
+        for item in verify_orders_list:
+            datetime_day = item.created.date()
+            sale_detail = sale_dict.get(datetime_day, {'total_count': 0,
+                                                       'total_payable': '0',
+                                                       'cash': {'count': 0, 'payable': '0'},
+                                                       'wxpay': {'count': 0, 'payable': '0'},
+                                                       'alipay': {'count': 0, 'payable': '0'},
+                                                       'yspay': {'count': 0, 'payable': '0'},
+                                                       })
+            sale_detail['total_count'] += 1
+            sale_detail['total_payable'] = Decimal(sale_detail['total_payable']) + \
+                                           Decimal(item.payable)
+            sale_detail['yspay']['count'] += 1
+            sale_detail['yspay']['payable'] = Decimal(sale_detail['yspay']['payable']) + \
+                                              Decimal(item.payable)
+
         results = []
         for key, value in sale_dict.items():
             sale_detail = value
