@@ -56,10 +56,9 @@ class WalletDetailListSerializer(BaseListSerializer):
 
 
 class WithdrawSerializer(BaseModelSerializer):
-    def __init__(self, instance=None, data=None, **kwargs):
+    def __init__(self, instance=None, data=None, request=None, **kwargs):
         if data:
-            if 'request' in kwargs:
-                request = kwargs['request']
+            if request:
                 data['user_id'] = request.user.id
                 service_charge = str(Decimal(WALLET_SERVICE_RATE) * Decimal(data['amount_of_money']))
                 payment_of_money = str(Decimal(data['amount_of_money']) - Decimal(service_charge))
