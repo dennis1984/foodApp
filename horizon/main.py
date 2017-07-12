@@ -40,6 +40,17 @@ def make_time_delta(days=0, minutes=0, seconds=0):
                                       seconds=seconds)
 
 
+def time_plus(days=0, minutes=0, seconds=0):
+    """
+    时间增量
+    """
+    def now_plus():
+        return now() + datetime.timedelta(days=days,
+                                          minutes=minutes,
+                                          seconds=seconds)
+    return now_plus
+
+
 def timezoneStringTostring(timezone_string):
     """
     rest framework用JSONRender方法格式化datetime.datetime格式的数据时，

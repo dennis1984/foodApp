@@ -1,10 +1,14 @@
 # -*- coding:utf8 -*-
 from django.contrib.auth.hashers import make_password
-from wallet.models import Wallet, WalletTradeDetail
+from wallet.models import (Wallet,
+                           WalletTradeDetail,
+                           WithdrawRecord,
+                           WALLET_SERVICE_RATE,)
 from horizon.serializers import (BaseSerializer,
                                  BaseModelSerializer,
                                  BaseListSerializer)
 import os
+from decimal import Decimal
 
 
 class WalletSerializer(BaseModelSerializer):
@@ -49,3 +53,23 @@ class WalletDetailSerializer(BaseModelSerializer):
 
 class WalletDetailListSerializer(BaseListSerializer):
     child = WalletDetailSerializer()
+
+
+class WithdrawSerializer(BaseModelSerializer):
+    def __init__(self, instance=None, data=None, **kwargs):
+        if data:
+            if 'request' in kwargs:
+                request = kwargs['request']
+                data['user_id'] = request.user.id
+                service_charge = str(Decimal(WALLET_SERVICE_RATE) * Decimal(data['amount_of_money']))
+                payment_of_money = str(Decimal(data['amount_of_money']) - Decimal(service_charge))
+
+                data['service_charge'] = service_charge
+                data['payment_of_money'] = payment_of_money
+            super(WithdrawSerializer, self).__init__(data=data, **kwargs)
+        else:
+            super(WithdrawSerializer, self).__init__(instance, **kwargs)
+
+    class Meta:
+        model = WithdrawRecord
+        fields = '__all__'

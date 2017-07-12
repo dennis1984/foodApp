@@ -31,3 +31,8 @@ class WalletUpdateBalanceModelForm(forms.Form):
                                         ('consume', 2),
                                         ('withdrawals', 3)),
                                )
+
+
+class WithdrawActionForm(forms.Form):
+    amount_of_money = forms.CharField(max_length=16)
+    account_id = forms.IntegerField(min_value=1)

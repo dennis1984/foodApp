@@ -3,14 +3,15 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import status
 from wallet.serializers import (WalletSerializer,
-                                WalletDetailSerializer,
                                 WalletDetailListSerializer,
-                                WalletResponseSerializer)
+                                WalletResponseSerializer,
+                                WithdrawSerializer)
 from wallet.permissions import IsOwnerOrReadOnly
 from wallet.models import (Wallet,
                            WalletTradeDetail)
 from wallet.forms import (WalletDetailListForm,
-                          WalletCreateForm,)
+                          WalletCreateForm,
+                          WithdrawActionForm)
 
 
 class WalletAction(generics.GenericAPIView):
@@ -84,4 +85,50 @@ class WalletTradeDetailList(generics.GenericAPIView):
         if isinstance(result, Exception):
             return Response({'Detail': result.args}, status=status.HTTP_400_BAD_REQUEST)
         return Response(result, status=status.HTTP_200_OK)
+
+
+class WithdrawAction(generics.GenericAPIView):
+    """
+    钱包提现
+    """
+    permission_classes = (IsOwnerOrReadOnly,)
+
+    def has_enough_balance(self, request, amount_of_money):
+        """
+        余额是否充足
+        """
+        return False
+
+    def is_request_data_valid(self, request):
+        form = WithdrawActionForm(request.data)
+        if not form.is_valid():
+            return form.errors
+
+        cld = form.cleaned_data
+        try:
+            float(cld['amount_of_money'])
+        except Exception as e:
+            return False, e
+        if float(cld['amount_of_money']) <= 0:
+            return False, ValueError('Fields [amount_of_money]: data is incorrect')
+
+        # 判断银行账户是否存在及是否属于本人
+        # ....
+        return True, cld
+
+    def post(self, request, *args, **kwargs):
+        bool_res, cld = self.is_request_data_valid(request)
+        if not bool_res:
+            return Response({'Detail': cld.args}, status=status.HTTP_400_BAD_REQUEST)
+
+        has_enough = self.has_enough_balance(request, cld['amount_of_money'])
+        if not has_enough:
+            return Response({'Detail': 'Your balance is not enough.'})
+
+        serializer = WithdrawSerializer(data=cld, request=request)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 

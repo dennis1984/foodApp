@@ -12,6 +12,7 @@ from orders.models import (Orders,
                            VerifyOrders,
                            ORDERS_ORDERS_TYPE)
 from horizon.models import model_to_dict
+from horizon.main import time_plus
 
 import json
 import datetime
@@ -22,8 +23,10 @@ WALLET_TRADE_DETAIL_TRADE_TYPE_DICT = {
     'income': 2,
     'withdraw': 3,
 }
-
 WALLET_ACTION_METHOD = ('recharge', 'income', 'withdraw')
+
+WALLET_BALANCE = '500.00'
+WALLET_SERVICE_RATE = '0.006'
 
 
 class WalletManager(models.Manager):
@@ -302,3 +305,37 @@ class WalletTradeAction(object):
         except Exception as e:
             return e
         return wallet_detail
+
+
+class WithdrawRecord(models.Model):
+    """
+    提现记录
+    """
+    user_id = models.IntegerField('用户ID', db_index=True)
+
+    amount_of_money = models.CharField('申请提现金额', max_length=16)
+    service_charge = models.CharField('手续费', max_length=16)
+    payment_of_money = models.CharField('实际提现金额', max_length=16)
+    account_id = models.IntegerField('提现到账账户')
+
+    # 提现状态：0:审核中 200:已完成 400:提现申请已过期 500:审核不通过
+    status = models.IntegerField('提现状态', default=0)
+
+    expires = models.DateTimeField('申请提现过期时间', default=time_plus(days=7))
+    created = models.DateTimeField('创建时间', default=now)
+    updated = models.DateTimeField('更新实际', auto_now=True)
+    extend = models.TextField('扩展信息', default='', blank=True)
+
+    class Meta:
+        db_table = 'ys_wallet_withdraw_record'
+        ordering = ['-created']
+
+    def __unicode__(self):
+        return str(self.user_id)
+
+    @classmethod
+    def get_object(cls, **kwargs):
+        try:
+            return cls.objects.get(**kwargs)
+        except Exception as e:
+            return e
