@@ -122,13 +122,14 @@ class WithdrawAction(generics.GenericAPIView):
         if not bool_res:
             return Response({'Detail': cld.args}, status=status.HTTP_400_BAD_REQUEST)
 
-        has_enough = self.has_enough_balance(request, cld['amount_of_money'])
+        amount_of_money = cld['amount_of_money']
+        has_enough = self.has_enough_balance(request, amount_of_money)
         if not has_enough:
             return Response({'Detail': 'Your balance is not enough.'})
 
         serializer = WithdrawSerializer(data=cld, request=request)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(request, amount_of_money)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

@@ -7,6 +7,7 @@ from wallet.models import (Wallet,
 from horizon.serializers import (BaseSerializer,
                                  BaseModelSerializer,
                                  BaseListSerializer)
+from wallet.models import Wallet
 import os
 from decimal import Decimal
 
@@ -72,3 +73,14 @@ class WithdrawSerializer(BaseModelSerializer):
     class Meta:
         model = WithdrawRecord
         fields = '__all__'
+
+    def save(self, request, amount_of_money, **kwargs):
+        # 此处需要添加回滚操作
+        # 冻结相应金额
+        result = Wallet.update_blocked_money(request, amount_of_money)
+        if isinstance(result, Exception):
+            return result
+        try:
+            return super(WithdrawSerializer, self).save(**kwargs)
+        except Exception as e:
+            return e

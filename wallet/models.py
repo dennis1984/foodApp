@@ -125,6 +125,24 @@ class Wallet(models.Model):
             instance = _instance
         return instance
 
+    @classmethod
+    def update_blocked_money(cls, request, amount_of_money):
+        if not cls.has_enough_balance(request, amount_of_money):
+            return Exception('Your balance is not enough.')
+
+        instance = None
+        # 数据库加排它锁，保证更改信息是列队操作的，防止数据混乱
+        with transaction.atomic():
+            try:
+                _instance = cls.objects.select_for_update().get(user_id=request.user.id)
+            except cls.DoesNotExist:
+                raise cls.DoesNotExist
+            blocked_money = _instance.blocked_money
+            _instance.blocked_money = str(Decimal(amount_of_money) + Decimal(blocked_money))
+            _instance.save()
+            instance = _instance
+        return instance
+
 
 class WalletTradeDetail(models.Model):
     """
