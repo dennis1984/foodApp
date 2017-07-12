@@ -10,6 +10,8 @@ from wallet.models import WalletAction
 from Consumer_App.cs_orders.models import ConsumeOrdersAction
 from django.utils.timezone import now
 
+import copy
+
 
 class OrdersSerializer(BaseModelSerializer):
     class Meta:
@@ -17,6 +19,7 @@ class OrdersSerializer(BaseModelSerializer):
         fields = '__all__'
 
     def update_orders_status(self, instance, validated_data):
+        validated_data = copy.deepcopy(validated_data)
         if instance.payment_status != 0:
             raise Exception('The orders already paid or expired!')
 
