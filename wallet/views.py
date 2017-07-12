@@ -102,7 +102,7 @@ class WithdrawAction(generics.GenericAPIView):
     def is_request_data_valid(self, request):
         form = WithdrawActionForm(request.data)
         if not form.is_valid():
-            return form.errors
+            return False, Exception(form.errors)
 
         cld = form.cleaned_data
         try:
