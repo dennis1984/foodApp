@@ -101,8 +101,7 @@ class OrdersAction(generics.GenericAPIView):
             return Response(serializer.data, status=status.HTTP_206_PARTIAL_CONTENT)
         else:
             if payment_mode == 'cash':     # 现金支付
-                return Response({'code_url': ''},
-                                status=status.HTTP_206_PARTIAL_CONTENT)
+                return Response(status=status.HTTP_206_PARTIAL_CONTENT)
             else:     # 扫码支付
                 _wxPay = WXPay(obj)
                 wx_result = _wxPay.native()
