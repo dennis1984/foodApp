@@ -12,7 +12,7 @@ from orders.models import (Orders,
                            VerifyOrders,
                            ORDERS_ORDERS_TYPE)
 from horizon.models import model_to_dict
-from horizon.main import time_plus
+from horizon.main import days_7_plus
 
 import json
 import datetime
@@ -322,7 +322,7 @@ class WithdrawRecord(models.Model):
     # 提现状态：0:审核中 200:已完成 400:提现申请已过期 500:审核不通过
     status = models.IntegerField('提现状态', default=0)
 
-    expires = models.DateTimeField('申请提现过期时间', default=time_plus(days=7))
+    expires = models.DateTimeField('申请提现过期时间', default=days_7_plus)
     created = models.DateTimeField('创建时间', default=now)
     updated = models.DateTimeField('更新实际', auto_now=True)
     extend = models.TextField('扩展信息', default='', blank=True)
