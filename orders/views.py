@@ -26,6 +26,8 @@ from orders.permissoins import IsOwnerOrReadOnly
 from orders.pays import WXPay, AliPay
 from Consumer_App.cs_orders.models import ConfirmConsume
 
+import json
+
 
 class OrdersAction(generics.GenericAPIView):
     queryset = Orders.objects.all()
@@ -249,9 +251,25 @@ class VerifyOrdersAction(generics.GenericAPIView):
     """
     核销订单
     """
-    def get_verify_orders_list(self, request, consumer_id):
-        kwargs = {'consumer_id': consumer_id}
-        return VerifyOrders.filter_consuming_orders_list(request=request, is_detail=False, **kwargs)
+    def get_verify_orders_list(self, request, cld):
+        random_kwargs = {'random_string': cld['random_string']}
+        random_instance = ConfirmConsume.get_object(**random_kwargs)
+        if isinstance(random_instance, Exception):
+            return random_instance
+
+        orders_kwargs = {'consumer_id': random_instance.user_id}
+        orders_list = VerifyOrders.filter_consuming_orders_list(request=request, is_detail=False,
+                                                                **orders_kwargs)
+        orders_ids_all = [orders.orders_id for orders in orders_list]
+        for orders_id in cld['orders_ids']:
+            if orders_id not in orders_ids_all:
+                return Exception('Params [orders_ids] data error')
+
+        verify_orders = []
+        for orders in orders_list:
+            if orders.orders_id in cld['orders_ids']:
+                verify_orders.append(orders)
+        return verify_orders
 
     def get_orders_detail(self, instances):
         return VerifyOrders.make_instances_to_dict(instances)
@@ -262,18 +280,20 @@ class VerifyOrdersAction(generics.GenericAPIView):
             return False, Exception(form.errors)
 
         cld = form.cleaned_data
-        result = ConfirmConsume.get_object(**cld)
-        if isinstance(result, Exception):
-            return False, result
-        return True, result
+        try:
+            orders_ids = json.loads(cld['orders_ids'])
+        except Exception as e:
+            return False, e
+        cld['orders_ids'] = orders_ids
+        return True, cld
 
     def put(self, request, *args, **kwargs):
-        is_valid, instance = self.is_request_data_valid(request)
+        is_valid, cld = self.is_request_data_valid(request)
         if not is_valid:
-            return Response({'Detail': instance.args}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'Detail': cld.args}, status=status.HTTP_400_BAD_REQUEST)
 
-        consumer_id = instance.user_id
-        results = self.get_verify_orders_list(request, consumer_id)
+        # consumer_id = instance.user_id
+        results = self.get_verify_orders_list(request, cld)
         if isinstance(results, Exception):
             return Response({'Detail': results.args}, status=status.HTTP_400_BAD_REQUEST)
 

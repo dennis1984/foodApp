@@ -38,7 +38,9 @@ class VerifyOrdersListForm(forms.Form):
 
 
 class VerifyOrdersActionForm(forms.Form):
-    # orders_list = forms.CharField(required=False)
+    # 数据结构
+    # orders_ids = "['Z201707080001', 'Z201707080002', ...]"
+    orders_ids = forms.CharField()
     random_string = forms.CharField(max_length=32)
 
 
