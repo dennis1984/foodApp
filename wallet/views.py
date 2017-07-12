@@ -8,7 +8,8 @@ from wallet.serializers import (WalletSerializer,
                                 WithdrawSerializer)
 from wallet.permissions import IsOwnerOrReadOnly
 from wallet.models import (Wallet,
-                           WalletTradeDetail)
+                           WalletTradeDetail,
+                           WithdrawRecord)
 from wallet.forms import (WalletDetailListForm,
                           WalletCreateForm,
                           WithdrawActionForm)
@@ -97,7 +98,7 @@ class WithdrawAction(generics.GenericAPIView):
         """
         余额是否充足
         """
-        return False
+        return WithdrawRecord(request, amount_of_money)
 
     def is_request_data_valid(self, request):
         form = WithdrawActionForm(request.data)

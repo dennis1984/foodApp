@@ -45,6 +45,7 @@ class Wallet(models.Model):
     """
     user_id = models.IntegerField('用户ID', db_index=True)
     balance = models.CharField('余额', max_length=16, default='0')
+    blocked_money = models.CharField('冻结金额', max_length=16, default='500.00')
     password = models.CharField('支付密码', max_length=560, null=True)
     created = models.DateTimeField('创建时间', default=now)
     updated = models.DateTimeField('最后修改时间', auto_now=True)
@@ -62,7 +63,7 @@ class Wallet(models.Model):
         if isinstance(wallet, Exception):
             return False
         try:
-            return Decimal(wallet.balance) >= Decimal(amount_of_money)
+            return Decimal(wallet.balance) - Decimal(wallet.blocked_money) >= Decimal(amount_of_money)
         except:
             return False
 
