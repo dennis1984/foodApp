@@ -7,6 +7,7 @@ from horizon.serializers import (BaseListSerializer,
                                  BaseSerializer,
                                  BaseModelSerializer)
 from wallet.models import WalletAction
+from Consumer_App.cs_orders.models import ConsumeOrdersAction
 from django.utils.timezone import now
 
 
@@ -165,6 +166,10 @@ class VerifySerializer(BaseModelSerializer):
             except Exception as e:
                 return e
             else:
+                # 更新用户端的核销订单的状态为已完成
+                con_result = ConsumeOrdersAction().update_payment_status_to_finished(ins)
+                if isinstance(con_result, Exception):
+                    return con_result
                 # 钱包余额更新 (订单收入)
                 result = WalletAction().income(request, ins)
                 if isinstance(result, Exception):
