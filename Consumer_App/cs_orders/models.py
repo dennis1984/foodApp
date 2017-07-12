@@ -66,14 +66,18 @@ class ConsumeOrdersAction(object):
     """
     子订单更新
     """
-    def update_payment_status_to_finished(self, orders):
+    def get_orders_instance(self, orders_id):
+        return ConsumeOrders.get_object(**{'orders_id': orders_id})
+
+    def update_payment_status_to_finished(self, orders_id):
         """
         更新核销订单的支付状态为结束
         return: orders instance: 成功
                 Exception：失败
         """
-        if not isinstance(orders, ConsumeOrders):
-            return TypeError('Params orders must ConsumeOrders instance.')
+        orders = self.get_orders_instance(orders_id)
+        if isinstance(orders, Exception):
+            return orders
         if orders.payment_status != ORDERS_PAYMENT_STATUS['consuming']:
             return ValueError('The orders payment status is incorrect.')
 

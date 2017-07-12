@@ -167,7 +167,7 @@ class VerifySerializer(BaseModelSerializer):
                 return e
             else:
                 # 更新用户端的核销订单的状态为已完成
-                con_result = ConsumeOrdersAction().update_payment_status_to_finished(ins)
+                con_result = ConsumeOrdersAction().update_payment_status_to_finished(ins.orders_id)
                 if isinstance(con_result, Exception):
                     return con_result
                 # 钱包余额更新 (订单收入)
