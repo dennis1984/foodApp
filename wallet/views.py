@@ -176,7 +176,7 @@ class WithdrawAction(generics.GenericAPIView):
             return Response({'Detail': instance.args}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = WithdrawSerializer()
-        with_instance = serializer.update_status(request, instance, cld['status'])
+        with_instance = serializer.update_status(request, instance, {'status': cld['status']})
         if isinstance(with_instance, Exception):
             return Response({'Detail': with_instance.args}, status=status.HTTP_400_BAD_REQUEST)
         return Response(with_instance.data, status=status.HTTP_206_PARTIAL_CONTENT)
