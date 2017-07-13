@@ -92,6 +92,10 @@ class WithdrawSerializer(BaseModelSerializer):
             return e
 
 
+class WithdrawRecordListSerializer(BaseListSerializer):
+    child = WithdrawSerializer()
+
+
 class BankCardSerializer(BaseModelSerializer):
     def __init__(self, instance=None, data=None, **kwargs):
         if data:

@@ -7,7 +7,8 @@ from wallet.serializers import (WalletSerializer,
                                 WalletResponseSerializer,
                                 WithdrawSerializer,
                                 BankCardSerializer,
-                                BankCardListSerializer)
+                                BankCardListSerializer,
+                                WithdrawRecordListSerializer)
 from wallet.permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
 from wallet.models import (Wallet,
                            WalletTradeDetail,
@@ -18,7 +19,7 @@ from wallet.forms import (WalletDetailListForm,
                           WithdrawActionForm,
                           BankCardAddForm,
                           BankCardDeleteForm,
-                          BankCardListForm)
+                          WithdrawRecordListForm)
 from users.caches import BusinessUserCache
 
 
@@ -151,6 +152,28 @@ class WithdrawAction(generics.GenericAPIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class WithdrawRecordList(generics.GenericAPIView):
+    permission_classes = (IsOwnerOrReadOnly,)
+
+    def get_records(self, request):
+        return WithdrawRecord.filter_objects(user_id=request.user.id)
+
+    def post(self, request, *args, **kwargs):
+        form = WithdrawRecordListForm(request.data)
+        if not form.is_valid():
+            return Response({'Detail': form.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        cld = form.cleaned_data
+        instances = self.get_records(request)
+        if isinstance(instances, Exception):
+            return Response({'Detail': instances.args}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = WithdrawRecordListSerializer(instances)
+        datas = serializer.list_data(**cld)
+        if isinstance(datas, Exception):
+            return Response({'Detail': datas.args}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(datas, status=status.HTTP_200_OK)
 
 
 class BankCardAction(generics.GenericAPIView):

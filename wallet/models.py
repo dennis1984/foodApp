@@ -359,6 +359,13 @@ class WithdrawRecord(models.Model):
         except Exception as e:
             return e
 
+    @classmethod
+    def filter_objects(cls, **kwargs):
+        try:
+            return cls.objects.filter(**kwargs)
+        except Exception as e:
+            return e
+
 
 class BankCardManager(models.Manager):
     def get(self, *args, **kwargs):

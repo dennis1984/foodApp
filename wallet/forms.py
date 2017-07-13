@@ -38,6 +38,11 @@ class WithdrawActionForm(forms.Form):
     account_id = forms.IntegerField(min_value=1)
 
 
+class WithdrawRecordListForm(forms.Form):
+    page_index = forms.IntegerField(min_value=1, required=False)
+    page_size = forms.IntegerField(min_value=1, required=False)
+
+
 class BankCardAddForm(forms.Form):
     user_id = forms.IntegerField(min_value=1)
     bank_card_number = forms.CharField(max_length=25)
@@ -51,3 +56,4 @@ class BankCardDeleteForm(forms.Form):
 
 class BankCardListForm(forms.Form):
     user_id = forms.IntegerField(min_value=1, required=False)
+
