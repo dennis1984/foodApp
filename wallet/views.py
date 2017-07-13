@@ -105,7 +105,7 @@ class WithdrawAction(generics.GenericAPIView):
         """
         余额是否充足
         """
-        return WithdrawRecord(request, amount_of_money)
+        return Wallet.has_enough_balance(request, amount_of_money)
 
     def is_bank_card_valid(self, request, account_id):
         instance = BankCard.get_object(pk=account_id)
@@ -145,7 +145,9 @@ class WithdrawAction(generics.GenericAPIView):
 
         serializer = WithdrawSerializer(data=cld, request=request)
         if serializer.is_valid():
-            serializer.save(request, amount_of_money)
+            result = serializer.save(request, amount_of_money)
+            if isinstance(result, Exception):
+                return Response({'Detail': result.args}, status=status.HTTP_400_BAD_REQUEST)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
