@@ -35,7 +35,7 @@ class WalletUpdateBalanceModelForm(forms.Form):
 
 class WithdrawActionForm(forms.Form):
     amount_of_money = forms.CharField(max_length=16)
-    account_id = forms.IntegerField(min_value=1)
+    bank_card_id = forms.IntegerField(min_value=1)
 
 
 class BankCardAddForm(forms.Form):
