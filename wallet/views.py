@@ -19,7 +19,8 @@ from wallet.forms import (WalletDetailListForm,
                           WithdrawActionForm,
                           BankCardAddForm,
                           BankCardDeleteForm,
-                          WithdrawRecordListForm)
+                          WithdrawRecordListForm,
+                          WithdrawUpdateForm)
 from users.caches import BusinessUserCache
 
 
@@ -116,6 +117,9 @@ class WithdrawAction(generics.GenericAPIView):
             return False
         return True
 
+    def get_bank_card_instance(self, account_id):
+        return BankCard.get_object(pk=account_id)
+
     def is_request_data_valid(self, request):
         form = WithdrawActionForm(request.data)
         if not form.is_valid():
@@ -135,6 +139,9 @@ class WithdrawAction(generics.GenericAPIView):
         return True, cld
 
     def post(self, request, *args, **kwargs):
+        """
+        提现申请
+        """
         bool_res, cld = self.is_request_data_valid(request)
         if not bool_res:
             return Response({'Detail': cld.args}, status=status.HTTP_400_BAD_REQUEST)
@@ -152,6 +159,30 @@ class WithdrawAction(generics.GenericAPIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, *args, **kwargs):
+        """
+        提现审核结果
+        """
+        if not request.user.is_admin:
+            return Response({'Detail': 'Permission denied'}, status=status.HTTP_400_BAD_REQUEST)
+
+        form = WithdrawUpdateForm(request.data)
+        if not form.is_valid():
+            return Response({'Detail': form.errors}, status=status.HTTP_400_BAD_REQUEST)
+        cld = form.cleaned_data
+        instance = self.get_bank_card_instance(cld['account_id'])
+        if not isinstance(instance, Exception):
+            return Response({'Detail': instance.args}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = WithdrawSerializer()
+        serializer.update_status(instance, cld['status'])
+
+
+
+
+
+
 
 
 class WithdrawRecordList(generics.GenericAPIView):

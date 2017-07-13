@@ -4,11 +4,12 @@ from wallet.models import (Wallet,
                            WalletTradeDetail,
                            WithdrawRecord,
                            BankCard,
-                           WALLET_SERVICE_RATE,)
+                           WalletAction,
+                           WALLET_SERVICE_RATE,
+                           WITHDRAW_RECORD_STATUS)
 from horizon.serializers import (BaseSerializer,
                                  BaseModelSerializer,
                                  BaseListSerializer)
-from wallet.models import Wallet
 from horizon.main import make_random_string_char_and_number
 
 import os
@@ -90,6 +91,19 @@ class WithdrawSerializer(BaseModelSerializer):
             return super(WithdrawSerializer, self).save(**kwargs)
         except Exception as e:
             return e
+
+    def update_status(self, request, instance, validated_data):
+        """
+        更新提现状态
+        """
+        if validated_data['status'] not in WITHDRAW_RECORD_STATUS.values():
+            return ValueError('Status %d data is incorrect' % validated_data['status'])
+        # 此处需要加上回滚操作
+        try:
+            super(WithdrawSerializer, self).update(instance, validated_data)
+        except Exception as e:
+            return e
+        return WalletAction().withdrawals(request, instance)
 
 
 class WithdrawRecordListSerializer(BaseListSerializer):

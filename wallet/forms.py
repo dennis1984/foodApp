@@ -38,6 +38,12 @@ class WithdrawActionForm(forms.Form):
     account_id = forms.IntegerField(min_value=1)
 
 
+class WithdrawUpdateForm(forms.Form):
+    account_id = forms.IntegerField(min_value=1)
+    status = forms.ChoiceField(choices=((200, 1),
+                                        (500, 2)))
+
+
 class WithdrawRecordListForm(forms.Form):
     page_index = forms.IntegerField(min_value=1, required=False)
     page_size = forms.IntegerField(min_value=1, required=False)

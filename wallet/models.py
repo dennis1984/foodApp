@@ -28,6 +28,13 @@ WALLET_ACTION_METHOD = ('recharge', 'income', 'withdraw')
 WALLET_BALANCE = '500.00'
 WALLET_SERVICE_RATE = '0.006'
 
+WITHDRAW_RECORD_STATUS = {
+    'unpaid': 0,
+    'finished': 200,
+    'expired': 400,
+    'failed': 500,
+}
+
 
 class WalletManager(models.Manager):
     def get(self, *args, **kwargs):
@@ -139,6 +146,28 @@ class Wallet(models.Model):
                 raise cls.DoesNotExist
             blocked_money = _instance.blocked_money
             _instance.blocked_money = str(Decimal(amount_of_money) + Decimal(blocked_money))
+            _instance.save()
+            instance = _instance
+        return instance
+
+    @classmethod
+    def update_withdraw_balance(cls, user_id, amount_of_money):
+        """
+        提现
+        """
+        instance = None
+        # 数据库加排它锁，保证更改信息是列队操作的，防止数据混乱
+        with transaction.atomic():
+            try:
+                _instance = cls.objects.select_for_update().get(user_id=user_id)
+            except cls.DoesNotExist:
+                raise cls.DoesNotExist
+
+            if Decimal(_instance.blocked_money) - Decimal(WALLET_BALANCE) < Decimal(amount_of_money) or \
+                    Decimal(_instance.balance) - Decimal(WALLET_BALANCE) < Decimal(amount_of_money):
+                return Exception('Your balance is not enough.')
+            _instance.blocked_money = str(Decimal(_instance.blocked_money) - Decimal(amount_of_money))
+            _instance.balance = str(Decimal(_instance.balance) - Decimal(amount_of_money))
             _instance.save()
             instance = _instance
         return instance
@@ -259,64 +288,59 @@ class WalletAction(object):
             return _trade
         return result
 
-    def withdrawals(self, request, orders):
+    def withdrawals(self, request, withdraw_record):
         """
         提现
         """
-        # if not self.has_enough_balance(request, orders):
-        #     return ValueError('Balance is not enough')
-        # _ins = Wallet.update_balance(request=request,
-        #                              orders=orders,
-        #                              method=WALLET_ACTION_METHOD[2])
-        # if isinstance(_ins, Exception):
-        #     return _ins
-        #     # 回写订单状态
-        # kwargs = {'orders_id': orders.orders_id,
-        #           'validated_data':
-        #               {'payment_status': 200,
-        #                'payment_mode': 1},
-        #           }
-        # try:
-        #     orders = PayOrders.update_payment_status_by_pay_callback(**kwargs)
-        # except Exception as e:
-        #     return e
-        #
-        # # 生成消费记录
-        # _trade = WalletTradeAction().create(request, orders)
-        # if isinstance(_trade, Exception):
-        #     return _trade
-        #     # 添加交易记录
-        # TradeRecordAction().create(request, orders)
-        #
-        # wallet_dict = model_to_dict(_ins)
-        # wallet_dict.pop('password')
-        # return wallet_dict
+        if not request.user.is_admin:
+            return Exception('Cannot perform this action.')
+        if not isinstance(withdraw_record, WithdrawRecord):
+            return TypeError('Params [withdraw_record] data type error.')
+        if withdraw_record.status != WITHDRAW_RECORD_STATUS['unpaid']:
+            return TypeError('Cannot perform this action.')
+
+        # 提现
+        instance = Wallet.update_withdraw_balance(withdraw_record.user_id,
+                                                  withdraw_record.amount_of_money)
+        if isinstance(instance, Exception):
+            return instance
+        # 生成交易记录
+        _trade = WalletTradeAction().create(request, withdraw_record, method='withdraw')
+        if isinstance(_trade, Exception):
+            return _trade
+        return instance
 
 
 class WalletTradeAction(object):
     """
     钱包明细相关功能
     """
-    def create(self, request, orders):
+    def create(self, request, orders, method='income'):
         """
         创建交易明细（包含：充值（暂不支持）、订单收入和提现的交易明细）
         """
-        if not isinstance(orders, (Orders, VerifyOrders)):
-            return TypeError('Orders data error')
-        if orders.orders_type not in ORDERS_ORDERS_TYPE.values():
-            return ValueError('Orders data error')
-        if not orders.is_success:
-            return ValueError('Orders data error')
+        if method == 'income':
+            if not isinstance(orders, (Orders, VerifyOrders)):
+                return TypeError('Orders data error')
+            if orders.orders_type not in ORDERS_ORDERS_TYPE.values():
+                return ValueError('Orders data error')
+            if not orders.is_success:
+                return ValueError('Orders data error')
 
-        if orders.orders_type == ORDERS_ORDERS_TYPE['wallet_withdraw']:  # 交易类型：提现
-            trade_type = WALLET_TRADE_DETAIL_TRADE_TYPE_DICT['withdraw']
-        else:                          # 交易类型：订单收入
+            # 交易类型：订单收入
             trade_type = WALLET_TRADE_DETAIL_TRADE_TYPE_DICT['income']
 
-        kwargs = {'orders_id': orders.orders_id,
-                  'user_id': request.user.id,
-                  'trade_type': trade_type,
-                  'amount_of_money': orders.payable}
+            kwargs = {'orders_id': orders.orders_id,
+                      'user_id': request.user.id,
+                      'trade_type': trade_type,
+                      'amount_of_money': orders.payable}
+        else:
+            kwargs = {'trade_type': WALLET_TRADE_DETAIL_TRADE_TYPE_DICT['withdraw'],   # 交易类型：提现
+                      'orders_id': 'TX-%s-%s' % (orders.user_id,
+                                                 datetime.datetime.strftime(orders.created, '%Y%m%d%H%M%S')),
+                      'user_id': orders.user_id,
+                      'amount_of_money': orders.amount_of_money,
+                      }
 
         wallet_detail = WalletTradeDetail(**kwargs)
         try:
