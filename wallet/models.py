@@ -293,7 +293,7 @@ class WalletAction(object):
         提现
         """
         if not request.user.is_admin:
-            return Exception('Cannot perform this action.')
+            return Exception('Permission denied.')
         if not isinstance(withdraw_record, WithdrawRecord):
             return TypeError('Params [withdraw_record] data type error.')
         if withdraw_record.status != WITHDRAW_RECORD_STATUS['unpaid']:
