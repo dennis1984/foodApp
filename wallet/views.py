@@ -171,12 +171,13 @@ class WithdrawAction(generics.GenericAPIView):
         if not form.is_valid():
             return Response({'Detail': form.errors}, status=status.HTTP_400_BAD_REQUEST)
         cld = form.cleaned_data
+        with_status = int(cld['status'])
         instance = self.get_bank_card_instance(cld['account_id'])
         if not isinstance(instance, Exception):
             return Response({'Detail': instance.args}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = WithdrawSerializer()
-        with_instance = serializer.update_status(request, instance, {'status': cld['status']})
+        with_instance = serializer.update_status(request, instance, {'status': with_status})
         if isinstance(with_instance, Exception):
             return Response({'Detail': with_instance.args}, status=status.HTTP_400_BAD_REQUEST)
         return Response(with_instance.data, status=status.HTTP_206_PARTIAL_CONTENT)
