@@ -384,6 +384,11 @@ class WithdrawRecord(models.Model):
             return e
 
     @classmethod
+    def get_unpaid_object(cls, **kwargs):
+        kwargs['status'] = WITHDRAW_RECORD_STATUS['unpaid']
+        return cls.get_object(**kwargs)
+
+    @classmethod
     def filter_objects(cls, **kwargs):
         try:
             return cls.objects.filter(**kwargs)

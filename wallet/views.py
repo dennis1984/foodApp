@@ -121,7 +121,7 @@ class WithdrawAction(generics.GenericAPIView):
         return BankCard.get_object(pk=account_id)
 
     def get_withdraw_recode(self, pk):
-        return WithdrawRecord.get_object(pk=pk)
+        return WithdrawRecord.get_unpaid_object(pk=pk)
 
     def is_request_data_valid(self, request):
         form = WithdrawActionForm(request.data)
