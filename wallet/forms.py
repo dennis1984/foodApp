@@ -40,7 +40,7 @@ class WithdrawActionForm(forms.Form):
 
 class BankCardAddForm(forms.Form):
     user_id = forms.IntegerField(min_value=1)
-    bank_card_name = forms.CharField(max_length=25)
+    bank_card_number = forms.CharField(max_length=25)
     bank_name = forms.CharField(max_length=50)
     account_name = forms.CharField(max_length=20)
 
