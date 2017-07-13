@@ -179,11 +179,11 @@ class WithdrawAction(generics.GenericAPIView):
         if isinstance(instance, Exception):
             return Response({'Detail': instance.args}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = WithdrawSerializer()
+        serializer = WithdrawSerializer(instance)
         with_instance = serializer.update_status(request, instance, {'status': with_status})
         if isinstance(with_instance, Exception):
             return Response({'Detail': with_instance.args}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(with_instance.data, status=status.HTTP_206_PARTIAL_CONTENT)
+        return Response(serializer.data, status=status.HTTP_206_PARTIAL_CONTENT)
 
 
 class WithdrawRecordList(generics.GenericAPIView):
