@@ -176,7 +176,7 @@ class WithdrawAction(generics.GenericAPIView):
         cld = form.cleaned_data
         with_status = int(cld['status'])
         instance = self.get_withdraw_recode(cld['pk'])
-        if not isinstance(instance, Exception):
+        if isinstance(instance, Exception):
             return Response({'Detail': instance.args}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = WithdrawSerializer()
