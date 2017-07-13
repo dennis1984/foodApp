@@ -100,10 +100,13 @@ class WithdrawSerializer(BaseModelSerializer):
             return ValueError('Status %d data is incorrect' % validated_data['status'])
         # 此处需要加上回滚操作
         try:
-            super(WithdrawSerializer, self).update(instance, validated_data)
+            instance = super(WithdrawSerializer, self).update(instance, validated_data)
         except Exception as e:
             return e
-        return WalletAction().withdrawals(request, instance)
+        wallet_instance = WalletAction().withdrawals(request, instance)
+        if isinstance(wallet_instance, Exception):
+            return wallet_instance
+        return instance
 
 
 class WithdrawRecordListSerializer(BaseListSerializer):
