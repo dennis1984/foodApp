@@ -3,11 +3,14 @@ from django.contrib.auth.hashers import make_password
 from wallet.models import (Wallet,
                            WalletTradeDetail,
                            WithdrawRecord,
+                           BankCard,
                            WALLET_SERVICE_RATE,)
 from horizon.serializers import (BaseSerializer,
                                  BaseModelSerializer,
                                  BaseListSerializer)
 from wallet.models import Wallet
+from horizon.main import make_random_string_char_and_number
+
 import os
 from decimal import Decimal
 
@@ -57,9 +60,10 @@ class WalletDetailListSerializer(BaseListSerializer):
 
 
 class WithdrawSerializer(BaseModelSerializer):
-    def __init__(self, instance=None, data=None, request=None, **kwargs):
+    def __init__(self, instance=None, data=None, **kwargs):
         if data:
-            if request:
+            if 'request' in kwargs:
+                request = kwargs.pop('request')
                 data['user_id'] = request.user.id
                 service_charge = '%.02f' % float(Decimal(WALLET_SERVICE_RATE) *
                                                  Decimal(data['amount_of_money']))
@@ -86,3 +90,40 @@ class WithdrawSerializer(BaseModelSerializer):
             return super(WithdrawSerializer, self).save(**kwargs)
         except Exception as e:
             return e
+
+
+class BankCardSerializer(BaseModelSerializer):
+    def __init__(self, instance=None, data=None, **kwargs):
+        if data:
+            super(BankCardSerializer, self).__init__(data=data, **kwargs)
+        else:
+            super(BankCardSerializer, self).__init__(instance, **kwargs)
+
+    class Meta:
+        models = BankCard
+        fields = '__all__'
+
+    def save(self, request, **kwargs):
+        if not request.user.is_admin:
+            return Exception('Permission denied.')
+        try:
+            return super(BankCardSerializer, self).save(**kwargs)
+        except Exception as e:
+            return e
+
+    def delete(self, request, instance, **kwargs):
+        if not request.user.is_admin:
+            return Exception('Permission denied.')
+
+        kwargs['status'] = 2
+        kwargs['bank_card_number'] = '%s-%s' % (instance.bank_card_number,
+                                                make_random_string_char_and_number(5))
+        try:
+            return super(BankCardSerializer, self).update(instance, kwargs)
+        except Exception as e:
+            return e
+
+
+class BankCardListSerializer(BaseListSerializer):
+    child = BankCardSerializer()
+

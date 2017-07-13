@@ -9,6 +9,9 @@ urlpatterns = [
     url(r'wallet_trade_list/$', views.WalletTradeDetailList.as_view()),
 
     url(r'withdraw_action/$', views.WithdrawAction.as_view()),
+
+    url(r'bank_card_action/$', views.BankCardAction.as_view()),
+    url(r'bank_card_list/$', views.BankCardList.as_view()),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

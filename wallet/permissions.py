@@ -17,6 +17,18 @@ class IsOwnerOrReadOnly(permissions.IsAuthenticated):
 
     def has_permission(self, request, view):
         """
-        自定义权限，只有管理员才能添加数据（用户信息）
+        自定义权限，
         """
         return super(IsOwnerOrReadOnly, self).has_permission(request, view)
+
+
+class IsAdminOrReadOnly(permissions.IsAuthenticated):
+    def has_permission(self, request, view):
+        """
+        自定义权限：只有管理员才能添加数据
+        """
+        if not super(IsAdminOrReadOnly, self).has_permission(request, view):
+            return False
+        if request.user.is_admin:
+            return True
+        return False

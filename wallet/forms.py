@@ -36,3 +36,18 @@ class WalletUpdateBalanceModelForm(forms.Form):
 class WithdrawActionForm(forms.Form):
     amount_of_money = forms.CharField(max_length=16)
     account_id = forms.IntegerField(min_value=1)
+
+
+class BankCardAddForm(forms.Form):
+    user_id = forms.IntegerField(min_value=1)
+    bank_card_name = forms.CharField(max_length=25)
+    bank_name = forms.CharField(max_length=50)
+    account_name = forms.CharField(max_length=20)
+
+
+class BankCardDeleteForm(forms.Form):
+    pk = forms.IntegerField(min_value=1)
+
+
+class BankCardListForm(forms.Form):
+    user_id = forms.IntegerField(min_value=1, required=False)

@@ -5,14 +5,21 @@ from rest_framework import status
 from wallet.serializers import (WalletSerializer,
                                 WalletDetailListSerializer,
                                 WalletResponseSerializer,
-                                WithdrawSerializer)
-from wallet.permissions import IsOwnerOrReadOnly
+                                WithdrawSerializer,
+                                BankCardSerializer,
+                                BankCardListSerializer)
+from wallet.permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
 from wallet.models import (Wallet,
                            WalletTradeDetail,
-                           WithdrawRecord)
+                           WithdrawRecord,
+                           BankCard)
 from wallet.forms import (WalletDetailListForm,
                           WalletCreateForm,
-                          WithdrawActionForm)
+                          WithdrawActionForm,
+                          BankCardAddForm,
+                          BankCardDeleteForm,
+                          BankCardListForm)
+from users.caches import BusinessUserCache
 
 
 class WalletAction(generics.GenericAPIView):
@@ -133,4 +140,86 @@ class WithdrawAction(generics.GenericAPIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class BankCardAction(generics.GenericAPIView):
+    """
+    银行卡绑定或解除绑定 (需要管理员权限)
+    """
+    permission_classes = (IsAdminOrReadOnly,)
+
+    def does_user_exist(self, request, user_id):
+        ins = BusinessUserCache().get_user_by_id(request, user_id)
+        if isinstance(ins, Exception):
+            return False
+        return True
+
+    def get_bank_card_instance(self, pk):
+        return BankCard.get_object(pk=pk)
+
+    def post(self, request, *args, **kwargs):
+        """
+        绑定银行卡
+        """
+        form = BankCardAddForm(request.data)
+        if not form.is_valid():
+            return Response({'Detail': form.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        cld = form.cleaned_data
+        if not self.does_user_exist(request, cld['user_id']):
+            return Response({'Detail': 'The user %d does exist.' % cld['user_id']},
+                            status=status.HTTP_400_BAD_REQUEST)
+        serializer = BankCardSerializer(data=cld)
+        if serializer.is_valid():
+            result = serializer.save(request)
+            if isinstance(result, Exception):
+                return Response({'Detail': result.args}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, *args, **kwargs):
+        """
+        解除绑定银行卡
+        """
+        form = BankCardDeleteForm(request.data)
+        if not form.is_valid():
+            return Response({'Detail': form.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        cld = form.cleaned_data
+        instance = self.get_bank_card_instance(cld['pk'])
+        if isinstance(instance, Exception):
+            return Response({'Detail': 'The bank card %d does not exist.' % cld['pk']},
+                            status=status.HTTP_400_BAD_REQUEST)
+        serializer = BankCardSerializer(instance)
+        result = serializer.delete(request, instance)
+        if isinstance(request, Exception):
+            return Response({'Detail': result.args}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class BankCardList(generics.GenericAPIView):
+    """
+    获取绑定银行卡信息列表
+    """
+    permission_classes = (IsOwnerOrReadOnly,)
+
+    def get_bank_card_list(self, request):
+        return BankCard.filter_objects(user_id=request.user.id)
+
+    def post(self, request, *args, **kwargs):
+        # form = BankCardListForm(request.data)
+        # if not form.is_valid():
+        #     return Response({'Detail': form.errors}, status=status.HTTP_400_BAD_REQUEST)
+        #
+        # cld = form.cleaned_data
+        instances = self.get_bank_card_list(request)
+        if isinstance(instances, Exception):
+            return Response({'Detail': instances.args}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = BankCardListSerializer(instances)
+        result = serializer.list_data()
+        if isinstance(result, Exception):
+            return Response({'Detail': result.args}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(result, status=status.HTTP_200_OK)
+
 

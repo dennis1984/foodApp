@@ -358,3 +358,62 @@ class WithdrawRecord(models.Model):
             return cls.objects.get(**kwargs)
         except Exception as e:
             return e
+
+
+class BankCardManager(models.Manager):
+    def get(self, *args, **kwargs):
+        kwargs['status'] = 1
+        return super(BankCardManager, self).get(*args, **kwargs)
+
+    def filter(self, *args, **kwargs):
+        kwargs['status'] = 1
+        return super(BankCardManager, self).filter(*args, **kwargs)
+
+
+class BankCard(models.Model):
+    """
+    银行卡信息
+    """
+    user_id = models.IntegerField('用户ID', db_index=True)
+
+    bank_card_number = models.CharField('银行卡', max_length=25)
+    bank_name = models.CharField('银行名称', max_length=50)
+    account_name = models.CharField('开户名', max_length=20)
+
+    # 银行卡绑定状态 1：已绑定，2：已解除
+    status = models.IntegerField('绑定状态', default=1)
+    created = models.DateTimeField('创建时间', default=now)
+    updated = models.DateTimeField('更新实际', auto_now=True)
+
+    objects = BankCardManager()
+
+    class Meta:
+        db_table = 'ys_wallet_bank_card'
+        ordering = ['-created']
+        unique_together = ('bank_card_number', 'status')
+
+    def __unicode__(self):
+        return str(self.user_id)
+
+    @classmethod
+    def get_object(cls, **kwargs):
+        try:
+            return cls.objects.get(**kwargs)
+        except Exception as e:
+            return e
+
+    @classmethod
+    def does_exist_by_pk(cls, pk):
+        ins = cls.get_object(pk=pk)
+        if isinstance(ins, Exception):
+            return False
+        return True
+
+    @classmethod
+    def filter_objects(cls, **kwargs):
+        try:
+            return cls.objects.filter(**kwargs)
+        except Exception as e:
+            return e
+
+
