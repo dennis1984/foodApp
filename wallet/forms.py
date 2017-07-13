@@ -39,7 +39,7 @@ class WithdrawActionForm(forms.Form):
 
 
 class WithdrawUpdateForm(forms.Form):
-    account_id = forms.IntegerField(min_value=1)
+    pk = forms.IntegerField(min_value=1)
     status = forms.ChoiceField(choices=((200, 1),
                                         (500, 2)))
 

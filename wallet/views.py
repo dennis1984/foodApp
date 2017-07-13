@@ -120,6 +120,9 @@ class WithdrawAction(generics.GenericAPIView):
     def get_bank_card_instance(self, account_id):
         return BankCard.get_object(pk=account_id)
 
+    def get_withdraw_recode(self, pk):
+        return WithdrawRecord.get_object(pk=pk)
+
     def is_request_data_valid(self, request):
         form = WithdrawActionForm(request.data)
         if not form.is_valid():
@@ -172,7 +175,7 @@ class WithdrawAction(generics.GenericAPIView):
             return Response({'Detail': form.errors}, status=status.HTTP_400_BAD_REQUEST)
         cld = form.cleaned_data
         with_status = int(cld['status'])
-        instance = self.get_bank_card_instance(cld['account_id'])
+        instance = self.get_withdraw_recode(cld['pk'])
         if not isinstance(instance, Exception):
             return Response({'Detail': instance.args}, status=status.HTTP_400_BAD_REQUEST)
 
