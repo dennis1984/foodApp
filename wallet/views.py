@@ -107,8 +107,8 @@ class WithdrawAction(generics.GenericAPIView):
         """
         return WithdrawRecord(request, amount_of_money)
 
-    def is_bank_card_valid(self, request, bank_card_id):
-        instance = BankCard.get_object(pk=bank_card_id)
+    def is_bank_card_valid(self, request, account_id):
+        instance = BankCard.get_object(pk=account_id)
         if isinstance(instance, Exception):
             return False
         if instance.user_id != request.user.id:
@@ -129,7 +129,7 @@ class WithdrawAction(generics.GenericAPIView):
             return False, ValueError('Fields [amount_of_money]: data is incorrect')
 
         # 判断银行账户是否存在及是否属于本人
-        if not self.is_bank_card_valid(request, cld['bank_card_id']):
+        if not self.is_bank_card_valid(request, cld['account_id']):
             return False, Exception('Permission denied')
         return True, cld
 
