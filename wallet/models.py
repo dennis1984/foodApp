@@ -296,7 +296,7 @@ class WalletAction(object):
             return Exception('Permission denied.')
         if not isinstance(withdraw_record, WithdrawRecord):
             return TypeError('Params [withdraw_record] data type error.')
-        if withdraw_record.status != WITHDRAW_RECORD_STATUS['unpaid']:
+        if withdraw_record.status != WITHDRAW_RECORD_STATUS['finished']:
             return TypeError('Cannot perform this action.')
 
         # 提现
