@@ -100,7 +100,7 @@ class BankCardSerializer(BaseModelSerializer):
             super(BankCardSerializer, self).__init__(instance, **kwargs)
 
     class Meta:
-        models = BankCard
+        model = BankCard
         fields = '__all__'
 
     def save(self, request, **kwargs):
