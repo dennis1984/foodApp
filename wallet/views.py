@@ -161,7 +161,7 @@ class WithdrawAction(generics.GenericAPIView):
             result = serializer.save(request, amount_of_money)
             if isinstance(result, Exception):
                 return Response({'Detail': result.args}, status=status.HTTP_400_BAD_REQUEST)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -264,7 +264,7 @@ class BankCardAction(generics.GenericAPIView):
             result = serializer.save(request)
             if isinstance(result, Exception):
                 return Response({'Detail': result.args}, status=status.HTTP_400_BAD_REQUEST)
-            return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, *args, **kwargs):
