@@ -463,6 +463,7 @@ class BankCard(models.Model):
             card_dict = model_to_dict(ins)
             if not request.user.is_admin:
                 card_dict['bank_card_number'] = cls.get_security_card_number(ins.bank_card_number)
+            details.append(card_dict)
         return details
 
     @classmethod
