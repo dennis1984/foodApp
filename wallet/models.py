@@ -470,4 +470,4 @@ class BankCard(models.Model):
     def get_security_card_number(cls, bank_card_number):
         card_num_list = bank_card_number.split()
         card_num_list[-2] = '*' * 4
-        return card_num_list
+        return ' '.join(card_num_list)
