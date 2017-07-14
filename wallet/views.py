@@ -294,7 +294,7 @@ class BankCardList(generics.GenericAPIView):
     permission_classes = (IsOwnerOrReadOnly,)
 
     def get_bank_card_list(self, request):
-        return BankCard.filter_objects(user_id=request.user.id)
+        return BankCard.filter_details(request, user_id=request.user.id)
 
     def post(self, request, *args, **kwargs):
         # form = BankCardListForm(request.data)
@@ -302,11 +302,13 @@ class BankCardList(generics.GenericAPIView):
         #     return Response({'Detail': form.errors}, status=status.HTTP_400_BAD_REQUEST)
         #
         # cld = form.cleaned_data
-        instances = self.get_bank_card_list(request)
-        if isinstance(instances, Exception):
-            return Response({'Detail': instances.args}, status=status.HTTP_400_BAD_REQUEST)
+        details = self.get_bank_card_list(request)
+        if isinstance(details, Exception):
+            return Response({'Detail': details.args}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = BankCardListSerializer(instances)
+        serializer = BankCardListSerializer(data=details)
+        if not serializer.is_valid():
+            return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         result = serializer.list_data()
         if isinstance(result, Exception):
             return Response({'Detail': result.args}, status=status.HTTP_400_BAD_REQUEST)

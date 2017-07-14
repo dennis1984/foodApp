@@ -412,7 +412,7 @@ class BankCard(models.Model):
     """
     user_id = models.IntegerField('用户ID', db_index=True)
 
-    bank_card_number = models.CharField('银行卡', max_length=25)
+    bank_card_number = models.CharField('银行卡', max_length=30)
     bank_name = models.CharField('银行名称', max_length=50)
     account_name = models.CharField('开户名', max_length=20)
 
@@ -452,4 +452,21 @@ class BankCard(models.Model):
         except Exception as e:
             return e
 
+    @classmethod
+    def filter_details(cls, request, **kwargs):
+        instances = cls.filter_objects(**kwargs)
+        if isinstance(instances, Exception):
+            return instances
 
+        details = []
+        for ins in instances:
+            details = model_to_dict(ins)
+            if not request.user.is_admin:
+                details['bank_card_number'] = cls.get_security_card_number(ins.bank_card_number)
+        return details
+
+    @classmethod
+    def get_security_card_number(cls, bank_card_number):
+        card_num_list = bank_card_number.split()
+        card_num_list[-2] = '*' * 4
+        return card_num_list
