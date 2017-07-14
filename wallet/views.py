@@ -23,6 +23,8 @@ from wallet.forms import (WalletDetailListForm,
                           WithdrawUpdateForm)
 from users.caches import BusinessUserCache
 
+import re
+
 
 class WalletAction(generics.GenericAPIView):
     """
@@ -223,6 +225,22 @@ class BankCardAction(generics.GenericAPIView):
     def get_bank_card_instance(self, pk):
         return BankCard.get_object(pk=pk)
 
+    def get_perfect_card_number(self, bank_card_number):
+        re_com = re.compile(r'^[0-9]+$')
+        card_num_list = bank_card_number.split()
+        card_num_str = ''.join(card_num_list)
+        for item in card_num_list:
+            if not re_com.match(item):
+                return ValueError('Bank card number is incorrect.')
+        if len(card_num_str) > 20:
+            return ValueError('Bank card number is incorrect.')
+
+        perfect_list = []
+        for index in range(len(card_num_str) / 4 + 1):
+            if index * 4 < len(card_num_str):
+                perfect_list.append(card_num_str[index * 4: index * 4 + 4])
+        return ' '.join(perfect_list)
+
     def post(self, request, *args, **kwargs):
         """
         绑定银行卡
@@ -235,6 +253,12 @@ class BankCardAction(generics.GenericAPIView):
         if not self.does_user_exist(request, cld['user_id']):
             return Response({'Detail': 'The user %d does exist.' % cld['user_id']},
                             status=status.HTTP_400_BAD_REQUEST)
+
+        bank_card_number = self.get_perfect_card_number(cld['bank_card_number'])
+        if isinstance(bank_card_number, Exception):
+            return Response({'Detail': bank_card_number.args}, status=status.HTTP_400_BAD_REQUEST)
+
+        cld['bank_card_number'] = bank_card_number
         serializer = BankCardSerializer(data=cld)
         if serializer.is_valid():
             result = serializer.save(request)
