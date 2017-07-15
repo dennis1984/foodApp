@@ -13,6 +13,7 @@ from orders.models import (Orders,
                            ORDERS_ORDERS_TYPE)
 from horizon.models import model_to_dict
 from horizon.main import days_7_plus
+from Consumer_App.cs_orders.models import SerialNumberGenerator
 
 import json
 import datetime
@@ -177,6 +178,7 @@ class WalletTradeDetail(models.Model):
     """
     交易明细
     """
+    serial_number = models.CharField('流水号', unique=True, max_length=32)
     orders_id = models.CharField('订单ID', db_index=True, unique=True, max_length=32)
     user_id = models.IntegerField('用户ID', db_index=True)
 
@@ -319,6 +321,7 @@ class WalletTradeAction(object):
         """
         创建交易明细（包含：充值（暂不支持）、订单收入和提现的交易明细）
         """
+        serial_number = SerialNumberGenerator.get_serial_number()
         if method == 'income':
             if not isinstance(orders, (Orders, VerifyOrders)):
                 return TypeError('Orders data error')
@@ -342,6 +345,7 @@ class WalletTradeAction(object):
                       'amount_of_money': orders.amount_of_money,
                       }
 
+        kwargs['serial_number'] = serial_number
         wallet_detail = WalletTradeDetail(**kwargs)
         try:
             wallet_detail.save()
