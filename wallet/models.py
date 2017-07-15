@@ -209,12 +209,29 @@ class WalletTradeDetail(models.Model):
             return e
 
     @classmethod
+    def filter_objects(cls, **kwargs):
+        opts = cls._meta
+        fields = []
+        for f in opts.concrete_fields:
+            fields.append(f.name)
+
+        _kwargs = {}
+        if 'start_created' in kwargs:
+            _kwargs['created__gte'] = kwargs['start_created']
+        if 'end_created' in kwargs:
+            _kwargs['created__lte'] = kwargs['end_created']
+        for key in kwargs:
+            if key in fields:
+                _kwargs[key] = kwargs[key]
+        try:
+            return cls.objects.filter(**_kwargs)
+        except Exception as e:
+            return e
+
+    @classmethod
     def get_success_list(cls, **kwargs):
         kwargs['trade_status'] = 200
-        try:
-            return cls.objects.filter(**kwargs)
-        except:
-            return []
+        return cls.filter_objects(**kwargs)
 
 
 class WalletActionBase(object):

@@ -19,6 +19,8 @@ class WalletTradeActionForm(forms.Form):
 
 
 class WalletDetailListForm(forms.Form):
+    start_created = forms.DateField(required=False)
+    end_created = forms.DateField(required=False)
     page_index = forms.IntegerField(min_value=1, required=False)
     page_size = forms.IntegerField(min_value=1, required=False)
 
