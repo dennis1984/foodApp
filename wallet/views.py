@@ -79,8 +79,9 @@ class WalletTradeDetailList(generics.GenericAPIView):
     """
     permission_classes = (IsOwnerOrReadOnly, )
 
-    def get_details_list(self, request):
+    def get_details_list(self, request, cld):
         kwargs = {'user_id': request.user.id}
+        kwargs.update(**cld)
         return WalletTradeDetail.get_success_list(**kwargs)
 
     def post(self, request, *args, **kwargs):
@@ -89,7 +90,7 @@ class WalletTradeDetailList(generics.GenericAPIView):
             return Response({'Detail': form.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
-        _instances = self.get_details_list(request)
+        _instances = self.get_details_list(request, cld)
         if isinstance(_instances, Exception):
             return Response({'Detail': _instances.args}, status=status.HTTP_400_BAD_REQUEST)
         serializer = WalletDetailListSerializer(_instances)
