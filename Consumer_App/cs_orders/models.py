@@ -134,6 +134,7 @@ class SerialNumberGenerator(models.Model):
 
     class Meta:
         db_table = 'ys_serial_number_generator'
+        app_label = 'Consumer_App.cs_orders.models.SerialNumberGenerator'
 
     def __unicode__(self):
         return str(self.date)
