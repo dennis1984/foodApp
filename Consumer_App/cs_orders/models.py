@@ -147,7 +147,7 @@ class SerialNumberGenerator(models.Model):
     def get_serial_number(cls):
         date_day = date_for_model()
         # 数据库加排它锁，保证交易流水号是唯一的
-        with transaction.atomic():
+        with transaction.atomic(using='consumer'):
             try:
                 _instance = cls.objects.select_for_update().get(pk=date_day)
             except cls.DoesNotExist:
