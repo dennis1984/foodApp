@@ -6,6 +6,7 @@ from wallet.models import (Wallet,
                            BankCard,
                            WalletAction,
                            WALLET_SERVICE_RATE,
+                           WALLET_BALANCE,
                            WITHDRAW_RECORD_STATUS)
 from horizon.serializers import (BaseSerializer,
                                  BaseModelSerializer,
@@ -38,7 +39,17 @@ class WalletSerializer(BaseModelSerializer):
 class WalletResponseSerializer(BaseModelSerializer):
     class Meta:
         model = Wallet
-        fields = ('user_id', 'balance', 'created', 'updated', 'extend')
+        fields = ('user_id', 'balance', 'active_balance', 'created', 'updated')
+
+    @property
+    def data(self):
+        _data = super(WalletResponseSerializer, self).data()
+        active_balance = str(Decimal(_data['balance']) - Decimal(WALLET_BALANCE))
+        if Decimal(active_balance) <= Decimal(0):
+            _data['active_balance'] = '0'
+        else:
+            _data['active_balance'] = active_balance
+        return _data
 
 
 class WalletDetailSerializer(BaseModelSerializer):
