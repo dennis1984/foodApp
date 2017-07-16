@@ -64,7 +64,7 @@ class WalletDetail(generics.GenericAPIView):
             _wallet = Wallet(**initial_dict)
         return _wallet
 
-    def post(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         """
         展示用户钱包余额
         """
@@ -297,7 +297,7 @@ class BankCardList(generics.GenericAPIView):
     def get_bank_card_list(self, request):
         return BankCard.filter_details(request, user_id=request.user.id)
 
-    def post(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         # form = BankCardListForm(request.data)
         # if not form.is_valid():
         #     return Response({'Detail': form.errors}, status=status.HTTP_400_BAD_REQUEST)
