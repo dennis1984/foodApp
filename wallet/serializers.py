@@ -1,5 +1,6 @@
 # -*- coding:utf8 -*-
 from django.contrib.auth.hashers import make_password
+from rest_framework import serializers
 from wallet.models import (Wallet,
                            WalletTradeDetail,
                            WithdrawRecord,
@@ -36,10 +37,12 @@ class WalletSerializer(BaseModelSerializer):
         fields = '__all__'
 
 
-class WalletResponseSerializer(BaseModelSerializer):
-    class Meta:
-        model = Wallet
-        fields = ('user_id', 'balance', 'active_balance', 'created', 'updated')
+class WalletResponseSerializer(BaseSerializer):
+    user_id = serializers.IntegerField()
+    balance = serializers.CharField(max_length=16)
+    active_balance = serializers.CharField(max_length=16, required=False)
+    created = serializers.DateTimeField()
+    updated = serializers.DateTimeField()
 
     @property
     def data(self):
