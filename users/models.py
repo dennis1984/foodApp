@@ -192,3 +192,48 @@ class IdentifyingCode(models.Model):
             return instances[0]
         else:
             return None
+
+ADVERT_PICTURE_DIR = settings.PICTURE_DIRS['business']['advert']
+
+
+class AdvertPictureManager(models.Manager):
+    def get(self, *args, **kwargs):
+        kwargs['status'] = 1
+        return super(AdvertPictureManager, self).get(*args, **kwargs)
+
+    def filter(self, *args, **kwargs):
+        kwargs['status'] = 1
+        return super(AdvertPictureManager, self).filter(*args, **kwargs)
+
+
+class AdvertPicture(models.Model):
+    name = models.CharField(u'图片名称', max_length=60, unique=True, db_index=True)
+    image = models.ImageField(u'图片', upload_to=ADVERT_PICTURE_DIR,)
+
+    # 数据状态：1：有效 2：已删除
+    status = models.IntegerField(u'数据状态', default=1)
+    created = models.DateTimeField(u'创建时间', default=now)
+    updated = models.DateTimeField(u'更新时间', auto_now=True)
+
+    objects = AdvertPictureManager()
+
+    class Meta:
+        db_table = 'ys_advert_picture'
+        ordering = ['-created']
+
+    def __unicode__(self):
+        return self.name
+
+    @classmethod
+    def get_object(cls, **kwargs):
+        try:
+            return cls.objects.get(**kwargs)
+        except Exception as e:
+            return e
+
+    @classmethod
+    def filter_objects(cls, **kwargs):
+        try:
+            return cls.objects.filter(**kwargs)
+        except Exception as e:
+            return e
