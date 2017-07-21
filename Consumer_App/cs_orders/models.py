@@ -38,6 +38,8 @@ class ConsumeOrders(models.Model):
     master_orders_id = models.CharField('所属主订单订单ID', max_length=32)
     # 是否点评过  0: 未点评过  1： 已经完成点评
     is_commented = models.IntegerField('是否点评过', default=0)
+    # 核销码：如果已经核销，该字段不为空，如果没有核销，该字段为空
+    confirm_code = models.CharField('核销码', max_length=32, default='', blank=True)
 
     created = models.DateTimeField('创建时间', default=now)
     updated = models.DateTimeField('最后修改时间', auto_now=True)
@@ -69,7 +71,7 @@ class ConsumeOrdersAction(object):
     def get_orders_instance(self, orders_id):
         return ConsumeOrders.get_object(**{'orders_id': orders_id})
 
-    def update_payment_status_to_finished(self, orders_id):
+    def update_payment_status_to_finished(self, orders_id, confirm_code):
         """
         更新核销订单的支付状态为结束
         return: orders instance: 成功
@@ -82,6 +84,7 @@ class ConsumeOrdersAction(object):
             return ValueError('The orders payment status is incorrect.')
 
         orders.payment_status = ORDERS_PAYMENT_STATUS['finished']
+        orders.confirm_code = confirm_code
         try:
             orders.save()
         except Exception as e:

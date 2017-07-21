@@ -291,25 +291,15 @@ class VerifyOrdersAction(generics.GenericAPIView):
         if not is_valid:
             return Response({'Detail': cld.args}, status=status.HTTP_400_BAD_REQUEST)
 
-        # consumer_id = instance.user_id
         results = self.get_verify_orders_list(request, cld)
         if isinstance(results, Exception):
             return Response({'Detail': results.args}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = VerifySerializer()
-        result_data = serializer.confirm_consume(request, results)
+        result_data = serializer.confirm_consume(request, results, **cld)
         if isinstance(result_data, Exception):
             return Response({'Detail': result_data.args}, status=status.HTTP_400_BAD_REQUEST)
         return Response({'result': 'SUCCESS'}, status=status.HTTP_206_PARTIAL_CONTENT)
-
-        # detail_list = self.get_orders_detail(result_data)
-        # serializer = VerifyOrdersListSerializer(data=detail_list)
-        # if not serializer.is_valid():
-        #     return Response({'Detail': serializer.errors}, status=status.HTTP_206_PARTIAL_CONTENT)
-        # results = serializer.list_data()
-        # if isinstance(results, Exception):
-        #     return Response({'Detail': results.args}, status=status.HTTP_400_BAD_REQUEST)
-        # return Response(results, status=status.HTTP_206_PARTIAL_CONTENT)
 
 
 class SaleOrdersList(generics.GenericAPIView):

@@ -155,7 +155,7 @@ class VerifySerializer(BaseModelSerializer):
         model = VerifyOrders
         fields = '__all__'
 
-    def confirm_consume(self, request, instances):
+    def confirm_consume(self, request, instances, **kwargs):
         if not isinstance(instances, (tuple, list)):
             if isinstance(instances, VerifyOrders):
                 instances = [instances]
@@ -170,7 +170,9 @@ class VerifySerializer(BaseModelSerializer):
                 return e
             else:
                 # 更新用户端的核销订单的状态为已完成
-                con_result = ConsumeOrdersAction().update_payment_status_to_finished(ins.orders_id)
+                con_result = ConsumeOrdersAction().update_payment_status_to_finished(
+                    ins.orders_id, kwargs['random_string'],
+                )
                 if isinstance(con_result, Exception):
                     return con_result
                 # 钱包余额更新 (订单收入)
