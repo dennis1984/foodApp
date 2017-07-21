@@ -19,7 +19,7 @@ class DishesManager(models.Manager):
 
 
 DISHES_PICTURE_DIR = settings.PICTURE_DIRS['business']['dishes']
-FOOD_COURT_DIR = settings.PICTURES_DIRS['business']['food_court']
+FOOD_COURT_DIR = settings.PICTURE_DIRS['business']['food_court']
 
 DISHES_SIZE_DICT = {
     'default': 10,
