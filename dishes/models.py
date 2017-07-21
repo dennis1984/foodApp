@@ -112,11 +112,13 @@ class FoodCourt(models.Model):
     image = models.ImageField('美食城平面图',
                               upload_to=FOOD_COURT_DIR,
                               default=os.path.join(FOOD_COURT_DIR, 'noImage.png'),)
+    # 状态：1：有效 2：已删除
+    status = models.IntegerField('数据状态', default=1)
     extend = models.TextField('扩展信息', default='', blank=True, null=True)
 
     class Meta:
         db_table = 'ys_food_court'
-        unique_together = ('name', 'mall')
+        unique_together = ('name', 'mall', 'status')
 
     def __unicode__(self):
         return self.name
