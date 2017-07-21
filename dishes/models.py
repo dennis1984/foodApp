@@ -148,6 +148,7 @@ class City(models.Model):
     class Meta:
         db_table = 'ys_city'
         unique_together = ('city', 'district', 'status')
+        ordering = ['-updated']
 
     def __unicode__(self):
         return self.city
