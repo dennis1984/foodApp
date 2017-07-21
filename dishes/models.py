@@ -136,17 +136,18 @@ class City(models.Model):
     城市信息
     """
     city = models.CharField('城市名称', max_length=40, db_index=True)
-    province = models.CharField('省份', max_length=40)
-    user_id = models.IntegerField('创建者')
+    province = models.CharField('省份', max_length=40, null=True, blank=True)
+    district = models.CharField('所属市区', max_length=100)
 
-    # 城市信息状态：1：有效 2：已删除
+    user_id = models.IntegerField('创建者')
+    # 状态：1：有效 2：已删除
     status = models.IntegerField('数据状态', default=1)
     created = models.DateTimeField(default=now)
     updated = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'ys_city'
-        unique_together = ('city', 'status')
+        unique_together = ('city', 'district', 'status')
 
     def __unicode__(self):
         return self.city
