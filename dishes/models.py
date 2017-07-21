@@ -19,6 +19,7 @@ class DishesManager(models.Manager):
 
 
 DISHES_PICTURE_DIR = settings.PICTURE_DIRS['business']['dishes']
+FOOD_COURT_DIR = settings.PICTURES_DIRS['business']['food_court']
 
 DISHES_SIZE_DICT = {
     'default': 10,
@@ -102,10 +103,15 @@ class FoodCourt(models.Model):
     美食城数据表
     """
     name = models.CharField('美食城名字', max_length=200)
+    # 美食城类别 1: 公元铭 2：食代铭
+    type = models.IntegerField('美食城类别')
     city = models.CharField('所属城市', max_length=100, null=False)
     district = models.CharField('所属市区', max_length=100, null=False)
     mall = models.CharField('所属购物中心', max_length=200, default='')
     address = models.CharField('购物中心地址', max_length=256, null=True, blank=True)
+    image = models.ImageField('美食城平面图',
+                              upload_to=FOOD_COURT_DIR,
+                              default=os.path.join(FOOD_COURT_DIR, 'noImage.png'),)
     extend = models.TextField('扩展信息', default='', blank=True, null=True)
 
     class Meta:
