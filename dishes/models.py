@@ -103,8 +103,8 @@ class FoodCourt(models.Model):
     美食城数据表
     """
     name = models.CharField('美食城名字', max_length=200)
-    # 美食城类别 1: 公元铭 2：食代铭
-    type = models.IntegerField('美食城类别')
+    # 美食城类别 10: 公元铭 20：食代铭
+    type = models.IntegerField('美食城类别', default=10)
     city = models.CharField('所属城市', max_length=100, null=False)
     district = models.CharField('所属市区', max_length=100, null=False)
     mall = models.CharField('所属购物中心', max_length=200, default='')
