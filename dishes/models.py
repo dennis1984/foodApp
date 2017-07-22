@@ -148,7 +148,7 @@ class City(models.Model):
     # 市区数据结构：
     # [{'id': 1, 'name': u'大兴区'}, ...
     # ]
-    district = models.TextField('市区信息')
+    district = models.TextField('市区信息', null=True, blank=True)
 
     user_id = models.IntegerField('创建者')
     # 状态：1：有效 2：已删除
