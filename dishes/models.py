@@ -42,16 +42,19 @@ class Dishes(models.Model):
     """
     菜品信息表
     """
-    title = models.CharField('菜品名称', null=False, max_length=200)
-    subtitle = models.CharField('菜品副标题', max_length=200, default='')
+    title = models.CharField('菜品名称', null=False, max_length=40)
+    subtitle = models.CharField('菜品副标题', max_length=100, default='')
     description = models.TextField('菜品描述', default='')
     # 默认：10，小份：11，中份：12，大份：13，自定义：20
     size = models.IntegerField('菜品规格', default=10)
     size_detail = models.CharField('菜品规格详情', max_length=30, null=True, blank=True)
-    price = models.CharField('价格', max_length=16, null=False)
-    image = models.ImageField('菜品图片',
+    price = models.CharField('价格', max_length=50, null=False, blank=False)
+    image = models.ImageField('菜品图片（封面）',
                               upload_to=DISHES_PICTURE_DIR,
-                              default=os.path.join(DISHES_PICTURE_DIR, 'noImage.png'),)
+                              default=os.path.join(DISHES_PICTURE_DIR, 'noImage.png'), )
+    image_detail = models.ImageField('菜品图片（详情）',
+                                     upload_to=DISHES_PICTURE_DIR,
+                                     default=os.path.join(DISHES_PICTURE_DIR, 'noImage.png'), )
     user_id = models.IntegerField('创建者ID', db_index=True)
     food_court_id = models.IntegerField('商城ID', db_index=True)
     created = models.DateTimeField('创建时间', default=now)
@@ -60,8 +63,6 @@ class Dishes(models.Model):
     is_recommend = models.BooleanField('是否推荐该菜品', default=False)   # 0: 不推荐  1：推荐
     extend = models.TextField('扩展信息', default='', null=True, blank=True)
 
-    # objects = models.Manager()
-    # active_objects = DishesManager()
     objects = DishesManager()
 
     class Meta:
