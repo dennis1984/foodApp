@@ -145,11 +145,10 @@ class City(models.Model):
     城市信息
     """
     city = models.CharField('城市名称', max_length=40, db_index=True)
-    province = models.CharField('省份', max_length=40, null=True, blank=True)
     # 市区数据结构：
     # [{'id': 1, 'name': u'大兴区'}, ...
     # ]
-    district = models.TextField('市区信息', default='', null=True, blank=True)
+    district = models.CharField('市区信息', max_length=40)
 
     user_id = models.IntegerField('创建者')
     # 状态：1：有效 2：已删除
