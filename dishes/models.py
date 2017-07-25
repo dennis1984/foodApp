@@ -93,9 +93,10 @@ class FoodCourt(models.Model):
     """
     美食城数据表
     """
-    name = models.CharField('美食城名字', max_length=200)
+    name = models.CharField('美食城名字', max_length=200, db_index=True)
     # 美食城类别 10: 公元铭 20：食代铭
     type = models.IntegerField('美食城类别', default=10)
+    city_id = models.IntegerField('所属城市ID')
     city = models.CharField('所属城市', max_length=100, null=False)
     district = models.CharField('所属市区', max_length=100, null=False)
     mall = models.CharField('所属购物中心', max_length=200, default='')
@@ -111,7 +112,8 @@ class FoodCourt(models.Model):
 
     class Meta:
         db_table = 'ys_food_court'
-        unique_together = ('name', 'mall', 'status')
+        unique_together = ('name', 'mall', 'city_id', 'status')
+        ordering = ['city', 'district']
 
     def __unicode__(self):
         return self.name
