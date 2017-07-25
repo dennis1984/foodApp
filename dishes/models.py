@@ -7,20 +7,11 @@ from django.conf import settings
 import os
 import json
 
-
-class DishesManager(models.Manager):
-    def get(self, *args, **kwargs):
-        object_data = super(DishesManager, self).get(status=1, *args, **kwargs)
-        return object_data
-
-    def filter(self, *args, **kwargs):
-        object_data = super(DishesManager, self).filter(status=1, *args, **kwargs)
-        return object_data
+from horizon.models import BaseManager
 
 
 DISHES_PICTURE_DIR = settings.PICTURE_DIRS['business']['dishes']
 FOOD_COURT_DIR = settings.PICTURE_DIRS['business']['food_court']
-
 DISHES_SIZE_DICT = {
     'default': 10,
     'small': 11,
@@ -28,7 +19,6 @@ DISHES_SIZE_DICT = {
     'large': 13,
     'custom': 20,
 }
-
 DISHES_SIZE_CN_MATCH = {
     10: u'标准',
     11: u'小份',
@@ -63,7 +53,7 @@ class Dishes(models.Model):
     is_recommend = models.BooleanField('是否推荐该菜品', default=False)   # 0: 不推荐  1：推荐
     extend = models.TextField('扩展信息', default='', null=True, blank=True)
 
-    objects = DishesManager()
+    objects = BaseManager()
 
     class Meta:
         db_table = 'ys_dishes'
@@ -117,6 +107,8 @@ class FoodCourt(models.Model):
     status = models.IntegerField('数据状态', default=1)
     extend = models.TextField('扩展信息', default='', blank=True, null=True)
 
+    objects = BaseManager()
+
     class Meta:
         db_table = 'ys_food_court'
         unique_together = ('name', 'mall', 'status')
@@ -156,10 +148,12 @@ class City(models.Model):
     created = models.DateTimeField(default=now)
     updated = models.DateTimeField(auto_now=True)
 
+    objects = BaseManager()
+
     class Meta:
         db_table = 'ys_city'
         unique_together = ('city', 'district', 'status')
-        ordering = ['-updated']
+        ordering = ['city', 'district']
 
     def __unicode__(self):
         return self.city
