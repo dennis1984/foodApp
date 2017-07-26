@@ -51,6 +51,9 @@ class Dishes(models.Model):
     updated = models.DateTimeField('最后修改时间', auto_now=True)
     status = models.IntegerField('数据状态', default=1)   # 1 有效 2 已删除 3 其他（比如暂时不用）
     is_recommend = models.BooleanField('是否推荐该菜品', default=False)   # 0: 不推荐  1：推荐
+
+    # 0：无标记  10：新品  20：特惠  30：招牌
+    mark = models.IntegerField('运营标记', default=0)
     extend = models.TextField('扩展信息', default='', null=True, blank=True)
 
     objects = BaseManager()
