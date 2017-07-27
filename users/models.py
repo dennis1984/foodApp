@@ -44,6 +44,7 @@ class BusinessUserManager(BaseUserManager):
             phone=username,
             business_name=business_name,
             food_court_id=food_court_id,
+            **kwargs
         )
 
         user.set_password(password)
