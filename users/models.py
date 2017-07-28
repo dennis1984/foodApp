@@ -78,6 +78,8 @@ class BusinessUser(AbstractBaseUser):
     manager = models.CharField(u'经理人姓名', max_length=20, null=False, default='')
     chinese_people_id = models.CharField(u'身份证号码', max_length=25,
                                          null=False, default='')
+    stalls_number = models.CharField(u'档口编号', max_length=20,
+                                     null=False, default='')
 
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
