@@ -71,7 +71,8 @@ class Wallet(models.Model):
         if isinstance(wallet, Exception):
             return False
         try:
-            return Decimal(wallet.balance) - Decimal(wallet.blocked_money) >= Decimal(amount_of_money)
+            return Decimal(wallet.balance) - \
+                   Decimal(wallet.blocked_money) >= Decimal(amount_of_money)
         except:
             return False
 
