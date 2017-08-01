@@ -214,6 +214,7 @@ class AdvertPictureManager(models.Manager):
 
 
 class AdvertPicture(models.Model):
+    food_court_id = models.IntegerField(u'美食城ID')
     name = models.CharField(u'图片名称', max_length=60, unique=True, db_index=True)
     image = models.ImageField(u'图片', upload_to=ADVERT_PICTURE_DIR,)
 
