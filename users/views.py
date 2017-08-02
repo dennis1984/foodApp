@@ -11,6 +11,8 @@ from users.serializers import (UserSerializer,
                                IdentifyingCodeSerializer)
 from users.permissions import IsAdminOrReadOnly, IsAuthenticated
 from users.models import (BusinessUser,
+                          AdvertPicture,
+                          ClientDetail,
                           make_token_expire,
                           IdentifyingCode)
 from users.forms import (UsersInputForm,
@@ -234,6 +236,16 @@ class UserList(generics.GenericAPIView):
         if isinstance(results, Exception):
             return Response({'Error': results.args}, status=status.HTTP_400_BAD_REQUEST)
         return Response(results, status=status.HTTP_200_OK)
+
+
+class ClientAction(generics.GenericAPIView):
+    """
+    客显端存放ip和端口
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        pass
 
 
 class AuthLogout(generics.GenericAPIView):

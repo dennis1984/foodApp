@@ -9,6 +9,7 @@ from dishes.models import FoodCourt
 from django.conf import settings
 
 from horizon import main
+from horizon.models import BaseManager
 import datetime
 import os
 
@@ -231,6 +232,43 @@ class AdvertPicture(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    @classmethod
+    def get_object(cls, **kwargs):
+        try:
+            return cls.objects.get(**kwargs)
+        except Exception as e:
+            return e
+
+    @classmethod
+    def filter_objects(cls, **kwargs):
+        try:
+            return cls.objects.filter(**kwargs)
+        except Exception as e:
+            return e
+
+
+class ClientDetail(models.Model):
+    """
+    客户显示屏信息
+    """
+    user_id = models.IntegerField(u'用户ID', db_index=True)
+    ip = models.CharField(u'IP地址', max_length=40)
+    port = models.IntegerField(u'端口')
+
+    # 数据状态：1：有效 2：已删除
+    status = models.IntegerField(u'数据状态', default=1)
+    created = models.DateTimeField(u'创建时间', default=now)
+    updated = models.DateTimeField(u'更新时间', auto_now=True)
+
+    objects = BaseManager()
+
+    class Meta:
+        db_table = 'ys_client_detail'
+        ordering = ['-created']
+
+    def __unicode__(self):
+        return unicode(self.user_id)
 
     @classmethod
     def get_object(cls, **kwargs):
