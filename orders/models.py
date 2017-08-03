@@ -412,7 +412,7 @@ class VerifyOrders(models.Model):
     @classmethod
     def make_instances_to_dict(cls, orders_list):
         if isinstance(orders_list, cls):
-            orders_list = [orders_list]
+            orders_list = list(orders_list)
         detail_list = []
         for orders in orders_list:
             item_dict = model_to_dict(orders)

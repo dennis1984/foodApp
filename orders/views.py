@@ -300,7 +300,8 @@ class VerifyOrdersAction(generics.GenericAPIView):
         if isinstance(result_data, Exception):
             return Response({'Detail': result_data.args}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = VerifyOrdersListSerializer(data=result_data)
+        orders_detail = self.get_orders_detail(result_data)
+        serializer = VerifyOrdersListSerializer(data=orders_detail)
         if not serializer.is_valid():
             return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         datas = serializer.list_data()
