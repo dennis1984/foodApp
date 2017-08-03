@@ -299,7 +299,15 @@ class VerifyOrdersAction(generics.GenericAPIView):
         result_data = serializer.confirm_consume(request, results, **cld)
         if isinstance(result_data, Exception):
             return Response({'Detail': result_data.args}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({'result': 'SUCCESS'}, status=status.HTTP_206_PARTIAL_CONTENT)
+
+        serializer = VerifyOrdersListSerializer(data=result_data)
+        if not serializer.is_valid():
+            return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        datas = serializer.list_data()
+        if isinstance(datas, Exception):
+            return Response({'Detail': datas.args}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(datas, status=status.HTTP_200_OK)
+        # return Response({'result': 'SUCCESS'}, status=status.HTTP_206_PARTIAL_CONTENT)
 
 
 class SaleOrdersList(generics.GenericAPIView):
