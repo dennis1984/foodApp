@@ -271,7 +271,7 @@ class ClientDetailShow(generics.GenericAPIView):
     def get_client_detail(self, request):
         return ClientDetail.get_object_by_user(request)
 
-    def post(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         instance = self.get_client_detail(request)
         if isinstance(instance, Exception):
             return Response({'Detail': instance.args}, status=status.HTTP_400_BAD_REQUEST)
