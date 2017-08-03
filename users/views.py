@@ -8,7 +8,8 @@ from users.serializers import (UserSerializer,
                                UserInstanceSerializer,
                                UserDetailSerializer,
                                UserListSerializer,
-                               IdentifyingCodeSerializer)
+                               IdentifyingCodeSerializer,
+                               ClientDetailSerializer)
 from users.permissions import IsAdminOrReadOnly, IsAuthenticated
 from users.models import (BusinessUser,
                           AdvertPicture,
@@ -20,7 +21,8 @@ from users.forms import (UsersInputForm,
                          UserListForm,
                          SendIdentifyingCodeForm,
                          BusinessUserChangePasswordForm,
-                         BusinessUserNoAuthResetPasswordForm)
+                         BusinessUserNoAuthResetPasswordForm,
+                         ClientInputForm)
 from users.caches import BusinessUserCache
 from horizon.views import APIView
 from horizon import main
@@ -238,14 +240,45 @@ class UserList(generics.GenericAPIView):
         return Response(results, status=status.HTTP_200_OK)
 
 
-class ClientAction(generics.GenericAPIView):
+class ClientDetailAction(generics.GenericAPIView):
     """
     客显端存放ip和端口
     """
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        pass
+        form = ClientInputForm(request.data)
+        if not form.is_valid():
+            return Response({'Detail': form.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        cld = form.cleaned_data
+        serializer = ClientDetailSerializer(data=cld)
+        if not serializer.is_valid():
+            return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            serializer.save()
+        except Exception as e:
+            return Response({'Detail': e.args}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class ClientDetailShow(generics.GenericAPIView):
+    """
+    获取客显端IP地址和端口号
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def get_client_detail(self, request):
+        return ClientDetail.get_object_by_user(request)
+
+    def post(self, request, *args, **kwargs):
+        instance = self.get_client_detail(request)
+        if isinstance(instance, Exception):
+            return Response({'Detail': instance.args}, status=status.HTTP_400_BAD_REQUEST)
+        if not instance:
+            return Response({}, status=status.HTTP_200_OK)
+        serializer = ClientDetailSerializer(instance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class AuthLogout(generics.GenericAPIView):

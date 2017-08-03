@@ -1,7 +1,7 @@
 # -*- coding:utf8 -*-
 from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
-from users.models import BusinessUser, IdentifyingCode
+from users.models import BusinessUser, IdentifyingCode, ClientDetail
 from horizon.serializers import (BaseListSerializer,
                                  BaseModelSerializer,
                                  BaseSerializer,
@@ -74,3 +74,16 @@ class IdentifyingCodeSerializer(BaseModelSerializer):
         model = IdentifyingCode
         fields = '__all__'
 
+
+class ClientDetailSerializer(BaseModelSerializer):
+    def __init__(self, instance=None, data=None, request=None, **kwargs):
+        if data:
+            if request:
+                data['user_id'] = request.user.id
+            super(ClientDetailSerializer, self).__init__(data=data, **kwargs)
+        else:
+            super(ClientDetailSerializer, self).__init__(instance, **kwargs)
+
+    class Meta:
+        model = ClientDetail
+        fields = '__all__'

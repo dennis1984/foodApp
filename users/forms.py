@@ -42,3 +42,7 @@ class BusinessUserChangePasswordForm(ChangePasswordForm):
 class BusinessUserNoAuthResetPasswordForm(BusinessUserChangePasswordForm):
     username = forms.CharField(max_length=18)
 
+
+class ClientInputForm(forms.Form):
+    ip = forms.GenericIPAddressField()
+    port = forms.IntegerField(min_value=1)

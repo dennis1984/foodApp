@@ -283,3 +283,13 @@ class ClientDetail(models.Model):
             return cls.objects.filter(**kwargs)
         except Exception as e:
             return e
+
+    @classmethod
+    def get_object_by_user(cls, request):
+        instances = cls.filter_objects(user_id=request.user.id)
+        if isinstance(instances, Exception):
+            return instances
+        if len(instances) == 0:
+            return None
+        return instances[0]
+
