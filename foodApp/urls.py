@@ -25,6 +25,7 @@ urlpatterns = [
     # url(r'^api-auth', include('rest_framework.urls', namespace='rest_framework')),
     # url(r'^api-token-auth/', authtoken_views.obtain_auth_token),
     url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
+    url(r'^client/o/', include('oauth2_provider.urls', namespace='oauth2_provider_client')),
 
     url(r'^orders/', include('orders.urls', namespace='orders_app')),
     url(r'^dishes/', include('dishes.urls', namespace='dishes_app')),
