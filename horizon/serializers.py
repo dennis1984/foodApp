@@ -58,7 +58,15 @@ class BaseListSerializer(serializers.ListSerializer):
                 if isinstance(dict_format[key], datetime.datetime):
                     item[key] = timezoneStringTostring(item[key])
                 if isinstance(dict_format[key], models.fields.files.ImageFieldFile):
-                    item['%s_url' % key] = os.path.join(settings.WEB_URL_FIX, item[key])
+                    image_str = urllib.unquote(item[key])
+                    if image_str.startswith('http://') or image_str.startswith('https://'):
+                        item['%s_url' % key] = image_str
+                    else:
+                        item['%s_url' % key] = os.path.join(settings.WEB_URL_FIX,
+                                                             'static',
+                                                             image_str.split('static/', 1)[1])
+                    item.pop(key)
+                    # item['%s_url' % key] = os.path.join(settings.WEB_URL_FIX, item[key])
         return ordered_dict
 
 
