@@ -1,17 +1,24 @@
 # -*- coding:utf8 -*-
 from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
-from users.models import BusinessUser, IdentifyingCode, ClientDetail
+from users.models import (BusinessUser,
+                          IdentifyingCode,
+                          ClientDetail,
+                          AdvertPicture)
 from horizon.serializers import (BaseListSerializer,
                                  BaseModelSerializer,
                                  BaseSerializer,
                                  timezoneStringTostring)
 from django.conf import settings
 from horizon.models import model_to_dict
+from horizon.serializers import (BaseModelSerializer,
+                                 BaseSerializer,
+                                 BaseListSerializer)
+
 import os
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(BaseModelSerializer):
     class Meta:
         model = BusinessUser
         fields = '__all__'
@@ -38,7 +45,7 @@ class UserInstanceSerializer(serializers.ModelSerializer):
                   'food_court_id')
 
 
-class UserDetailSerializer(serializers.Serializer):
+class UserDetailSerializer(BaseSerializer):
     user_id = serializers.IntegerField()
     phone = serializers.CharField(max_length=20)
     business_name = serializers.CharField(max_length=100)
@@ -51,18 +58,18 @@ class UserDetailSerializer(serializers.Serializer):
     district = serializers.CharField(max_length=100, required=False)
     mall = serializers.CharField(max_length=200, required=False)
 
-    @property
-    def data(self):
-        _data = super(UserDetailSerializer, self).data
-        if _data.get('user_id', None):
-            _data['last_login'] = timezoneStringTostring(_data['last_login'])
-            base_dir = _data['head_picture'].split('static', 1)[1]
-            if base_dir.startswith(os.path.sep):
-                base_dir = base_dir[1:]
-            _data['head_picture_url'] = os.path.join(settings.WEB_URL_FIX,
-                                                     'static',
-                                                     base_dir)
-        return _data
+    # @property
+    # def data(self):
+    #     _data = super(UserDetailSerializer, self).data
+    #     if _data.get('user_id', None):
+    #         _data['last_login'] = timezoneStringTostring(_data['last_login'])
+    #         base_dir = _data['head_picture'].split('static', 1)[1]
+    #         if base_dir.startswith(os.path.sep):
+    #             base_dir = base_dir[1:]
+    #         _data['head_picture_url'] = os.path.join(settings.WEB_URL_FIX,
+    #                                                  'static',
+    #                                                  base_dir)
+    #     return _data
 
 
 class UserListSerializer(BaseListSerializer):
@@ -87,3 +94,13 @@ class ClientDetailSerializer(BaseModelSerializer):
     class Meta:
         model = ClientDetail
         fields = '__all__'
+
+
+class AdvertPictureSerializer(BaseModelSerializer):
+    class Meta:
+        model = AdvertPicture
+        fields = '__all__'
+
+
+class AdvertPictureListSerializer(BaseListSerializer):
+    child = AdvertPictureSerializer()

@@ -17,6 +17,8 @@ urlpatterns = (
     url(r'^client/client_detail_action/$', views.ClientDetailAction.as_view()),
     url(r'^client_detail_show/$', views.ClientDetailShow.as_view()),
 
+    url(r'^advert_picture_list/$', views.AdvertPictureList.as_view()),
+
     url(r'^logout/$', views.AuthLogout.as_view()),
 )
 

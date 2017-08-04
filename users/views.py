@@ -9,7 +9,8 @@ from users.serializers import (UserSerializer,
                                UserDetailSerializer,
                                UserListSerializer,
                                IdentifyingCodeSerializer,
-                               ClientDetailSerializer)
+                               ClientDetailSerializer,
+                               AdvertPictureListSerializer)
 from users.permissions import IsAdminOrReadOnly, IsAuthenticated
 from users.models import (BusinessUser,
                           AdvertPicture,
@@ -279,6 +280,26 @@ class ClientDetailShow(generics.GenericAPIView):
             return Response({}, status=status.HTTP_200_OK)
         serializer = ClientDetailSerializer(instance)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class AdvertPictureList(generics.GenericAPIView):
+    """
+    广告位图片列表
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def get_advert_objects(self, request):
+        return AdvertPicture.filter_objects(food_court_id=request.user.food_court_id)
+
+    def get(self, request, *args, **kwargs):
+        advert_instances = self.get_advert_objects(request)
+        if isinstance(advert_instances, Exception):
+            return Response({'Detail': advert_instances.args},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = AdvertPictureListSerializer(advert_instances)
+        datas = serializer.list_data()
+        return Response(datas, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AuthLogout(generics.GenericAPIView):
