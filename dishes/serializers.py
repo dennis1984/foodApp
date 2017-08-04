@@ -13,6 +13,10 @@ from horizon.serializers import (BaseListSerializer,
                                  timezoneStringTostring)
 from dishes.caches import DishesCache
 from horizon.main import make_random_string_char_and_number
+from horizon.serializers import (BaseModelSerializer,
+                                 BaseListSerializer,
+                                 BaseSerializer)
+
 import datetime, os
 import json
 
@@ -25,7 +29,7 @@ def make_cache_expired(func):
     return decorator
 
 
-class DishesSerializer(serializers.ModelSerializer):
+class DishesSerializer(BaseModelSerializer):
     def __init__(self, instance=None, data=None, request=None, **kwargs):
         if data and request:
             data['user_id'] = request.user.id
@@ -79,20 +83,20 @@ class DishesSerializer(serializers.ModelSerializer):
                 validated_data['size_detail'] = DISHES_SIZE_CN_MATCH[size]
         return super(DishesSerializer, self).update(instance, validated_data)
 
-    @property
-    def data(self):
-        serializer = super(DishesSerializer, self).data
-        if serializer.get('user_id', None):
-            serializer['updated'] = timezoneStringTostring(serializer['updated'])
-            serializer['created'] = timezoneStringTostring(serializer['created'])
-            serializer['image_url'] = os.path.join(settings.WEB_URL_FIX, serializer['image'])
-            base_dir = serializer['image'].split('static', 1)[1]
-            if base_dir.startswith(os.path.sep):
-                base_dir = base_dir[1:]
-            serializer['image_url'] = os.path.join(settings.WEB_URL_FIX,
-                                                   'static',
-                                                   base_dir)
-        return serializer
+    # @property
+    # def data(self):
+    #     serializer = super(DishesSerializer, self).data
+    #     if serializer.get('user_id', None):
+    #         serializer['updated'] = timezoneStringTostring(serializer['updated'])
+    #         serializer['created'] = timezoneStringTostring(serializer['created'])
+    #         serializer['image_url'] = os.path.join(settings.WEB_URL_FIX, serializer['image'])
+    #         base_dir = serializer['image'].split('static', 1)[1]
+    #         if base_dir.startswith(os.path.sep):
+    #             base_dir = base_dir[1:]
+    #         serializer['image_url'] = os.path.join(settings.WEB_URL_FIX,
+    #                                                'static',
+    #                                                base_dir)
+    #     return serializer
 
 
 class DishesListSerializer(BaseListSerializer):

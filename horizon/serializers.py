@@ -8,6 +8,7 @@ from horizon.main import timezoneStringTostring
 from horizon.models import model_to_dict
 import os
 import datetime
+import urllib
 
 
 class BaseListSerializer(serializers.ListSerializer):
@@ -77,9 +78,16 @@ class BaseModelSerializer(serializers.ModelSerializer):
 
 def perfect_result(self, _data):
     _fields = self.get_fields()
-    for key in _data:
+    for key in _data.keys():
         if isinstance(_fields[key], Fields.DateTimeField):
             _data[key] = timezoneStringTostring(_data[key])
         if isinstance(_fields[key], Fields.ImageField):
-            _data['%s_url' % key] = os.path.join(settings.WEB_URL_FIX, _data[key])
+            image_str = urllib.unquote(_data[key])
+            if image_str.startswith('http://') or image_str.startswith('https://'):
+                _data['%s_url' % key] = image_str
+            else:
+                _data['%s_url' % key] = os.path.join(settings.WEB_URL_FIX,
+                                                     'static',
+                                                     image_str.split('static/', 1)[1])
+            _data.pop(key)
     return _data
