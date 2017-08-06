@@ -3,6 +3,8 @@ from rest_framework import viewsets
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import status
+from oauth2_provider.views import TokenView
+from django.conf import settings
 
 from users.serializers import (UserSerializer,
                                UserInstanceSerializer,
@@ -23,10 +25,13 @@ from users.forms import (UsersInputForm,
                          SendIdentifyingCodeForm,
                          BusinessUserChangePasswordForm,
                          BusinessUserNoAuthResetPasswordForm,
-                         ClientInputForm)
+                         ClientInputForm,
+                         ClientLoginForm)
 from users.caches import BusinessUserCache
 from horizon.views import APIView
 from horizon import main
+import json
+import os
 
 
 class IDYCodeAction(APIView):
@@ -300,6 +305,36 @@ class AdvertPictureList(generics.GenericAPIView):
         serializer = AdvertPictureListSerializer(advert_instances)
         datas = serializer.list_data()
         return Response(datas, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ClientTokenView(TokenView):
+    """
+    client端登录
+    """
+    def get_user_object(self, username):
+        return BusinessUser.get_object(phone=username)
+
+    def make_perfect_response_data(self, response, user):
+        token_dict = json.loads(response.content)
+        head_picture_url = os.path.join(settings.WEB_URL_FIX,
+                                        'static',
+                                        str(user.head_picture).split('static/', 1)[1])
+        token_dict.update(**{'business_name': user.business_name,
+                             'head_picture_url': head_picture_url})
+        return json.dumps(token_dict)
+
+    def post(self, request, *args, **kwargs):
+        form = ClientLoginForm(getattr(request, request.method))
+        if not form.is_valid():
+            return Response({'Detail': form.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        cld = form.cleaned_data
+        token_response = super(ClientTokenView, self).post(request, *args, **kwargs)
+        if token_response.status_code == 200:
+            user = self.get_user_object(cld['username'])
+            token_str = self.make_perfect_response_data(token_response, user)
+            token_response._container = token_str
+        return token_response
 
 
 class AuthLogout(generics.GenericAPIView):
