@@ -14,6 +14,12 @@ import datetime
 import os
 
 
+ADVERT_OWNER_DICT = {
+    'business': 1,
+    'consumer': 2,
+}
+
+
 def make_token_expire(request):
     """
     置token过期
@@ -206,11 +212,13 @@ ADVERT_PICTURE_DIR = settings.PICTURE_DIRS['business']['advert']
 
 class AdvertPictureManager(models.Manager):
     def get(self, *args, **kwargs):
-        kwargs['status'] = 1
+        kwargs.update(**{'status': 1,
+                         'owner': ADVERT_OWNER_DICT['business']})
         return super(AdvertPictureManager, self).get(*args, **kwargs)
 
     def filter(self, *args, **kwargs):
-        kwargs['status'] = 1
+        kwargs.update(**{'status': 1,
+                         'owner': ADVERT_OWNER_DICT['business']})
         return super(AdvertPictureManager, self).filter(*args, **kwargs)
 
 
