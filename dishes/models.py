@@ -61,7 +61,7 @@ class Dishes(models.Model):
     # 运营标记： 0：无标记  10：新品  20：特惠  30：招牌
     mark = models.IntegerField('运营标记', default=0)
     # 优惠金额
-    discount = models.CharField('优惠金额', default='0')
+    discount = models.CharField('优惠金额', max_length=16, default='0')
     extend = models.TextField('扩展信息', default='', null=True, blank=True)
 
     objects = BaseManager()
