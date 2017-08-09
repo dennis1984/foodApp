@@ -70,6 +70,7 @@ class Dishes(models.Model):
         db_table = 'ys_dishes'
         unique_together = ('user_id', 'title', 'size',
                            'size_detail', 'status')
+        ordering = ['-updated']
 
     def __unicode__(self):
         return self.title

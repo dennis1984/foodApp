@@ -93,6 +93,7 @@ class OrdersDetailSerializer(BaseSerializer):
 
     total_amount = serializers.CharField(max_length=16, allow_blank=True)
     member_discount = serializers.CharField(max_length=16, allow_blank=True)
+    online_discount = serializers.CharField(max_length=16, allow_blank=True)
     other_discount = serializers.CharField(max_length=16, allow_blank=True)
     payable = serializers.CharField(max_length=16)
 
