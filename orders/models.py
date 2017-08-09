@@ -648,3 +648,19 @@ class DatetimeEncode(json.JSONEncoder):
         else:
             return json.JSONEncoder.default(self, o)
 
+
+class YinshiPayCode(models.Model):
+    """
+    吟食支付随机码
+    """
+    user_id = models.IntegerField('用户ID')
+    dishes_ids = models.TextField('订购商品列表', default='')
+    code = models.CharField('随机码', max_length=32, db_index=True)
+    expires = models.DateTimeField('过期时间', default=minutes_15_plus)
+    created = models.DateTimeField('创建日期', default=now)
+
+    class Meta:
+        db_table = 'ys_yinshi_pay_code'
+
+    def __unicode__(self):
+        return str(self.code)

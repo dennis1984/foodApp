@@ -30,7 +30,12 @@ class OrdersUpdateForm(forms.Form):
     payment_status = forms.IntegerField(min_value=200, required=False)
     # payment_mode = forms.IntegerField(min_value=1, max_value=3)
     payment_mode = forms.ChoiceField(choices=(('cash', 1),
-                                              ('scan', 2)))
+                                              ('scan', 2),
+                                              ('yinshi', 3)),
+                                     error_messages={
+                                         'required': 'Field [payment_mode] must in '
+                                                     '["cash", "scan", "yinshi"]'
+                                     })
 
 
 class VerifyOrdersListForm(forms.Form):

@@ -5,6 +5,7 @@ from rest_framework.response import Response
 
 from rest_framework import generics
 from django.utils.six import BytesIO
+from django.conf import settings
 from orders.forms import (OrdersInputForm,
                           OrdersGetForm,
                           OrdersUpdateForm,
@@ -14,17 +15,20 @@ from orders.forms import (OrdersInputForm,
                           SaleListForm)
 from orders.models import (Orders,
                            SaleListAction,
-                           VerifyOrders)
+                           VerifyOrders,
+                           YinshiPayCode)
 from orders.serializers import (OrdersSerializer,
                                 OrdersListSerializer,
                                 VerifyOrdersListSerializer,
                                 VerifySerializer,
                                 OrdersDetailSerializer,
                                 SaleOrdersListSerializer,
-                                SaleDishesListSerializer)
+                                SaleDishesListSerializer,
+                                YinshiPayCodeSerializer)
 from orders.permissoins import IsOwnerOrReadOnly
 from orders.pays import WXPay, AliPay
 from Consumer_App.cs_orders.models import ConfirmConsume
+from horizon import main
 
 import json
 
@@ -35,6 +39,31 @@ class OrdersAction(generics.GenericAPIView):
 
     def get_orders_detail(self, instance):
         return Orders.make_instances_to_dict(instance)[0]
+
+    def make_yinshi_pay_initial_data(self, request,  orders):
+        random_code = main.make_random_string_char_and_number(20)
+        data = {'dishes_ids': orders.dishes_ids,
+                'user_id': request.user.id,
+                'code': random_code}
+        return data
+
+    def save_yinshi_pay_random_code(self, initial_data):
+        serializer = YinshiPayCodeSerializer(data=initial_data)
+        if not serializer.is_valid():
+            return Exception(serializer.errors)
+        try:
+            serializer.save()
+        except Exception as e:
+            return e
+        return serializer.instance
+
+    def get_yinshi_pay_response(self, ys_pay_instance):
+        ys_code_url = settings.YINSHI_PAY_LINK % ys_pay_instance.code
+        file_name = main.make_qrcode(ys_code_url)
+        return_data = {
+            'ys_code_url': main.make_static_url_by_file_path(file_name)
+        }
+        return return_data
 
     def post(self, request, *args, **kwargs):
         """
@@ -102,7 +131,7 @@ class OrdersAction(generics.GenericAPIView):
         else:
             if payment_mode == 'cash':     # 现金支付
                 return Response(serializer.data, status=status.HTTP_206_PARTIAL_CONTENT)
-            else:     # 扫码支付
+            elif payment_mode == 'scan':     # 扫码支付
                 _wxPay = WXPay(obj)
                 wx_result = _wxPay.native()
                 if isinstance(wx_result, Exception):
@@ -115,6 +144,15 @@ class OrdersAction(generics.GenericAPIView):
                 return Response({'ali_code_url': ali_result,
                                  'wx_code_url': wx_result},
                                 status=status.HTTP_206_PARTIAL_CONTENT)
+            elif payment_mode == 'yinshi':  # 吟食支付
+                data = self.make_yinshi_pay_initial_data(request, obj)
+                instance = self.save_yinshi_pay_random_code(data)
+                if isinstance(instance, Exception):
+                    return Response({'Detail': instance.args}, status=status.HTTP_400_BAD_REQUEST)
+                return_data = self.get_yinshi_pay_response(instance)
+                return Response(return_data, status=status.HTTP_206_PARTIAL_CONTENT)
+            else:
+                return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class OrdersDetail(generics.GenericAPIView):

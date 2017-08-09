@@ -1,7 +1,8 @@
 # -*- coding:utf8 -*-
 from orders.models import (Orders,
                            VerifyOrders,
-                           ORDERS_PAYMENT_STATUS)
+                           ORDERS_PAYMENT_STATUS,
+                           YinshiPayCode)
 from rest_framework import serializers
 from horizon.serializers import (BaseListSerializer,
                                  BaseSerializer,
@@ -182,3 +183,14 @@ class VerifySerializer(BaseModelSerializer):
                     return result
         return instances
 
+
+class YinshiPayCodeSerializer(BaseModelSerializer):
+    def __init__(self, instance=None, data=None, **kwargs):
+        if data:
+            super(YinshiPayCodeSerializer, self).__init__(data=data, **kwargs)
+        else:
+            super(YinshiPayCodeSerializer, self).__init__(instance, **kwargs)
+
+    class Meta:
+        model = YinshiPayCode
+        fields = '__all__'

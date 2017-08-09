@@ -96,6 +96,11 @@ def make_qrcode(source_data, save_path=settings.PICTURE_DIRS['business']['qrcode
     return fname_path
 
 
+def make_static_url_by_file_path(file_path):
+    path_list = file_path.split('static/', 1)
+    return os.path.join(settings.WEB_URL_FIX, 'static', path_list[1])
+
+
 def anaysize_xml_to_dict(source):
     """
     解析xml字符串
