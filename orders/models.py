@@ -5,7 +5,7 @@ from django.db import models
 from django.utils.timezone import now
 from dishes.models import Dishes, FoodCourt
 from users.models import BusinessUser
-from horizon.models import model_to_dict
+from horizon.models import model_to_dict, get_perfect_filter_params
 from horizon.main import minutes_15_plus
 from django.db import transaction
 from decimal import Decimal
@@ -649,6 +649,16 @@ class DatetimeEncode(json.JSONEncoder):
             return json.JSONEncoder.default(self, o)
 
 
+class YSPayManager(models.Manager):
+    def get(self, *args, **kwargs):
+        kwargs['expires__gt'] = now()
+        return super(YSPayManager, self).get(*args, **kwargs)
+
+    def filter(self, *args, **kwargs):
+        kwargs['expires__gt'] = now()
+        return super(YSPayManager, self).filter(*args, **kwargs)
+
+
 class YinshiPayCode(models.Model):
     """
     吟食支付随机码
@@ -663,8 +673,26 @@ class YinshiPayCode(models.Model):
     expires = models.DateTimeField('过期时间', default=minutes_15_plus)
     created = models.DateTimeField('创建日期', default=now)
 
+    object = YSPayManager()
+
     class Meta:
         db_table = 'ys_yinshi_pay_code'
 
     def __unicode__(self):
         return str(self.code)
+
+    @classmethod
+    def get_object(cls, **kwargs):
+        kwargs = get_perfect_filter_params(cls, **kwargs)
+        try:
+            return cls.object.get(**kwargs)
+        except Exception as e:
+            return e
+
+    @classmethod
+    def filter_objects(cls, **kwargs):
+        kwargs = get_perfect_filter_params(cls, **kwargs)
+        try:
+            return cls.object.filter(**kwargs)
+        except Exception as e:
+            return e

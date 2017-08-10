@@ -15,7 +15,8 @@ from orders.forms import (OrdersInputForm,
                           SaleListForm)
 from orders.models import (Orders,
                            SaleListAction,
-                           VerifyOrders,)
+                           VerifyOrders,
+                           YinshiPayCode)
 from orders.serializers import (OrdersSerializer,
                                 OrdersListSerializer,
                                 VerifyOrdersListSerializer,
@@ -268,22 +269,33 @@ class VerifyOrdersList(generics.GenericAPIView):
             return False, Exception(form.errors)
 
         cld = form.cleaned_data
-        result = ConfirmConsume.get_object(**cld)
-        if isinstance(result, Exception):
-            return False, result
-        return True, result
+        return True, cld
+
+    def get_verfify_orders_detail(self, request, **cld):
+        # 待核销订单
+        if 'gateway' not in cld or cld['gateway'] == 'confirm_consume':
+            instance = ConfirmConsume.get_object(random_string=cld['random_string'])
+            if isinstance(instance, Exception):
+                return instance
+            return self.get_verify_orders_list(request, consumer_id=instance.user_id)
+        # 吟食支付订单
+        else:
+            instance = YinshiPayCode.get_object(code=cld['random_string'])
+            if isinstance(instance, Exception):
+                return instance
+            return VerifyOrders.filter_finished_orders_list(request,
+                                                            orders_id=instance.consume_orders_id)
 
     def post(self, request, *args, **kwargs):
-        is_valid, instance = self.is_request_data_valid(request)
+        is_valid, cleaned_data = self.is_request_data_valid(request)
         if not is_valid:
-            return Response({'Detail': instance.args}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'Detail': cleaned_data.args}, status=status.HTTP_400_BAD_REQUEST)
 
-        consumer_id = instance.user_id
-        results = self.get_verify_orders_list(request, consumer_id)
-        if isinstance(results, Exception):
-            return Response({'Detail': results.args}, status=status.HTTP_400_BAD_REQUEST)
+        orders_data = self.get_verfify_orders_detail(request, **cleaned_data)
+        if isinstance(orders_data, Exception):
+            return Response({'Detail': orders_data.args}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = VerifyOrdersListSerializer(data=results)
+        serializer = VerifyOrdersListSerializer(data=orders_data)
         if not serializer.is_valid():
             return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         results = serializer.list_data()

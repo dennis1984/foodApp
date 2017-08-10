@@ -40,6 +40,9 @@ class OrdersUpdateForm(forms.Form):
 
 class VerifyOrdersListForm(forms.Form):
     random_string = forms.CharField(max_length=32)
+    gateway = forms.ChoiceField(choices=(('yinshi_pay', 1),
+                                         ('confirm_consume', 2)),
+                                required=False)
 
 
 class VerifyOrdersActionForm(forms.Form):
