@@ -15,8 +15,7 @@ from orders.forms import (OrdersInputForm,
                           SaleListForm)
 from orders.models import (Orders,
                            SaleListAction,
-                           VerifyOrders,
-                           YinshiPayCode)
+                           VerifyOrders,)
 from orders.serializers import (OrdersSerializer,
                                 OrdersListSerializer,
                                 VerifyOrdersListSerializer,
@@ -40,9 +39,17 @@ class OrdersAction(generics.GenericAPIView):
     def get_orders_detail(self, instance):
         return Orders.make_instances_to_dict(instance)[0]
 
+    def make_perfect_dishes_ids(self, orders):
+        perfect_ids = []
+        for item in orders.dishes_ids:
+            tmp_dict = {'dishes_id': item['id'],
+                        'count': item['count']}
+            perfect_ids.append(tmp_dict)
+        return perfect_ids
+
     def make_yinshi_pay_initial_data(self, request,  orders):
         random_code = main.make_random_string_char_and_number(20)
-        data = {'dishes_ids': orders.dishes_ids,
+        data = {'dishes_ids': self.make_perfect_dishes_ids(orders),
                 'user_id': request.user.id,
                 'code': random_code}
         return data
