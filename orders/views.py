@@ -41,7 +41,7 @@ class OrdersAction(generics.GenericAPIView):
 
     def make_perfect_dishes_ids(self, orders):
         perfect_ids = []
-        for item in orders.dishes_ids:
+        for item in json.loads(orders.dishes_ids):
             tmp_dict = {'dishes_id': item['id'],
                         'count': item['count']}
             perfect_ids.append(tmp_dict)
@@ -49,7 +49,7 @@ class OrdersAction(generics.GenericAPIView):
 
     def make_yinshi_pay_initial_data(self, request,  orders):
         random_code = main.make_random_string_char_and_number(20)
-        data = {'dishes_ids': self.make_perfect_dishes_ids(orders),
+        data = {'dishes_ids': json.dumps(self.make_perfect_dishes_ids(orders)),
                 'user_id': request.user.id,
                 'code': random_code}
         return data
