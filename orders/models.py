@@ -10,6 +10,8 @@ from horizon.main import minutes_15_plus
 from django.db import transaction
 from decimal import Decimal
 
+from Consumer_App.cs_users.models import ConsumerUser
+
 import copy
 import json
 import datetime
@@ -696,3 +698,88 @@ class YinshiPayCode(models.Model):
             return cls.objects.filter(**kwargs)
         except Exception as e:
             return e
+
+
+class PushManager(models.Manager):
+    def get(self, *args, **kwargs):
+        kwargs['status'] = 0
+        kwargs['push_start_time__gt'] = now()
+        instance = super(PushManager, self).get(*args, **kwargs)
+        return instance
+
+    def filter(self, *args, **kwargs):
+        kwargs['status'] = 0
+        kwargs['push_start_time__gt'] = now()
+        instances = super(PushManager, self).filter(*args, **kwargs)
+        return instances
+
+
+class PushDetail(models.Model):
+    """
+    推送数据
+    """
+    business_id = models.IntegerField('商户ID')
+    consumer_id = models.IntegerField('用户ID')
+    business_name = models.CharField('商户名称', max_length=100)
+    food_court_id = models.IntegerField('美食城ID')
+    food_court_name = models.CharField('美食城名字', max_length=200)
+
+    out_open_id = models.CharField('第三方唯一标识', max_length=64)
+    payable = models.CharField('消费金额', max_length=16)
+
+    created = models.DateTimeField('创建日期', default=now)
+    push_start_time = models.DateTimeField('开始推送时间', default=minutes_15_plus)
+
+    # status  0：未推送  1：已推送
+    status = models.IntegerField('是否推送标志', db_index=True, default=0)
+
+    objects = PushManager()
+
+    class Meta:
+        db_table = 'ys_push_detail'
+
+    def __unicode__(self):
+        return str(self.out_open_id)
+
+    @classmethod
+    def get_object(cls, **kwargs):
+        kwargs = get_perfect_filter_params(cls, **kwargs)
+        try:
+            return cls.objects.get(**kwargs)
+        except Exception as e:
+            return e
+
+    @classmethod
+    def filter_objects(cls, **kwargs):
+        kwargs = get_perfect_filter_params(cls, **kwargs)
+        try:
+            return cls.objects.filter(**kwargs)
+        except Exception as e:
+            return e
+
+
+class PushDetailAction(object):
+    """
+    创建推送服务
+    """
+    def create_push_service(self, verify_orders):
+        if not isinstance(verify_orders, VerifyOrders):
+            return Exception('Data is error.')
+
+        consumer = ConsumerUser.get_object(pk=verify_orders.consumer_id)
+        initial_data = {
+            'business_id': verify_orders.user_id,
+            'consumer_id': verify_orders.consumer_id,
+            'business_name': verify_orders.business_name,
+            'food_court_id': verify_orders.food_court_id,
+            'food_court_name': verify_orders.food_court_name,
+            'out_open_id': consumer.out_open_id,
+            'payable': verify_orders.payable,
+        }
+
+        try:
+            instance = PushDetail(**initial_data)
+            instance.save()
+        except Exception as e:
+            return e
+        return instance

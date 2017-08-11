@@ -1,8 +1,9 @@
 # -*- coding:utf8 -*-
 from orders.models import (Orders,
                            VerifyOrders,
-                           ORDERS_PAYMENT_STATUS,
-                           YinshiPayCode)
+                           YinshiPayCode,
+                           PushDetailAction,
+                           ORDERS_PAYMENT_STATUS,)
 from rest_framework import serializers
 from horizon.serializers import (BaseListSerializer,
                                  BaseSerializer,
@@ -181,6 +182,8 @@ class VerifySerializer(BaseModelSerializer):
                 result = WalletAction().income(request, ins)
                 if isinstance(result, Exception):
                     return result
+                # 创建推送服务
+                PushDetailAction().create_push_service(ins)
         return instances
 
 
