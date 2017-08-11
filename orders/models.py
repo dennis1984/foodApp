@@ -685,7 +685,7 @@ class YinshiPayCode(models.Model):
     def get_object(cls, **kwargs):
         kwargs = get_perfect_filter_params(cls, **kwargs)
         try:
-            return cls.object.get(**kwargs)
+            return cls.objects.get(**kwargs)
         except Exception as e:
             return e
 
@@ -693,6 +693,6 @@ class YinshiPayCode(models.Model):
     def filter_objects(cls, **kwargs):
         kwargs = get_perfect_filter_params(cls, **kwargs)
         try:
-            return cls.object.filter(**kwargs)
+            return cls.objects.filter(**kwargs)
         except Exception as e:
             return e
