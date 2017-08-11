@@ -673,7 +673,7 @@ class YinshiPayCode(models.Model):
     expires = models.DateTimeField('过期时间', default=minutes_15_plus)
     created = models.DateTimeField('创建日期', default=now)
 
-    object = YSPayManager()
+    objects = YSPayManager()
 
     class Meta:
         db_table = 'ys_yinshi_pay_code'
