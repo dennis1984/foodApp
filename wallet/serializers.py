@@ -47,7 +47,7 @@ class WalletResponseSerializer(BaseSerializer):
     @property
     def data(self):
         _data = super(WalletResponseSerializer, self).data
-        active_balance = str(Decimal(_data['balance']) - Decimal(WALLET_BALANCE))
+        active_balance = str(Decimal(_data['balance']) - Decimal(_data['blocked_money']))
         if Decimal(active_balance) <= Decimal(0):
             _data['active_balance'] = '0'
         else:
