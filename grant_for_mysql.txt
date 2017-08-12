@@ -1,11 +1,14 @@
+# 创建用户
+1. insert into user(Host, User, Password, ssl_cipher) values("localhost", "yinShi_project", PASSWORD("Con!082%Trib"), "Y");
+
 # 授权所有表 select,create,update,alter,insert,index 权限，禁止授予delete及drop权限
-1. grant select, create, update, alter, insert, index  on yinShi.* to yinShi_project@localhost;
+2. grant select, create, update, alter, insert, index  on yinShi.* to yinShi_project@localhost;
 
 # 授予django_session表所有权限（允许django删除过期的session）
-2. grant select, create, update, alter, insert, index, delete on yinShi.django_session to yinShi_project@localhost;
+3. grant select, create, update, alter, insert, index, delete on yinShi.django_session to yinShi_project@localhost;
 
 # 授权django_migrations表具有所有权限（model表更新时同步表用）
-3. grant select, create, update, alter, insert, index, delete on yinShi.django_migrations to yinShi_project@localhost;
+4. grant select, create, update, alter, insert, index, delete on yinShi.django_migrations to yinShi_project@localhost;
 
 
 
