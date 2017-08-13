@@ -40,6 +40,7 @@ class WalletSerializer(BaseModelSerializer):
 class WalletResponseSerializer(BaseSerializer):
     user_id = serializers.IntegerField()
     balance = serializers.CharField(max_length=16)
+    blocked_money = serializers.CharField(max_length=16)
     active_balance = serializers.CharField(max_length=16, required=False)
     created = serializers.DateTimeField()
     updated = serializers.DateTimeField()
