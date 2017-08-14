@@ -6,6 +6,7 @@ import copy
 import time
 import datetime
 import collections
+import json
 
 
 DB_SETTINGS = {
@@ -98,8 +99,6 @@ class DB(object):
             count = self.cursor.execute(sql)
         except Exception as e:
             return e
-        if not count:
-            return Exception('No data')
         db_description = self.cursor.description
         perfect_details = []
         for item in self.cursor.fetchall():
@@ -144,10 +143,10 @@ class WXPush(object):
 
     @property
     def access_token(self):
-        wx_access = WXAccessToken().get_access_token()
-        if isinstance(wx_access, Exception):
+        wx_token = WXAccessToken().get_access_token()
+        if isinstance(wx_token, Exception):
             return None
-        return wx_access['access_token']
+        return wx_token['access_token']
 
 
 class WXAccessToken(object):
@@ -157,12 +156,12 @@ class WXAccessToken(object):
         params = ACCESS_TOKEN_TABLE['sql']['select']
 
         instances = DB().select(table=self.table, params=params)
-        if isinstance(instances, Exception):
-            return instances
         if instances:
             return instances[0]
         else:
             token_data = self.go_to_get_token()
+            if isinstance(token_data, Exception):
+                return token_data
             self.insert_data(token_data)
             return token_data
 
@@ -174,9 +173,13 @@ class WXAccessToken(object):
         return DB().insert(table=self.table, initial_data=params_dict)
 
     def go_to_get_token(self):
-        return http_request.send_http_request(WX_ACCESS_TOKEN_URL,
-                                              WX_ACCESS_TOKEN_PARAMS,
-                                              method='get')
+        response = http_request.send_http_request(WX_ACCESS_TOKEN_URL,
+                                                  WX_ACCESS_TOKEN_PARAMS,
+                                                  method='get')
+        if response.status_code == 200:
+            return json.loads(response.text)
+        else:
+            return Exception('Request Failed')
 
 
 def timezoneStringTostring(timezone_string):
