@@ -723,6 +723,7 @@ class PushDetail(models.Model):
     business_name = models.CharField('商户名称', max_length=100)
     food_court_id = models.IntegerField('美食城ID')
     food_court_name = models.CharField('美食城名字', max_length=200)
+    orders_id = models.CharField('订单ID', max_length=32)
 
     out_open_id = models.CharField('第三方唯一标识', max_length=64)
     payable = models.CharField('消费金额', max_length=16)
@@ -731,12 +732,13 @@ class PushDetail(models.Model):
     push_start_time = models.DateTimeField('开始推送时间', default=minutes_15_plus)
 
     # status  0：未推送  1：已推送
-    status = models.IntegerField('是否推送标志', db_index=True, default=0)
+    status = models.IntegerField('是否推送标志', default=0)
 
     objects = PushManager()
 
     class Meta:
         db_table = 'ys_push_detail'
+        index_together = ['push_start_time', 'status']
 
     def __unicode__(self):
         return str(self.out_open_id)

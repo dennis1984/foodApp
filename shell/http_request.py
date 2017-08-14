@@ -9,9 +9,6 @@ def send_http_request(access_url, access_params, method='get',
     """
     发送http request请求
     """
-    if isinstance(access_params, dict):
-        access_params = urllib.urlencode(access_params)
-
     if method not in View.http_method_names:
         return TypeError("Http request cannot confirm the %s method!" % method)
 
@@ -20,10 +17,22 @@ def send_http_request(access_url, access_params, method='get',
         for key, value in kwargs['add_header'].items():
             headers[key] = value
 
-    request_url = '%s?%s' % (access_url, access_params)
+    if method == 'get':
+        if isinstance(access_params, dict):
+            access_params = urllib.urlencode(access_params)
+        request_url = '%s?%s' % (access_url, access_params)
+    else:
+        request_url = access_url
+
     handle = getattr(requests, method)
+
+    kwargs = {}
+    if method == 'get':
+        pass
+    else:
+        kwargs = {'data': access_params}
     try:
-        results = handle(request_url, headers=headers)
+        results = handle(request_url, headers=headers, **kwargs)
     except Exception as e:
         return e
     return results
