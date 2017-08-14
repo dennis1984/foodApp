@@ -1,7 +1,8 @@
 # -*- coding:utf8 -*-
 import requests
 import urllib
-from rest_framework.views import View
+
+http_method_names = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace']
 
 
 def send_http_request(access_url, access_params, method='get',
@@ -9,7 +10,7 @@ def send_http_request(access_url, access_params, method='get',
     """
     发送http request请求
     """
-    if method not in View.http_method_names:
+    if method not in http_method_names:
         return TypeError("Http request cannot confirm the %s method!" % method)
 
     headers = {'Content-Type': '%s; %s' % (content_type, charset)}

@@ -785,3 +785,19 @@ class PushDetailAction(object):
         except Exception as e:
             return e
         return instance
+
+
+class WXAccessToken(models.Model):
+    """
+    微信公众平台access_token信息
+    """
+    access_token = models.TextField('access token')
+    expires = models.DateTimeField('过期时间')
+    created = models.DateTimeField('创建时间', default=now)
+
+    class Meta:
+        db_table = 'ys_wx_access_token'
+
+    def __unicode__(self):
+        return self.access_token
+
