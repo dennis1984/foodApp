@@ -40,6 +40,7 @@ class WalletSerializer(BaseModelSerializer):
 class WalletResponseSerializer(BaseSerializer):
     user_id = serializers.IntegerField()
     balance = serializers.CharField(max_length=16)
+    blocked_money = serializers.CharField(max_length=16)
     active_balance = serializers.CharField(max_length=16, required=False)
     created = serializers.DateTimeField()
     updated = serializers.DateTimeField()
@@ -47,7 +48,7 @@ class WalletResponseSerializer(BaseSerializer):
     @property
     def data(self):
         _data = super(WalletResponseSerializer, self).data
-        active_balance = str(Decimal(_data['balance']) - Decimal(WALLET_BALANCE))
+        active_balance = str(Decimal(_data['balance']) - Decimal(_data['blocked_money']))
         if Decimal(active_balance) <= Decimal(0):
             _data['active_balance'] = '0'
         else:
