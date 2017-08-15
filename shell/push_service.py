@@ -182,13 +182,10 @@ class DB(object):
             params_list.append('%s %s %s' % (key, SQL_FILTER_DICT[_filter], value))
 
         perfect_values = []
-        for item in validated_data:
-            if isinstance(item, datetime.datetime):
-                item = timezoneStringTostring(str(item))
-            if isinstance(item, (str, unicode)):
-                perfect_values.append("'%s'" % item)
-            else:
-                perfect_values.append(item)
+        for key, value in validated_data.items():
+            if isinstance(value, datetime.datetime):
+                value = timezoneStringTostring(str(value))
+            perfect_values.append('%s=%s' % (key, value))
 
         SQL = 'update %s set %s where %s;' % (table,
                                               ','.join(perfect_values),
