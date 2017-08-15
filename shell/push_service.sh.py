@@ -10,12 +10,22 @@ import json
 
 
 DB_SETTINGS = {
-    'ENGINE': 'django.db.backends.mysql',
-    'NAME': 'yinShi',
-    'USER': 'yinShi_project',
-    'PASSWORD': 'Con!082%Trib',
-    'HOST': '127.0.0.1',
-    'PORT': 3306,
+    'business': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'yinShi',
+        'USER': 'yinShi_project',
+        'PASSWORD': 'Con!082%Trib',
+        'HOST': '127.0.0.1',
+        'PORT': 3306,
+    },
+    'consumer': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'yinShi_CS',
+        'USER': 'yinShi_project',
+        'PASSWORD': 'Con!082%Trib',
+        'HOST': '127.0.0.1',
+        'PORT': 3306,
+    },
 }
 
 SQL_FILTER_DICT = {
@@ -31,8 +41,8 @@ WX_PUSH_RUL = 'https://api.weixin.qq.com/cgi-bin/message/template/send?access_to
 WX_ACCESS_TOKEN_URL = 'https://api.weixin.qq.com/cgi-bin/token'
 
 WX_ACCESS_TOKEN_PARAMS = {
-    'appid': 'wx55da5a50194f8c73',
-    'secret': 'WWWWWWWWWW',
+    'appid': None,
+    'secret': None,
     'grant_type': 'client_credential',
 }
 
@@ -69,14 +79,21 @@ ACCESS_TOKEN_TABLE = {
 
 }
 
+WX_APP_INFO_TABLE = {
+    'db_name': 'consumer',
+    'table_name': 'ys_wx_app_information',
+    'sql': {}
+}
+
 
 class DB(object):
-    def __init__(self):
-        conn = MySQLdb.connect(host=DB_SETTINGS['HOST'],
-                               user=DB_SETTINGS['USER'],
-                               passwd=DB_SETTINGS['PASSWORD'],
-                               db=DB_SETTINGS['NAME'],
-                               port=DB_SETTINGS['PORT'],
+    def __init__(self, db_name='business'):
+        db_info = DB_SETTINGS[db_name]
+        conn = MySQLdb.connect(host=db_info['HOST'],
+                               user=db_info['USER'],
+                               passwd=db_info['PASSWORD'],
+                               db=db_info['NAME'],
+                               port=db_info['PORT'],
                                charset="utf8")
         self.cursor = conn.cursor()
 
@@ -94,13 +111,20 @@ class DB(object):
                     value = value()
             params_list.append('%s %s %s' % (key, SQL_FILTER_DICT[_filter], value))
 
-        sql = "select * from %s where %s;" % (table, ' and '.join(params_list))
+        if not params_list:
+            sql = "select * from %s" % table
+        else:
+            sql = "select * from %s where %s;" % (table, ' and '.join(params_list))
         try:
             count = self.cursor.execute(sql)
         except Exception as e:
             return e
-        db_description = self.cursor.description
+
         perfect_details = []
+        if not count:
+            return perfect_details
+
+        db_description = self.cursor.description
         for item in self.cursor.fetchall():
             tmp_dict = {}
             for index, value in enumerate(item):
@@ -173,8 +197,21 @@ class WXAccessToken(object):
         return DB().insert(table=self.table, initial_data=params_dict)
 
     def go_to_get_token(self):
+        # 获取APPID和APPSECRET
+        handle = DB(db_name=WX_APP_INFO_TABLE['db_name'])
+        instances = handle.select(table=WX_APP_INFO_TABLE['table_name'],
+                                  params=WX_APP_INFO_TABLE['sql'])
+        if isinstance(instances, Exception):
+            return Exception('Can not find APPID and APPSECRET')
+
+        detail = instances[0]
+        wx_access_token_dict = copy.deepcopy(WX_ACCESS_TOKEN_PARAMS)
+        for key in detail.keys():
+            if key not in wx_access_token_dict:
+                detail.pop(key)
+        wx_access_token_dict.update(**detail)
         response = http_request.send_http_request(WX_ACCESS_TOKEN_URL,
-                                                  WX_ACCESS_TOKEN_PARAMS,
+                                                  wx_access_token_dict,
                                                   method='get')
         if response.status_code == 200:
             return json.loads(response.text)
