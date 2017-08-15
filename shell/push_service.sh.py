@@ -61,9 +61,10 @@ PUSH_LIST = [
         'push_template_name': 'comment_push',
         'push_table': {
             'table_name': 'ys_push_detail',
-            'sql': collections.OrderedDict(**{
-                'push_start_time__lte': datetime.datetime.now,
-                'status': 0}),
+            'sql': {'select': collections.OrderedDict(**{'push_start_time__lte': datetime.datetime.now,
+                                                         'status': 0}),
+                    'update': {'status': 1},
+                    },
         },
     }
 ]
@@ -88,6 +89,10 @@ WX_APP_INFO_TABLE_COLUMN = {
     'app_id': 'appid',
     'app_secret': 'secret',
 }
+
+PUSH_SUCCESS_INFO = {"errcode": 0,
+                     "errmsg": "ok",
+                     "msgid": None}
 
 
 class DB(object):
@@ -162,6 +167,39 @@ class DB(object):
             return e
         return self.cursor.fetchall()
 
+    def update(self, table, params, validated_data):
+        params_list = []
+        for key, value in params.items():
+            if '__' in key:
+                key, _filter = key.split('__')
+            else:
+                _filter = 'equal'
+            if callable(value):
+                if value == datetime.datetime.now:
+                    value = '"%s"' % timezoneStringTostring(str(value()))
+                else:
+                    value = value()
+            params_list.append('%s %s %s' % (key, SQL_FILTER_DICT[_filter], value))
+
+        perfect_values = []
+        for item in validated_data:
+            if isinstance(item, datetime.datetime):
+                item = timezoneStringTostring(str(item))
+            if isinstance(item, (str, unicode)):
+                perfect_values.append("'%s'" % item)
+            else:
+                perfect_values.append(item)
+
+        SQL = 'update %s set %s where %s;' % (table,
+                                              ','.join(perfect_values),
+                                              ' and '.join(params_list))
+        try:
+            self.cursor.execute(SQL)
+            self.cursor.execute('flush privileges;')
+        except Exception as e:
+            return e
+        return self.cursor.fetchall()
+
 
 class WXPush(object):
     def __init__(self, out_open_id, template_name, data_dict):
@@ -175,7 +213,7 @@ class WXPush(object):
                 if isinstance(data_dict[key], datetime.datetime):
                     value2 = timezoneStringTostring(str(data_dict[key]),
                                                     do_not_show='second')
-                    data_dict[key] = {'value': value2}
+                    data_tmp[key] = {'value': value2}
                 else:
                     data_tmp[key] = {'value': data_dict[key]}
             else:
@@ -260,11 +298,11 @@ def timezoneStringTostring(timezone_string, do_not_show=None):
         return ""
     datetime_format = '%Y-%m-%d %H:%M:%S'
     slice_dict = {
-        'second': 3,
-        'minute': 6,
-        'hour': 9,
-        'day': 12,
-        'month': 15,
+        'second': -3,
+        'minute': -6,
+        'hour': -9,
+        'day': -12,
+        'month': -15,
         None: None,
     }
 
@@ -290,7 +328,8 @@ def push_service():
     for item in PUSH_LIST:
         template_name = item['push_template_name']
         push_table = item['push_table']['table_name']
-        params_dict = item['push_table']['sql']
+        params_dict = item['push_table']['sql']['select']
+        update_params_dict = item['push_table']['sql']['update']
 
         push_details = DB().select(push_table, params_dict)
         if isinstance(push_details, Exception):
@@ -301,7 +340,12 @@ def push_service():
                                  template_name=template_name,
                                  data_dict={'keyword1': detail['business_name'],
                                             'keyword2': detail['created']})
-            wx_instance.go_to_push()
+            result = wx_instance.go_to_push()
+            # 推送完成，回写推送状态
+            if result.status_code == 200:
+                DB().update(push_table,
+                            params={'id': detail['id']},
+                            validated_data=update_params_dict)
             time.sleep(0.5)
 
 
