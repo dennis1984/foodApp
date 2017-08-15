@@ -174,7 +174,7 @@ class WXPush(object):
             if key in data_dict:
                 if isinstance(data_dict[key], datetime.datetime):
                     value2 = timezoneStringTostring(str(data_dict[key]),
-                                                    datetime_format='%Y-%m-%d %H:%M')
+                                                    do_not_show='second')
                     data_dict[key] = {'value': value2}
                 else:
                     data_tmp[key] = {'value': data_dict[key]}
@@ -247,7 +247,7 @@ class WXAccessToken(object):
             return Exception('Request Failed')
 
 
-def timezoneStringTostring(timezone_string, datetime_format=None):
+def timezoneStringTostring(timezone_string, do_not_show=None):
     """
     rest framework用JSONRender方法格式化datetime.datetime格式的数据时，
     生成数据样式为：2017-05-19T09:40:37.227692Z 或 2017-05-19T09:40:37Z
@@ -258,15 +258,23 @@ def timezoneStringTostring(timezone_string, datetime_format=None):
         return ""
     if not timezone_string:
         return ""
-    if not format:
-        datetime_format = '%Y-%m-%d %H:%M:%S'
+    datetime_format = '%Y-%m-%d %H:%M:%S'
+    slice_dict = {
+        'second': 3,
+        'minute': 6,
+        'hour': 9,
+        'day': 12,
+        'month': 15,
+        None: None,
+    }
+
     timezone_string = timezone_string.split('.')[0]
     timezone_string = timezone_string.split('Z')[0]
     try:
         timezone = datetime.datetime.strptime(timezone_string, datetime_format)
     except:
         return ""
-    return str(timezone)
+    return str(timezone)[:slice_dict[do_not_show]]
 
 
 def make_time_delta(days=0, minutes=0, seconds=0):
