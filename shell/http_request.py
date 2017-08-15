@@ -1,6 +1,8 @@
 # -*- coding:utf8 -*-
+
 import requests
 import urllib
+import json
 
 http_method_names = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace']
 
@@ -18,20 +20,19 @@ def send_http_request(access_url, access_params, method='get',
         for key, value in kwargs['add_header'].items():
             headers[key] = value
 
+    kwargs = {}
     if method == 'get':
         if isinstance(access_params, dict):
             access_params = urllib.urlencode(access_params)
         request_url = '%s?%s' % (access_url, access_params)
     else:
         request_url = access_url
+        if isinstance(access_params, dict):
+            kwargs = {'data': json.dumps(access_params)}
+        else:
+            kwargs = {'data': access_params}
 
     handle = getattr(requests, method)
-
-    kwargs = {}
-    if method == 'get':
-        pass
-    else:
-        kwargs = {'data': access_params}
     try:
         results = handle(request_url, headers=headers, **kwargs)
     except Exception as e:

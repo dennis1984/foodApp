@@ -52,7 +52,7 @@ PUSH_TEMPLATE_DICT = {
                               'keyword1': u'',
                               'keyword2': u'',
                               'remark': u'点击详情反馈您的用餐体验， 将帮助我们更好提升服务。'},
-                     'url': 'http://'
+                     'url': 'http://yinshi.weixin.city23.com/order/yinshi/',
                      },
 }
 
@@ -83,6 +83,10 @@ WX_APP_INFO_TABLE = {
     'db_name': 'consumer',
     'table_name': 'ys_wx_app_information',
     'sql': {}
+}
+WX_APP_INFO_TABLE_COLUMN = {
+    'app_id': 'appid',
+    'app_secret': 'secret',
 }
 
 
@@ -139,9 +143,21 @@ class DB(object):
             key_list.append(key)
             value_list.append(value)
 
-        SQL = 'insert into %s values(%s) (%s)' % (table, key_list, value_list)
+        perfect_values = []
+        for item in value_list:
+            if isinstance(item, datetime.datetime):
+                item = timezoneStringTostring(str(item))
+            if isinstance(item, (str, unicode)):
+                perfect_values.append("'%s'" % item)
+            else:
+                perfect_values.append(item)
+
+        SQL = 'insert into %s (%s) values(%s);' % (table,
+                                                   ','.join(key_list),
+                                                   ','.join(perfect_values))
         try:
             self.cursor.execute(SQL)
+            self.cursor.execute('flush privileges;')
         except Exception as e:
             return e
         return self.cursor.fetchall()
@@ -151,19 +167,25 @@ class WXPush(object):
     def __init__(self, out_open_id, template_name, data_dict):
         self.touser = out_open_id
         self.template_id = PUSH_TEMPLATE_DICT.get(template_name, {}).get('template_id')
-        self.url = PUSH_TEMPLATE_DICT.get(template_name, {}).get('url', '%s') % self.access_token
+        self.url = PUSH_TEMPLATE_DICT.get(template_name, {}).get('url')
 
         data_tmp = {}
         for key, value in PUSH_TEMPLATE_DICT[template_name]['data'].items():
             if key in data_dict:
-                data_tmp[key] = {'value': data_dict[key]}
+                if isinstance(data_dict[key], datetime.datetime):
+                    value2 = timezoneStringTostring(str(data_dict[key]),
+                                                    datetime_format='%Y-%m-%d %H:%M')
+                    data_dict[key] = {'value': value2}
+                else:
+                    data_tmp[key] = {'value': data_dict[key]}
             else:
                 data_tmp[key] = {'value': value}
         self.data = data_tmp
 
     def go_to_push(self):
         request_data = self.__dict__
-        return http_request.send_http_request(WX_PUSH_RUL, request_data, method='post')
+        request_url = WX_PUSH_RUL % self.access_token
+        return http_request.send_http_request(request_url, request_data, method='post')
 
     @property
     def access_token(self):
@@ -191,6 +213,11 @@ class WXAccessToken(object):
 
     def insert_data(self, initial_data):
         params_dict = copy.deepcopy(ACCESS_TOKEN_TABLE['sql']['insert'])
+        for key in params_dict.keys():
+            if callable(params_dict[key]):
+                if params_dict[key] == datetime.datetime.now:
+                    params_dict[key] = params_dict[key]()
+
         initial_data['expires'] = make_time_delta(seconds=initial_data.pop('expires_in'))
         params_dict.update(**initial_data)
 
@@ -206,10 +233,11 @@ class WXAccessToken(object):
 
         detail = instances[0]
         wx_access_token_dict = copy.deepcopy(WX_ACCESS_TOKEN_PARAMS)
-        for key in detail.keys():
-            if key not in wx_access_token_dict:
-                detail.pop(key)
-        wx_access_token_dict.update(**detail)
+        update_params = {}
+        for key in detail:
+            if key in WX_APP_INFO_TABLE_COLUMN:
+                update_params[WX_APP_INFO_TABLE_COLUMN[key]] = detail[key]
+        wx_access_token_dict.update(**update_params)
         response = http_request.send_http_request(WX_ACCESS_TOKEN_URL,
                                                   wx_access_token_dict,
                                                   method='get')
@@ -219,7 +247,7 @@ class WXAccessToken(object):
             return Exception('Request Failed')
 
 
-def timezoneStringTostring(timezone_string):
+def timezoneStringTostring(timezone_string, datetime_format=None):
     """
     rest framework用JSONRender方法格式化datetime.datetime格式的数据时，
     生成数据样式为：2017-05-19T09:40:37.227692Z 或 2017-05-19T09:40:37Z
@@ -230,10 +258,12 @@ def timezoneStringTostring(timezone_string):
         return ""
     if not timezone_string:
         return ""
+    if not format:
+        datetime_format = '%Y-%m-%d %H:%M:%S'
     timezone_string = timezone_string.split('.')[0]
     timezone_string = timezone_string.split('Z')[0]
     try:
-        timezone = datetime.datetime.strptime(timezone_string, '%Y-%m-%d %H:%M:%S')
+        timezone = datetime.datetime.strptime(timezone_string, datetime_format)
     except:
         return ""
     return str(timezone)
