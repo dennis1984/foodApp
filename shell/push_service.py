@@ -7,6 +7,8 @@ import time
 import datetime
 import collections
 import json
+import logging
+import os
 
 
 DB_SETTINGS = {
@@ -40,6 +42,8 @@ WX_PUSH_RUL = 'https://api.weixin.qq.com/cgi-bin/message/template/send?access_to
 
 WX_ACCESS_TOKEN_URL = 'https://api.weixin.qq.com/cgi-bin/token'
 
+WX_DETAIL_URL = 'http://yinshi.weixin.city23.com/comment/?id=%s'
+
 WX_ACCESS_TOKEN_PARAMS = {
     'appid': None,
     'secret': None,
@@ -52,7 +56,7 @@ PUSH_TEMPLATE_DICT = {
                               'keyword1': u'',
                               'keyword2': u'',
                               'remark': u'点击详情反馈您的用餐体验， 将帮助我们更好提升服务。'},
-                     'url': 'http://yinshi.weixin.city23.com/order/yinshi/',
+                     'url': WX_DETAIL_URL,
                      },
 }
 
@@ -93,6 +97,78 @@ WX_APP_INFO_TABLE_COLUMN = {
 PUSH_SUCCESS_INFO = {"errcode": 0,
                      "errmsg": "ok",
                      "msgid": None}
+
+LOG_FILE_PATH = '/var/www/static/log'
+
+
+class PushLogger(object):
+    def __init__(self, level='DEBUG', file_name=None):
+        self.logger = logging.getLogger('WeiXin PUSH')
+        self.formatter = logging.Formatter('%(name)-12s %(asctime)s %(levelname)-8s %(message)s',
+                                           '%Y-%m-%d %H:%M:%S', )
+        self.level = level
+
+        save_path = os.path.dirname(file_name)
+        if not os.path.isdir(save_path):
+            os.makedirs(save_path)
+
+        self.file_name = file_name
+        file_handler = logging.FileHandler(self.perfect_file_name)
+        file_handler.setFormatter(self.formatter)
+        self.file_handle = file_handler
+        self.logger.addHandler(file_handler)
+        self.logger.setLevel(level=level)
+
+    def debug(self, message, *args, **kwargs):
+        return self.perfect_logger.debug(message, *args, **kwargs)
+
+    def info(self, message, *args, **kwargs):
+        return self.perfect_logger.info(message, *args, **kwargs)
+
+    def warning(self, message, *args, **kwargs):
+        return self.perfect_logger.warning(message, *args, **kwargs)
+
+    def error(self, message, *args, **kwargs):
+        return self.perfect_logger.error(message, *args, **kwargs)
+
+    def critical(self, message, *args, **kwargs):
+        return self.perfect_logger.critical(message, *args, **kwargs)
+
+    def exception(self, message, *args, **kwargs):
+        return self.perfect_logger.exception(message, *args, **kwargs)
+
+    def log(self, level, message, *args, **kwargs):
+        return self.perfect_logger.log(level, message, *args, **kwargs)
+
+    @property
+    def date_of_today(self):
+        return datetime.date.today().strftime('%Y%m%d')
+
+    @property
+    def perfect_file_name(self):
+        if self.date_of_today not in self.file_name:
+            file_name_list = self.file_name.split('.')
+            if len(file_name_list) == 2:
+                perfect_fname = '%s.%s.%s' % (file_name_list[0],
+                                              self.date_of_today,
+                                              file_name_list[1])
+            else:
+                file_name_list[2] = self.date_of_today
+                perfect_fname = '.'.join(file_name_list)
+            return perfect_fname
+        else:
+            return self.file_name
+
+    @property
+    def perfect_logger(self):
+        if self.perfect_file_name != self.file_name:
+            self.file_name = self.perfect_file_name
+            self.logger.removeHandler(self.file_handle)
+            self.file_handle = logging.FileHandler(self.perfect_file_name)
+            self.file_handle.setLevel(level=self.level)
+            self.file_handle.setFormatter(self.formatter)
+            self.logger.addHandler(self.file_handle)
+        return self.logger
 
 
 class DB(object):
@@ -199,10 +275,10 @@ class DB(object):
 
 
 class WXPush(object):
-    def __init__(self, out_open_id, template_name, data_dict):
+    def __init__(self, out_open_id, template_name, orders_id, data_dict):
         self.touser = out_open_id
         self.template_id = PUSH_TEMPLATE_DICT.get(template_name, {}).get('template_id')
-        self.url = PUSH_TEMPLATE_DICT.get(template_name, {}).get('url')
+        self.url = PUSH_TEMPLATE_DICT.get(template_name, {}).get('url', '%s') % orders_id
 
         data_tmp = {}
         for key, value in PUSH_TEMPLATE_DICT[template_name]['data'].items():
@@ -322,6 +398,10 @@ def make_time_delta(days=0, minutes=0, seconds=0):
 
 
 def push_service():
+    logger = PushLogger(level='DEBUG',
+                        file_name=os.path.join(LOG_FILE_PATH, 'push_weixin_result.log'))
+    logger.info('PUSH Start')
+
     for item in PUSH_LIST:
         template_name = item['push_template_name']
         push_table = item['push_table']['table_name']
@@ -335,16 +415,29 @@ def push_service():
         for detail in push_details:
             wx_instance = WXPush(out_open_id=detail['out_open_id'],
                                  template_name=template_name,
+                                 orders_id=detail['orders_id'],
                                  data_dict={'keyword1': detail['business_name'],
                                             'keyword2': detail['created']})
             result = wx_instance.go_to_push()
             # 推送完成，回写推送状态
             if result.status_code == 200:
-                DB().update(push_table,
-                            params={'id': detail['id']},
-                            validated_data=update_params_dict)
+                result_info = json.loads(result.text)
+                keys = ('errcode', 'errmsg')
+                push_success = False
+                for key in keys:
+                    if result_info[key] != PUSH_SUCCESS_INFO[key]:
+                        break
+                else:
+                    push_success = True
+                if push_success:
+                    logger.info('SUCCESS %s' % detail['orders_id'])
+                    DB().update(push_table,
+                                params={'id': detail['id']},
+                                validated_data=update_params_dict)
+                else:
+                    logger.info('FAILED %s' % detail['orders_id'])
             time.sleep(0.5)
-
+    logger.info('PUSH End.')
 
 if __name__ == '__main__':
     push_service()

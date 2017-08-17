@@ -777,6 +777,7 @@ class PushDetailAction(object):
             'food_court_name': verify_orders.food_court_name,
             'out_open_id': consumer.out_open_id,
             'payable': verify_orders.payable,
+            'orders_id': verify_orders.orders_id,
         }
 
         try:
