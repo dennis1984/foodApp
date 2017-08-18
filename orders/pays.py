@@ -50,7 +50,7 @@ class WXPay(object):
         serializer = wx_serializers.NativeRequestSerializer(data=request_data)
         if serializer.is_valid():
             serializer.save()
-        qrcode_path = main.make_qrcode(xml_dict['code_url'])
+        qrcode_path = main.make_qrcode(xml_dict['code_url'], logo_name='wxpay')
         return os.path.join(settings.WEB_URL_FIX,
                             'static',
                             qrcode_path.split('/static/', 1)[1])
@@ -114,7 +114,7 @@ class AliPay(object):
         serializer = ali_serializers.PreCreateRequestSerializer(data=request_data)
         if serializer.is_valid():
             serializer.save()
-        qrcode_path = main.make_qrcode(response_data['qr_code'])
+        qrcode_path = main.make_qrcode(response_data['qr_code'], logo_name='alipay')
         return os.path.join(settings.WEB_URL_FIX,
                             'static',
                             qrcode_path.split('/static/', 1)[1])

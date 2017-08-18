@@ -207,6 +207,7 @@ PICTURE_DIRS = {
         'qrcode': os.path.join(BUSINESS_PICTURE_ROOT, 'qrcode'),               # 二维码图片目录
         'advert': os.path.join(BUSINESS_PICTURE_ROOT, 'advert'),               # 轮播广告图片目录
         'food_court': os.path.join(BUSINESS_PICTURE_ROOT, 'food_court'),       # 美食城图片目录
+        'logo': os.path.join(BUSINESS_PICTURE_ROOT, 'logo'),                   # LOGO图片目录
     }
 }
 

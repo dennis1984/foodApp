@@ -13,6 +13,7 @@ import uuid
 from hashlib import md5
 import base64
 import random
+from PIL import Image
 
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
@@ -75,11 +76,19 @@ def timezoneStringTostring(timezone_string):
     return str(timezone)
 
 
-def make_qrcode(source_data, save_path=settings.PICTURE_DIRS['business']['qrcode'],
-                version=5):
+QRCODE_PICTURE_PATH = settings.PICTURE_DIRS['business']['qrcode']
+LOGO_IMAGE_DICT = {
+    'wxpay': os.path.join(settings.PICTURE_DIRS['business']['logo'], 'wxpay_001.png'),
+    'alipay': os.path.join(settings.PICTURE_DIRS['business']['logo'], 'alipay_001.png'),
+    'yspay': os.path.join(settings.PICTURE_DIRS['business']['logo'], 'yspay_001.png')
+}
+
+
+def make_qrcode(source_data, save_path=QRCODE_PICTURE_PATH, logo_name=None, version=5):
     """
     生成二维码图片
     """
+    logo = LOGO_IMAGE_DICT.get(logo_name)
     qr = qrcode.QRCode(version=version,
                        error_correction=qrcode.constants.ERROR_CORRECT_L,
                        box_size=10,
@@ -92,6 +101,28 @@ def make_qrcode(source_data, save_path=settings.PICTURE_DIRS['business']['qrcode
     if not os.path.isdir(save_path):
         os.makedirs(save_path)
     image = qr.make_image()
+
+    # 添加LOGO
+    image = image.convert("RGBA")
+    if logo and os.path.exists(logo):
+        icon = Image.open(logo)
+        img_w, img_h = image.size
+        factor = 8
+        size_w = int(img_w / factor)
+        size_h = int(img_h / factor)
+
+        icon_w, icon_h = icon.size
+        if icon_w > size_w:
+                icon_w = size_w
+        if icon_h > size_h:
+                icon_h = size_h
+        icon = icon.resize((icon_w, icon_h), Image.ANTIALIAS)
+
+        w = int((img_w - icon_w) / 2)
+        h = int((img_h - icon_h) / 2)
+        icon = icon.convert("RGBA")
+        image.paste(icon, (w, h), icon)
+
     image.save(fname_path)
     return fname_path
 

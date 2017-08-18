@@ -67,7 +67,7 @@ class OrdersAction(generics.GenericAPIView):
 
     def get_yinshi_pay_response(self, ys_pay_instance):
         ys_code_url = settings.YINSHI_PAY_LINK % ys_pay_instance.code
-        file_name = main.make_qrcode(ys_code_url)
+        file_name = main.make_qrcode(ys_code_url, logo_name='yspay')
         return_data = {
             'code': ys_pay_instance.code,
             'ys_code_url': main.make_static_url_by_file_path(file_name)
