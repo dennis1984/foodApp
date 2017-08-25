@@ -99,6 +99,11 @@ class OrdersDetailSerializer(BaseSerializer):
     other_discount = serializers.CharField(max_length=16, allow_blank=True)
     custom_discount = serializers.CharField(allow_blank=True, allow_null=True)
     custom_discount_name = serializers.CharField(allow_blank=True, allow_null=True)
+    service_dishes_subsidy = serializers.CharField(required=False, allow_blank=True,
+                                                   allow_null=True)
+    service_coupons_subsidy = serializers.CharField(required=False, allow_null=True,
+                                                    allow_blank=True)
+
     payable = serializers.CharField(max_length=16)
 
     payment_status = serializers.IntegerField()

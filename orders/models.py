@@ -77,8 +77,11 @@ class Orders(models.Model):
     custom_discount = models.CharField('自定义优惠', max_length=16, default='0')
     custom_discount_name = models.CharField('自定义优惠名称', max_length=64, default='',
                                             blank=True, null=True)
-    coupons_id = models.IntegerField('优惠券ID', null=True)
+    service_dishes_subsidy = models.CharField('菜品优惠平台补贴', max_length=16, default='0')
+    service_coupons_subsidy = models.CharField('优惠券优惠平台补贴', max_length=16, default='0')
     payable = models.CharField('订单总计', max_length=16, default='0')
+
+    coupons_id = models.IntegerField('优惠券ID', null=True)
 
     # 0:未支付 200:已支付 400: 已过期 500:支付失败
     payment_status = models.IntegerField('订单支付状态', default=0)
