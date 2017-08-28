@@ -111,6 +111,7 @@ class OrdersDetailSerializer(BaseSerializer):
     orders_type = serializers.IntegerField()
 
     is_master = serializers.NullBooleanField()
+    notes = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
     created = serializers.DateTimeField()
     updated = serializers.DateTimeField()
