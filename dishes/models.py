@@ -62,6 +62,11 @@ class Dishes(models.Model):
     mark = models.IntegerField('运营标记', default=0)
     # 优惠金额
     discount = models.CharField('优惠金额', max_length=16, default='0')
+
+    # 菜品标记和排序顺序
+    tag = models.CharField('标记', max_length=64, default='', null=True, blank=True)
+    sort_orders = models.IntegerField('排序标记', default=None,  null=True)
+
     extend = models.TextField('扩展信息', default='', null=True, blank=True)
 
     objects = BaseManager()
@@ -178,3 +183,18 @@ class City(models.Model):
             return cls.objects.get(**kwargs)
         except Exception as e:
             return e
+
+#
+# class DishesExtend(models.Model):
+#     """
+#     菜品信息扩展
+#     """
+#     dishes_id = models.IntegerField('菜品ID', db_index=True, unique=True)
+#     tag = models.CharField('标记', max_length=64, default='', null=True, blank=True)
+#     sort_orders = models.IntegerField('排序标记', null=True)
+#
+#     created = models.DateTimeField('创建时间', default=now)
+#     updated = models.DateTimeField('更新时间', auto_now=True)
+#
+#     class Meta:
+#         db_table = 'ys_dishes_extend'
