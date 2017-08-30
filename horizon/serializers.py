@@ -89,7 +89,7 @@ def perfect_result(self, _data):
     for key in _data.keys():
         if isinstance(_fields[key], Fields.DateTimeField):
             _data[key] = timezoneStringTostring(_data[key])
-        if isinstance(_fields[key], Fields.ImageField):
+        if isinstance(_fields[key], (Fields.ImageField, Fields.FileField)):
             image_str = urllib.unquote(_data[key])
             if image_str.startswith('http://') or image_str.startswith('https://'):
                 _data['%s_url' % key] = image_str
