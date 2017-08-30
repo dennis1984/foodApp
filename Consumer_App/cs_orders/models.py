@@ -17,6 +17,8 @@ class ConsumeOrders(models.Model):
 
     business_name = models.CharField('商户名字', max_length=200)
     business_id = models.IntegerField('商户ID')
+    stalls_number = models.CharField('档口编号', max_length=20, default='',
+                                     null=True, blank=True)
     food_court_id = models.IntegerField('美食城ID')
     food_court_name = models.CharField('美食城名字', max_length=200)
 
