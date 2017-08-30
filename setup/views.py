@@ -14,7 +14,7 @@ class AppVersionDetail(generics.GenericAPIView):
     def get_last_object(self):
         return AppVersion.get_last_version()
 
-    def post(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         """
         获取最新版本号
         """
