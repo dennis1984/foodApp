@@ -31,7 +31,8 @@ urlpatterns = [
     url(r'^orders/', include('orders.urls', namespace='orders_app')),
     url(r'^dishes/', include('dishes.urls', namespace='dishes_app')),
     url(r'^auth/', include('users.urls', namespace='user_app')),
-    url(r'wallet/', include('wallet.urls', namespace='wallet_app')),
+    url(r'^wallet/', include('wallet.urls', namespace='wallet_app')),
+    url(r'^setup/', include('setup.urls', namespace='setup_app')),
 
     url(r'^wxpay/', include('PAY.wxpay.urls', namespace='wxpay')),
     url(r'^alipay/', include('PAY.alipay.urls', namespace='alipay')),

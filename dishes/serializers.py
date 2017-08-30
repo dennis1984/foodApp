@@ -1,23 +1,20 @@
 # -*- coding:utf8 -*-
-from dishes.models import (Dishes,
-                           FoodCourt,
-                           DISHES_SIZE_CN_MATCH,
-                           DISHES_SIZE_DICT)
+
 from rest_framework import serializers
-from django.core.paginator import Paginator
 from django.utils.timezone import now
 from django.conf import settings
-from horizon.serializers import (BaseListSerializer,
-                                 BaseModelSerializer,
-                                 BaseSerializer,
-                                 timezoneStringTostring)
-from dishes.caches import DishesCache
+
 from horizon.main import make_random_string_char_and_number
 from horizon.serializers import (BaseModelSerializer,
                                  BaseListSerializer,
                                  BaseSerializer)
+from dishes.models import (Dishes,
+                           FoodCourt,
+                           DISHES_SIZE_CN_MATCH,
+                           DISHES_SIZE_DICT)
+from dishes.caches import DishesCache
 
-import datetime, os
+import datetime
 import json
 
 
@@ -82,21 +79,6 @@ class DishesSerializer(BaseModelSerializer):
             if size != DISHES_SIZE_DICT['custom']:
                 validated_data['size_detail'] = DISHES_SIZE_CN_MATCH[size]
         return super(DishesSerializer, self).update(instance, validated_data)
-
-    # @property
-    # def data(self):
-    #     serializer = super(DishesSerializer, self).data
-    #     if serializer.get('user_id', None):
-    #         serializer['updated'] = timezoneStringTostring(serializer['updated'])
-    #         serializer['created'] = timezoneStringTostring(serializer['created'])
-    #         serializer['image_url'] = os.path.join(settings.WEB_URL_FIX, serializer['image'])
-    #         base_dir = serializer['image'].split('static', 1)[1]
-    #         if base_dir.startswith(os.path.sep):
-    #             base_dir = base_dir[1:]
-    #         serializer['image_url'] = os.path.join(settings.WEB_URL_FIX,
-    #                                                'static',
-    #                                                base_dir)
-    #     return serializer
 
 
 class DishesListSerializer(BaseListSerializer):

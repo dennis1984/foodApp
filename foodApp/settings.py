@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'PAY.wxpay',
     'PAY.alipay',
     'wallet',
+    'setup',
 ]
 
 MIDDLEWARE = [
@@ -208,6 +209,7 @@ PICTURE_DIRS = {
         'advert': os.path.join(BUSINESS_PICTURE_ROOT, 'advert'),               # 轮播广告图片目录
         'food_court': os.path.join(BUSINESS_PICTURE_ROOT, 'food_court'),       # 美食城图片目录
         'logo': os.path.join(BUSINESS_PICTURE_ROOT, 'logo'),                   # LOGO图片目录
+        'app_package': os.path.join(BUSINESS_PICTURE_ROOT, 'app_package'),     # APP安装包目录
     }
 }
 
