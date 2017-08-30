@@ -7,7 +7,7 @@ from django.conf import settings
 import os
 import json
 
-PACKAGE_PICTURE_DIR = settings.PICTURE_DIRS['business']['app_package']
+PACKAGE_DIR = settings.PICTURE_DIRS['business']['app_package']
 
 
 class AppVersion(models.Model):
@@ -20,8 +20,8 @@ class AppVersion(models.Model):
     is_force_update = models.BooleanField('是否强制更新', default=False)
 
     package_path = models.FileField('App包存放目录',
-                                    upload_to=PACKAGE_PICTURE_DIR,
-                                    default=os.path.join(PACKAGE_PICTURE_DIR, 'noImage.png'), )
+                                    upload_to=PACKAGE_DIR,
+                                    default=os.path.join(PACKAGE_DIR, 'noImage.png'), )
 
     created = models.DateTimeField('创建时间', default=now)
     updated = models.DateTimeField('最后修改时间', auto_now=True)

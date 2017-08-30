@@ -197,6 +197,9 @@ WEB_URL_FIX = os.path.join('http://', DOMAIN_NAME)
 BUSINESS_PICTURE_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'static', 'business', 'picture')
 CONSUMER_PICTURE_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'static', 'consume', 'picture')
 
+# 静态文件根目录
+BUSINESS_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'static', 'business')
+
 PICTURE_DIRS = {
     'consumer': {
         'head_picture': os.path.join(CONSUMER_PICTURE_ROOT, 'head_picture'),   # 用户头像图片目录
@@ -209,7 +212,7 @@ PICTURE_DIRS = {
         'advert': os.path.join(BUSINESS_PICTURE_ROOT, 'advert'),               # 轮播广告图片目录
         'food_court': os.path.join(BUSINESS_PICTURE_ROOT, 'food_court'),       # 美食城图片目录
         'logo': os.path.join(BUSINESS_PICTURE_ROOT, 'logo'),                   # LOGO图片目录
-        'app_package': os.path.join(BUSINESS_PICTURE_ROOT, 'app_package'),     # APP安装包目录
+        'app_package': os.path.join(BUSINESS_ROOT, 'app_package'),             # APP安装包目录
     }
 }
 
