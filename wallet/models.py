@@ -475,21 +475,20 @@ class BankCard(models.Model):
             return e
 
     @classmethod
-    def filter_details(cls, request, **kwargs):
+    def filter_perfect_objects(cls, request, **kwargs):
         instances = cls.filter_objects(**kwargs)
         if isinstance(instances, Exception):
             return instances
 
         details = []
         for ins in instances:
-            card_dict = model_to_dict(ins)
             if not request.user.is_admin:
-                card_dict['bank_card_number'] = cls.get_security_card_number(ins.bank_card_number)
-            details.append(card_dict)
+                ins.bank_card_number = ins.security_card_number
+            details.append(ins)
         return details
 
-    @classmethod
-    def get_security_card_number(cls, bank_card_number):
-        card_num_list = bank_card_number.split()
+    @property
+    def security_card_number(self):
+        card_num_list = self.bank_card_number.split()
         card_num_list[-2] = '*' * 4
         return ' '.join(card_num_list)

@@ -81,8 +81,8 @@ class WithdrawSerializer(BaseModelSerializer):
             if 'request' in kwargs:
                 request = kwargs.pop('request')
                 data['user_id'] = request.user.id
-                service_charge = '%.02f' % float(Decimal(WALLET_SERVICE_RATE) *
-                                                 Decimal(data['amount_of_money']))
+                service_charge = '%.02f' % float(str(Decimal(WALLET_SERVICE_RATE) *
+                                                     Decimal(data['amount_of_money'])))
                 payment_of_money = str(Decimal(data['amount_of_money']) -
                                        Decimal(service_charge))
 
