@@ -264,6 +264,7 @@ class Orders(models.Model):
             item_dict['dishes_ids'] = json.loads(item_dict['dishes_ids'])
             item_dict['is_master'] = True
             item_dict['consumer_id'] = None
+            item_dict['notes'] = None
             detail_list.append(item_dict)
         return detail_list
 
