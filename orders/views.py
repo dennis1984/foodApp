@@ -168,7 +168,7 @@ class OrdersDetail(generics.GenericAPIView):
     queryset = Orders.objects.all()
     serializer_class = OrdersSerializer
 
-    def get_detail(self, *args, **kwargs):
+    def get_detail(self, **kwargs):
         return Orders.get_detail(**kwargs)
 
     def post(self, request, *args, **kwargs):

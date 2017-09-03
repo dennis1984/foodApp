@@ -206,6 +206,10 @@ class Orders(models.Model):
         if isinstance(instance, Exception):
             return instance
         detail = model_to_dict(instance)
+        detail['dishes_ids'] = json.loads(detail['dishes_ids'])
+        detail['is_master'] = True
+        detail['consumer_id'] = None
+        detail['notes'] = None
         return detail
 
     @classmethod
