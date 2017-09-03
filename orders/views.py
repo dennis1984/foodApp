@@ -169,10 +169,7 @@ class OrdersDetail(generics.GenericAPIView):
     serializer_class = OrdersSerializer
 
     def get_object(self, *args, **kwargs):
-        try:
-            return Orders.objects.get(**kwargs)
-        except Orders.DoesNotExist:
-            raise status.HTTP_404_NOT_FOUND
+        return Orders.get_detail(**kwargs)
 
     def post(self, request, *args, **kwargs):
         """
@@ -187,10 +184,12 @@ class OrdersDetail(generics.GenericAPIView):
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
-        object_data = Orders.get_object_by_orders_id(**cld)
-        if isinstance(object_data, Exception):
-            return Response({'Detail': object_data.args}, status=status.HTTP_400_BAD_REQUEST)
-        serializer = OrdersSerializer(object_data)
+        detail = Orders.get_object_by_orders_id(**cld)
+        if isinstance(detail, Exception):
+            return Response({'Detail': detail.args}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = OrdersDetailSerializer(data=detail)
+        if not serializer.is_valid():
+            return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

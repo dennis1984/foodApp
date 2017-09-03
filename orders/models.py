@@ -201,6 +201,14 @@ class Orders(models.Model):
             return e
 
     @classmethod
+    def get_detail(cls, **kwargs):
+        instance = cls.get_object(**kwargs)
+        if isinstance(instance, Exception):
+            return instance
+        detail = model_to_dict(instance)
+        return detail
+
+    @classmethod
     def get_object_by_orders_id(cls, orders_id):
         try:
             return cls.objects.get(orders_id=orders_id)
