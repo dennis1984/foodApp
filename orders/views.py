@@ -168,7 +168,7 @@ class OrdersDetail(generics.GenericAPIView):
     queryset = Orders.objects.all()
     serializer_class = OrdersSerializer
 
-    def get_object(self, *args, **kwargs):
+    def get_detail(self, *args, **kwargs):
         return Orders.get_detail(**kwargs)
 
     def post(self, request, *args, **kwargs):
@@ -184,7 +184,7 @@ class OrdersDetail(generics.GenericAPIView):
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
-        detail = Orders.get_object_by_orders_id(**cld)
+        detail = self.get_detail(**cld)
         if isinstance(detail, Exception):
             return Response({'Detail': detail.args}, status=status.HTTP_400_BAD_REQUEST)
         serializer = OrdersDetailSerializer(data=detail)
