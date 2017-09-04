@@ -56,6 +56,18 @@ def time_plus(days=0, minutes=0, seconds=0):
     return now_plus
 
 
+def make_perfect_time_delta(days=0, hours=0, minutes=0, seconds=0):
+    """
+    设置时间增量
+    """
+    now_date = datetime.datetime.strftime(now().date(), '%Y-%m-%d %H:%M:%S')
+    now_datetime = datetime.datetime.strptime(now_date, '%Y-%m-%d %H:%M:%S')
+    return now_datetime + datetime.timedelta(days=days,
+                                             hours=hours,
+                                             minutes=minutes,
+                                             seconds=seconds)
+
+
 def timezoneStringTostring(timezone_string):
     """
     rest framework用JSONRender方法格式化datetime.datetime格式的数据时，

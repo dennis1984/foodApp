@@ -3,14 +3,15 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.utils.timezone import now
+from django.db import transaction
+from decimal import Decimal
+
 from dishes.models import Dishes, FoodCourt
 from users.models import BusinessUser
 from horizon.models import model_to_dict, get_perfect_filter_params
 from horizon.main import minutes_15_plus
-from django.db import transaction
-from decimal import Decimal
-
 from Consumer_App.cs_users.models import ConsumerUser
+from horizon import main
 
 import copy
 import json
@@ -474,12 +475,13 @@ class SaleListAction(object):
         v_kwargs['payment_status'] = ORDERS_PAYMENT_STATUS['finished']
         # 如果参数没有选择时间范围，默认选取当前时间至向前30天的数据
         if not ('start_created' in kwargs or 'end_created' in kwargs):
-            kwargs['start_created'] = now().date() - datetime.timedelta(days=30)
-            kwargs['end_created'] = now().date()
+            kwargs['start_created'] = main.make_perfect_time_delta(days=-30)
+            kwargs['end_created'] = main.make_perfect_time_delta(hours=23,
+                                                                 minutes=59,
+                                                                 seconds=59)
         orders_list = Orders.get_objects_list(request, **kwargs)
         verify_orders_list = VerifyOrders.get_objects_list(request, **v_kwargs)
         return orders_list, verify_orders_list
-
 
     @classmethod
     def get_orders_sale_list(cls, request, **kwargs):
@@ -576,7 +578,6 @@ class SaleListAction(object):
             sale_list.append({'date': str(date_key),
                               'sale_list': sorted(tmp_list, key=lambda x: x['count'], reverse=True)[:6]})
         return sorted(sale_list, key=lambda x: x['date'], reverse=True)
-
 
     @classmethod
     def get_sale_list_by_admin(cls, request, **kwargs):

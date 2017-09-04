@@ -27,7 +27,7 @@ WALLET_TRADE_DETAIL_TRADE_TYPE_DICT = {
 }
 WALLET_ACTION_METHOD = ('recharge', 'income', 'withdraw')
 
-WALLET_BALANCE = '500.00'
+WALLET_BLOCK_BALANCE = '0.00'
 WALLET_SERVICE_RATE = '0.006'
 
 WITHDRAW_RECORD_STATUS = {
@@ -166,8 +166,8 @@ class Wallet(models.Model):
             except cls.DoesNotExist:
                 raise cls.DoesNotExist
 
-            if Decimal(_instance.blocked_money) - Decimal(WALLET_BALANCE) < Decimal(amount_of_money) or \
-                    Decimal(_instance.balance) - Decimal(WALLET_BALANCE) < Decimal(amount_of_money):
+            if Decimal(_instance.blocked_money) - Decimal(WALLET_BLOCK_BALANCE) < Decimal(amount_of_money) or \
+                    Decimal(_instance.balance) - Decimal(WALLET_BLOCK_BALANCE) < Decimal(amount_of_money):
                 return Exception('Your balance is not enough.')
             _instance.blocked_money = str(Decimal(_instance.blocked_money) - Decimal(amount_of_money))
             _instance.balance = str(Decimal(_instance.balance) - Decimal(amount_of_money))
