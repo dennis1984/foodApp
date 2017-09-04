@@ -89,17 +89,7 @@ class Dishes(models.Model):
 
     @classmethod
     def get_object_list(cls, request, **kwargs):
-        # 如果是用户是admin并且过滤条件为空，则返回所有菜品
-        # 否则返回过滤条件中对应用户的所有菜品
-        # 如果是商户，则返回当前用户的所有菜品
-        if request.user.is_admin:
-            if 'user_id' not in kwargs:
-                return cls.objects.all()
-            else:
-                filter_dict = {'user_id': kwargs['user_id']}
-        else:
-            filter_dict = {'user_id': request.user.id}
-
+        filter_dict = {'user_id': request.user.id}
         try:
             return cls.objects.filter(**filter_dict)
         except Exception as e:

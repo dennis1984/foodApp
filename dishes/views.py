@@ -151,23 +151,16 @@ class DishesDetail(generics.GenericAPIView):
         serializer = DishesSerializer(object_data)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    # def get(self, request, pk, *args, **kwargs):
-    #     """
-    #     测试用
-    #     """
-    #     object_data = self.get_object(**{'pk': pk})
-    #     serializer = DishesResponseSerializer(object_data)
-    #     return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 class DishesList(generics.GenericAPIView):
-    # queryset = Dishes.objects.all()
-    # serializer_class = DishesSerializer
     permission_classes = (IsOwnerOrReadOnly, )
 
     def get_object_list(self, request, **kwargs):
-        dishes_cache = DishesCache()
-        return dishes_cache.get_dishes_list(request, **kwargs)
+        if kwargs.get('gateway') == 'edit_page':
+            return Dishes.get_object_list(request, **kwargs)
+        else:
+            dishes_cache = DishesCache()
+            return dishes_cache.get_dishes_list(request, **kwargs)
 
     def post(self, request, *args, **kwargs):
         """
