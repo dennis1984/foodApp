@@ -14,6 +14,7 @@ from orders.models import (Orders,
 from horizon.models import model_to_dict
 from horizon.main import days_7_plus
 from Consumer_App.cs_orders.models import SerialNumberGenerator
+from users.models import BusinessUser
 
 import json
 import datetime
@@ -475,16 +476,24 @@ class BankCard(models.Model):
             return e
 
     @classmethod
-    def filter_perfect_objects(cls, request, **kwargs):
+    def filter_perfect_details(cls, request, **kwargs):
         instances = cls.filter_objects(**kwargs)
         if isinstance(instances, Exception):
             return instances
 
+        users_dict = {}
         details = []
         for ins in instances:
             if not request.user.is_admin:
                 ins.bank_card_number = ins.security_card_number
-            details.append(ins)
+
+            detail = model_to_dict(ins)
+            user = users_dict.get(ins.user_id)
+            if not user:
+                user = BusinessUser.get_object(pk=ins.user_id)
+                users_dict[ins.user_id] = user
+            detail['chinese_people_id'] = user.chinese_people_id
+            details.append(detail)
         return details
 
     @property

@@ -160,6 +160,17 @@ class BankCardSerializer(BaseModelSerializer):
             return e
 
 
+class BankCardDetailSerializer(BaseSerializer):
+    id = serializers.IntegerField()
+    user_id = serializers.IntegerField()
+    bank_card_number = serializers.CharField()
+    bank_name = serializers.CharField()
+    account_name = serializers.CharField()
+    chinese_people_id = serializers.CharField()
+    created = serializers.DateTimeField()
+    updated = serializers.DateTimeField()
+
+
 class BankCardListSerializer(BaseListSerializer):
-    child = BankCardSerializer()
+    child = BankCardDetailSerializer()
 
