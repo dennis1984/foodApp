@@ -52,7 +52,8 @@ class OrdersAction(generics.GenericAPIView):
         random_code = main.make_random_string_char_and_number(20)
         data = {'dishes_ids': json.dumps(self.make_perfect_dishes_ids(orders)),
                 'user_id': request.user.id,
-                'code': random_code}
+                'code': random_code,
+                'business_orders_id': orders.orders_id}
         return data
 
     def save_yinshi_pay_random_code(self, initial_data):

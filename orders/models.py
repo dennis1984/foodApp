@@ -692,6 +692,7 @@ class YinshiPayCode(models.Model):
     """
     user_id = models.IntegerField('用户ID')
     dishes_ids = models.TextField('订购商品列表')
+    business_orders_id = models.CharField('商户端对应的订单ID', max_length=32)
     pay_orders_id = models.CharField('支付订单ID', max_length=32,
                                      blank=True, null=True, default='')
     consume_orders_id = models.CharField('核销订单ID', max_length=32,
