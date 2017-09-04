@@ -166,7 +166,7 @@ class BankCardDetailSerializer(BaseSerializer):
     bank_card_number = serializers.CharField()
     bank_name = serializers.CharField()
     account_name = serializers.CharField()
-    chinese_people_id = serializers.CharField()
+    chinese_people_id = serializers.CharField(allow_blank=True, allow_null=True)
     created = serializers.DateTimeField()
     updated = serializers.DateTimeField()
 
