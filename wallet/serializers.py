@@ -7,7 +7,6 @@ from wallet.models import (Wallet,
                            BankCard,
                            WalletAction,
                            WALLET_SERVICE_RATE,
-                           WALLET_BALANCE,
                            WITHDRAW_RECORD_STATUS)
 from horizon.serializers import (BaseSerializer,
                                  BaseModelSerializer,
