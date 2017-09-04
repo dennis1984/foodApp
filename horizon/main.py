@@ -250,7 +250,10 @@ def send_identifying_code_to_phone(params, receive_phones, template_name=None):
     url = 'http://sms.market.alicloudapi.com/singleSendSms'
     AppCode = '2e8a1a8a3e22486b9be6ac46c3d2c6ec'
     sign_names = ('吟食',)
-    template_dict = {'register': 'SMS_71365776'}
+    template_dict = {'register': 'SMS_85440023',
+                     'recharge': 'SMS_82105108'}
+    params_key_dict = {'register': 'code',
+                       'recharge': 'count'}
 
     if not template_name:
         template = template_dict['register']
@@ -258,15 +261,22 @@ def send_identifying_code_to_phone(params, receive_phones, template_name=None):
         if template_name not in template_dict.keys():
             return ValueError('Params template incorrect')
         template = template_dict[template_name]
-    if isinstance(params, (str, unicode)):
-        params_query = params
+    if isinstance(params, (str, unicode, int, float)):
+        if isinstance(params, (float, int)):
+            params_dict = {params_key_dict[template_name]: '%.2f' % params}
+        else:
+            params_dict = {params_key_dict[template_name]: params}
+        params_query = urllib.quote(json.dumps(params_dict))
     elif isinstance(params, dict):
         params_query = urllib.quote(json.dumps(params))
     else:
         return TypeError('params must be unicode or dictionary')
 
-    if not isinstance(receive_phones, (tuple, list)):
-        return TypeError('receive phones type must be list or tuple')
+    if isinstance(receive_phones, (str, unicode)):
+        receive_phones = [receive_phones]
+    else:
+        if not isinstance(receive_phones, (tuple, list)):
+            return TypeError('receive phones type must be list or tuple')
     query = {'RecNum': ','.join(receive_phones),
              'TemplateCode': template,
              'SignName': sign_names[0]}
