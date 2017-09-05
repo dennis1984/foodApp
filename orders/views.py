@@ -12,6 +12,7 @@ from orders.forms import (OrdersInputForm,
                           OrdersListForm,
                           VerifyOrdersListForm,
                           VerifyOrdersActionForm,
+                          VerifyOrdersDetailForm,
                           SaleListForm)
 from orders.models import (Orders,
                            SaleListAction,
@@ -367,6 +368,48 @@ class VerifyOrdersAction(generics.GenericAPIView):
             return Response({'Detail': datas.args}, status=status.HTTP_400_BAD_REQUEST)
         return Response(datas, status=status.HTTP_200_OK)
         # return Response({'result': 'SUCCESS'}, status=status.HTTP_206_PARTIAL_CONTENT)
+
+
+class VerifyOrdersDetail(generics.GenericAPIView):
+    """
+    获取吟食支付核销订单详情
+    """
+    permissions = (IsOwnerOrReadOnly,)
+
+    def is_request_data_valid(self, request):
+        form = VerifyOrdersDetailForm(request.data)
+        if not form.is_valid():
+            return False, Exception(form.errors)
+
+        cld = form.cleaned_data
+        return True, cld
+
+    def get_verfify_orders_detail(self, request, **cld):
+        # 吟食支付订单
+        instance = YinshiPayCode.get_object(code=cld['random_string'])
+        if isinstance(instance, Exception):
+            return instance
+        instances = VerifyOrders.filter_finished_orders_list(
+            request,
+            orders_id=instance.consume_orders_id
+        )
+        if isinstance(instances, Exception):
+            return instances
+        return instances[0]
+
+    def post(self, request, *args, **kwargs):
+        is_valid, cleaned_data = self.is_request_data_valid(request)
+        if not is_valid:
+            return Response({'Detail': cleaned_data.args}, status=status.HTTP_400_BAD_REQUEST)
+
+        orders_data = self.get_verfify_orders_detail(request, **cleaned_data)
+        if isinstance(orders_data, Exception):
+            return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = OrdersDetailSerializer(data=orders_data)
+        if not serializer.is_valid():
+            return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class SaleOrdersList(generics.GenericAPIView):
