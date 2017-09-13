@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.utils.timezone import now
 from django.conf import settings
+from horizon.models import BaseManager
 import os
 import json
 
@@ -21,12 +22,16 @@ class AppVersion(models.Model):
 
     package_path = models.FileField('App包存放目录',
                                     upload_to=PACKAGE_DIR)
-
+    # 数据状态：1：正常，其他：已删除
+    status = models.IntegerField('数据状态', default=1)
     created = models.DateTimeField('创建时间', default=now)
     updated = models.DateTimeField('最后修改时间', auto_now=True)
 
+    objects = BaseManager()
+
     class Meta:
         db_table = 'ys_app_version'
+        unique_together = ['version_name', 'version_code', 'status']
         ordering = ['-updated']
 
     def __unicode__(self):
