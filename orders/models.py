@@ -236,7 +236,10 @@ class Orders(models.Model):
         if 'start_created' in kwargs:
             _kwargs['created__gte'] = kwargs['start_created']
         if 'end_created' in kwargs:
-            _kwargs['created__lte'] = kwargs['end_created']
+            _kwargs['created__lte'] = main.make_time_delta_for_custom(kwargs['end_created'],
+                                                                      hours=23,
+                                                                      minutes=59,
+                                                                      seconds=59)
         if 'expires__gt' in kwargs:
             _kwargs['expires__gt'] = kwargs['expires__gt']
         for key in kwargs:
@@ -405,7 +408,10 @@ class VerifyOrders(models.Model):
         if 'start_created' in kwargs:
             _kwargs['created__gte'] = kwargs['start_created']
         if 'end_created' in kwargs:
-            _kwargs['created__lte'] = kwargs['end_created']
+            _kwargs['created__lte'] = main.make_time_delta_for_custom(kwargs['end_created'],
+                                                                      hours=23,
+                                                                      minutes=59,
+                                                                      seconds=59)
         for key in kwargs:
             if key in fields:
                 _kwargs[key] = kwargs[key]

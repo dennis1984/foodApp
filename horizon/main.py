@@ -56,6 +56,19 @@ def time_plus(days=0, minutes=0, seconds=0):
     return now_plus
 
 
+def make_time_delta_for_custom(date_time, days=0, hours=0, minutes=0, seconds=0):
+    """
+    设置时间增量
+    """
+    if isinstance(date_time, datetime.date):
+        date_str = datetime.datetime.strftime(date_time, '%Y-%m-%d')
+        date_time = datetime.datetime.strptime(date_str, '%Y-%m-%d')
+
+    return date_time + datetime.timedelta(days=days,
+                                          hours=hours,
+                                          minutes=minutes,
+                                          seconds=seconds)
+
 def make_perfect_time_delta(days=0, hours=0, minutes=0, seconds=0):
     """
     设置时间增量
