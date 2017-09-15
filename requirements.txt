@@ -24,4 +24,5 @@ pybarcode>=0.7
 # 管理uwsgi进程
 supervisor
 
+ipython==5.0
 

@@ -1,30 +1,23 @@
 # Pillow 库依赖
-
 sudo apt-get install libtiff4-dev libjpeg8-dev zlib1g-dev \
     libfreetype6-dev liblcms2-dev libwebp-dev tcl8.5-dev tk8.5-dev python-tk
 
 # MySQLdb 库依赖
-
 sudo apt-get install python-setuptools libmysqld-dev python-dev
 
 # 安装mysql
-
 sudo apt-get install mysql-server
 
 # 安装nginx
-
 sudo apt-get install nginx
 
 # 安装uwsgi
-
 sudo apt-get install uwsgi
 
 # 安装uwsgi对python的支持包
-
 sudo apt-get install uwsgi-plugin-python
 
 # 安装php
-
 sudo apt-get install php5
 
 # 安装lxml库的依赖库
@@ -34,4 +27,7 @@ sudo apt-get install python-libxml2
 
 # 安装redis server
 sudo apt-get install redis-server
+
+# 安装git
+sudo apt-get install git
 
