@@ -15,6 +15,7 @@ from horizon.models import model_to_dict
 from horizon.main import days_7_plus
 from Consumer_App.cs_orders.models import SerialNumberGenerator
 from users.models import BusinessUser
+from horizon import main
 
 import json
 import datetime
@@ -221,7 +222,10 @@ class WalletTradeDetail(models.Model):
         if 'start_created' in kwargs:
             _kwargs['created__gte'] = kwargs['start_created']
         if 'end_created' in kwargs:
-            _kwargs['created__lte'] = kwargs['end_created']
+            _kwargs['created__lte'] = main.make_time_delta_for_custom(kwargs['end_created'],
+                                                                      hours=23,
+                                                                      minutes=59,
+                                                                      seconds=59)
         for key in kwargs:
             if key in fields:
                 _kwargs[key] = kwargs[key]
