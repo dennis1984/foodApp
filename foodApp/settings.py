@@ -231,4 +231,4 @@ DEFAULT_FILE_STORAGE = 'horizon.storage.YSFileSystemStorage'
 
 
 # 吟食支付二维码链接地址
-YINSHI_PAY_LINK = 'http://yinshi.weixin.city23.com/order/yinshi/?code=%s'
+YINSHI_PAY_LINK = 'http://yinshin.net/order/yinshi/?code=%s'
