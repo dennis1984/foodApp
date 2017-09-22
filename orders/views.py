@@ -17,7 +17,8 @@ from orders.forms import (OrdersInputForm,
 from orders.models import (Orders,
                            SaleListAction,
                            VerifyOrders,
-                           YinshiPayCode)
+                           YinshiPayCode,
+                           ORDERS_PAYMENT_MODE)
 from orders.serializers import (OrdersSerializer,
                                 OrdersListSerializer,
                                 VerifyOrdersListSerializer,
@@ -209,11 +210,19 @@ class OrdersList(generics.GenericAPIView):
         return Orders.filter_paying_orders_list(request, **cld)
 
     def get_consume_list(self, request, cld):
-        return VerifyOrders.filter_consuming_orders_list(request, **cld)
+        return VerifyOrders.filter_consuming_orders_list(
+            request,
+            set_payment_mode=ORDERS_PAYMENT_MODE['yspay'],
+            **cld
+        )
 
     def get_finished_list(self, request, cld):
         business_orders = Orders.filter_finished_orders_list(request, **cld)
-        verify_orders = VerifyOrders.filter_finished_orders_list(request, **cld)
+        verify_orders = VerifyOrders.filter_finished_orders_list(
+            request,
+            set_payment_mode=ORDERS_PAYMENT_MODE['yspay'],
+            **cld
+        )
         orders_list = business_orders + verify_orders
         return sorted(orders_list, key=lambda key: key['created'], reverse=True)
 

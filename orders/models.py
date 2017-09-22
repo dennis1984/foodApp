@@ -31,6 +31,7 @@ ORDERS_PAYMENT_MODE = {
     'cash': 1,
     'wxpay': 2,
     'alipay': 3,
+    'yspay': 10,      # 核销订单支付方式都显示"吟食支付"
 }
 
 ORDERS_ORDERS_TYPE = {
@@ -281,6 +282,8 @@ class Orders(models.Model):
             item_dict['is_master'] = True
             item_dict['consumer_id'] = None
             item_dict['notes'] = None
+            if orders.payment_status == ORDERS_PAYMENT_STATUS['paid']:
+                item_dict['payment_status'] = ORDERS_PAYMENT_STATUS['finished']
             detail_list.append(item_dict)
         return detail_list
 
@@ -422,31 +425,31 @@ class VerifyOrders(models.Model):
             return e
 
     @classmethod
-    def filter_consuming_orders_list(cls, request, is_detail=True, **kwargs):
+    def filter_consuming_orders_list(cls, request, is_detail=True, set_payment_mode=None, **kwargs):
         """
         获取待消费订单
         """
         kwargs['payment_status'] = ORDERS_PAYMENT_STATUS['consuming']
         orders_list = cls.get_objects_list(request, **kwargs)
         if is_detail:
-            return cls.make_instances_to_dict(orders_list)
+            return cls.make_instances_to_dict(orders_list, set_payment_mode)
         else:
             return list(orders_list)
 
     @classmethod
-    def filter_finished_orders_list(cls, request, is_detail=True, **kwargs):
+    def filter_finished_orders_list(cls, request, is_detail=True, set_payment_mode=None, **kwargs):
         """
         获取已完成订单
         """
         kwargs['payment_status'] = ORDERS_PAYMENT_STATUS['finished']
         orders_list = cls.get_objects_list(request, **kwargs)
         if is_detail:
-            return cls.make_instances_to_dict(orders_list)
+            return cls.make_instances_to_dict(orders_list, set_payment_mode)
         else:
             return list(orders_list)
 
     @classmethod
-    def make_instances_to_dict(cls, orders_list):
+    def make_instances_to_dict(cls, orders_list, set_payment_mode=None):
         if isinstance(orders_list, cls):
             orders_list = list(orders_list)
         detail_list = []
@@ -454,6 +457,9 @@ class VerifyOrders(models.Model):
             item_dict = model_to_dict(orders)
             item_dict['dishes_ids'] = json.loads(item_dict['dishes_ids'])
             item_dict['is_master'] = False
+            if set_payment_mode:
+                item_dict['payment_mode'] = set_payment_mode
+
             detail_list.append(item_dict)
         return detail_list
 
