@@ -30,6 +30,8 @@ WALLET_ACTION_METHOD = ('recharge', 'income', 'withdraw')
 
 WALLET_BLOCK_BALANCE = '0.00'
 WALLET_SERVICE_RATE = '0.000'            # '0.006'
+# 提现时钱包最小额度限制
+WALLET_MIN_BALANCE = '300.00'
 
 WITHDRAW_RECORD_STATUS = {
     'unpaid': 0,
@@ -55,7 +57,7 @@ class Wallet(models.Model):
     """
     user_id = models.IntegerField('用户ID', db_index=True)
     balance = models.CharField('余额', max_length=16, default='0')
-    blocked_money = models.CharField('冻结金额', max_length=16, default='500.00')
+    blocked_money = models.CharField('冻结金额', max_length=16, default='0.00')
     password = models.CharField('支付密码', max_length=560, null=True)
     created = models.DateTimeField('创建时间', default=now)
     updated = models.DateTimeField('最后修改时间', auto_now=True)
@@ -77,6 +79,14 @@ class Wallet(models.Model):
                    Decimal(wallet.blocked_money) >= Decimal(amount_of_money)
         except:
             return False
+
+    @classmethod
+    def can_withdraw(cls, request):
+        wallet = cls.get_object(**{'user_id': request.user.id})
+        if isinstance(wallet, Exception):
+            return False
+        return Decimal(wallet.balance) - Decimal(wallet.blocked_money) \
+               >= Decimal(WALLET_MIN_BALANCE)
 
     @classmethod
     def get_object(cls, **kwargs):

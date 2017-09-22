@@ -110,6 +110,8 @@ class WithdrawAction(generics.GenericAPIView):
         """
         余额是否充足
         """
+        if not Wallet.can_withdraw(request):
+            return False
         return Wallet.has_enough_balance(request, amount_of_money)
 
     def is_bank_card_valid(self, request, account_id):
