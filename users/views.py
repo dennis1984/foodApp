@@ -93,26 +93,24 @@ class UserAction(generics.GenericAPIView):
     """
     create user API
     """
-    queryset = BusinessUser.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = (IsAdminOrReadOnly, )
+    permission_classes = (IsAuthenticated, )
 
-    def post(self, request, *args, **kwargs):
-        """
-         创建用户
-        """
-        form = UsersInputForm(request.data)
-        if not form.is_valid():
-            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        cld = form.cleaned_data
-        try:
-            user = BusinessUser.objects.create_user(**cld)
-        except Exception as e:
-            return Response({'Error': e.args}, status=status.HTTP_400_BAD_REQUEST)
-
-        serializer = UserInstanceSerializer(user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    # def post(self, request, *args, **kwargs):
+    #     """
+    #      创建用户
+    #     """
+    #     form = UsersInputForm(request.data)
+    #     if not form.is_valid():
+    #         return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+    #
+    #     cld = form.cleaned_data
+    #     try:
+    #         user = BusinessUser.objects.create_user(**cld)
+    #     except Exception as e:
+    #         return Response({'Error': e.args}, status=status.HTTP_400_BAD_REQUEST)
+    #
+    #     serializer = UserInstanceSerializer(user)
+    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def put(self, request, *args, **kwargs):
         """
