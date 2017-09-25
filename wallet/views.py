@@ -157,7 +157,8 @@ class WithdrawAction(generics.GenericAPIView):
         amount_of_money = cld['amount_of_money']
         has_enough = self.has_enough_balance(request, amount_of_money)
         if not has_enough:
-            return Response({'Detail': 'Your balance is not enough.'})
+            return Response({'Detail': 'Your balance is not enough.'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         serializer = WithdrawSerializer(data=cld, request=request)
         if serializer.is_valid():
