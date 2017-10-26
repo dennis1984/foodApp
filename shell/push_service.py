@@ -30,6 +30,13 @@ DB_SETTINGS = {
     },
 }
 
+ENVIRONMENT_DICT = {
+    'DEV': 10,        # 开发环境
+    'TEST': 20,       # 测试环境
+    'PRODUCE': 30,    # 生产环境
+}
+ENVIRONMENT = ENVIRONMENT_DICT['PRODUCE']
+
 SQL_FILTER_DICT = {
     'gte': '>=',
     'gt': '>',
@@ -42,7 +49,15 @@ WX_PUSH_RUL = 'https://api.weixin.qq.com/cgi-bin/message/template/send?access_to
 
 WX_ACCESS_TOKEN_URL = 'https://api.weixin.qq.com/cgi-bin/token'
 
-WX_DETAIL_URL = 'http://yinshi.weixin.city23.com/comment/?id=%s'
+# 微信推送详情地址
+if ENVIRONMENT == 10:    # 开发环境
+    WX_DETAIL_URL = 'http://yinshi.weixin.city23.com/comment/?id=%s'
+elif ENVIRONMENT == 20:  # 测试环境
+    WX_DETAIL_URL = 'http://yinshi.weixin.city23.com/comment/?id=%s'
+elif ENVIRONMENT == 30:  # 生产环境
+    WX_DETAIL_URL = 'http://yinshin.net/comment/?id=%s'
+else:
+    WX_DETAIL_URL = 'http://yinshi.weixin.city23.com/comment/?id=%s'
 
 WX_ACCESS_TOKEN_PARAMS = {
     'appid': None,
