@@ -111,6 +111,9 @@ class OrdersDetailSerializer(BaseSerializer):
 
     is_master = serializers.NullBooleanField()
     notes = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    # 核销时段：例如：17:30~20:30
+    consumer_time_slot = serializers.CharField(allow_null=True, allow_blank=True,
+                                               default=u'全天')
 
     created = serializers.DateTimeField()
     updated = serializers.DateTimeField()

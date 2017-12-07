@@ -271,7 +271,7 @@ class VerifyOrdersList(generics.GenericAPIView):
 
     def get_verify_orders_list(self, request, consumer_id):
         kwargs = {'consumer_id': consumer_id}
-        return VerifyOrders.filter_consuming_orders_list(request=request, **kwargs)
+        return VerifyOrders.filter_consuming_orders_list(request=request, gateway='verify', **kwargs)
 
     def is_request_data_valid(self, request):
         form = VerifyOrdersListForm(request.data)
@@ -325,7 +325,9 @@ class VerifyOrdersAction(generics.GenericAPIView):
             return random_instance
 
         orders_kwargs = {'consumer_id': random_instance.user_id}
-        orders_list = VerifyOrders.filter_consuming_orders_list(request=request, is_detail=False,
+        orders_list = VerifyOrders.filter_consuming_orders_list(request=request,
+                                                                is_detail=False,
+                                                                gateway='verify',
                                                                 **orders_kwargs)
         orders_ids_all = [orders.orders_id for orders in orders_list]
         for orders_id in cld['orders_ids']:

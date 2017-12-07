@@ -427,12 +427,38 @@ class VerifyOrders(models.Model):
             return e
 
     @classmethod
-    def filter_consuming_orders_list(cls, request, is_detail=True, set_payment_mode=None, **kwargs):
+    def does_current_time_for_time_slot(cls, time_slot):
+        """
+        判断时间段（字符串）是否在当前时间内 
+        返回：True 或 False
+        """
+        time_start, time_end = time_slot.split('~')
+        time_start_int = int('%s%s' % time_start.split(':'))
+        time_end_int = int('%s%s' % time_end.split(':'))
+        time_now = now()
+        time_now_hour_minute_int = int('%s%s' % (time_now.hour, time_now.minute))
+        if time_start_int < time_now_hour_minute_int < time_end_int:
+            return True
+        else:
+            return False
+
+    @classmethod
+    def filter_consuming_orders_list(cls, request, is_detail=True, set_payment_mode=None,
+                                     gateway='show', **kwargs):
         """
         获取待消费订单
         """
         kwargs['payment_status'] = ORDERS_PAYMENT_STATUS['consuming']
         orders_list = cls.get_objects_list(request, **kwargs)
+        if gateway == 'verify':
+            # 过滤该时段不能核销的订单
+            perfect_orders_list = []
+            for orders in orders_list:
+                if orders.consumer_time_slot and \
+                        not cls.does_current_time_for_time_slot(orders.consumer_time_slot):
+                    continue
+                perfect_orders_list.append(orders_list)
+            orders_list = perfect_orders_list
         if is_detail:
             return cls.make_instances_to_dict(orders_list, set_payment_mode)
         else:
