@@ -139,10 +139,16 @@ class OrdersAction(generics.GenericAPIView):
         payment_mode = cld['payment_mode']
         if cld.get('payment_status'):
             # 更新支付状态为现金支付
-            return Response(serializer.data, status=status.HTTP_206_PARTIAL_CONTENT)
+            res_serializer = OrdersDetailSerializer(data=serializer.data)
+            if not res_serializer.is_valid():
+                return Response({'Detail': res_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(res_serializer.data, status=status.HTTP_206_PARTIAL_CONTENT)
         else:
             if payment_mode == 'cash':     # 现金支付
-                return Response(serializer.data, status=status.HTTP_206_PARTIAL_CONTENT)
+                res_serializer = OrdersDetailSerializer(data=serializer.data)
+                if not res_serializer.is_valid():
+                    return Response({'Detail': res_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(res_serializer.data, status=status.HTTP_206_PARTIAL_CONTENT)
             elif payment_mode == 'scan':     # 扫码支付
                 _wxPay = WXPay(obj)
                 wx_result = _wxPay.native()
