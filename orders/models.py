@@ -457,7 +457,7 @@ class VerifyOrders(models.Model):
                 if orders.consumer_time_slot and \
                         not cls.does_current_time_for_time_slot(orders.consumer_time_slot):
                     continue
-                perfect_orders_list.append(orders_list)
+                perfect_orders_list.append(orders)
             orders_list = perfect_orders_list
         if is_detail:
             return cls.make_instances_to_dict(orders_list, set_payment_mode)
