@@ -433,8 +433,8 @@ class VerifyOrders(models.Model):
         返回：True 或 False
         """
         time_start, time_end = time_slot.split('~')
-        time_start_int = int('%s%s' % time_start.split(':'))
-        time_end_int = int('%s%s' % time_end.split(':'))
+        time_start_int = int('%s%s' % tuple(time_start.split(':')))
+        time_end_int = int('%s%s' % tuple(time_end.split(':')))
         time_now = now()
         time_now_hour_minute_int = int('%s%s' % (time_now.hour, time_now.minute))
         if time_start_int < time_now_hour_minute_int < time_end_int:
