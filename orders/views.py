@@ -340,10 +340,10 @@ class VerifyOrdersAction(generics.GenericAPIView):
                                                                 is_detail=False,
                                                                 gateway='verify',
                                                                 **orders_kwargs)
-        orders_ids_all = [orders.orders_id for orders in orders_list]
-        for orders_id in cld['orders_ids']:
-            if orders_id not in orders_ids_all:
-                return Exception('Params [orders_ids] data error')
+        # orders_ids_all = [orders.orders_id for orders in orders_list]
+        # for orders_id in cld['orders_ids']:
+        #     if orders_id not in orders_ids_all:
+        #         return Exception('Params [orders_ids] data error')
 
         verify_orders = []
         for orders in orders_list:
