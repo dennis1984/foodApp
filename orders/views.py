@@ -139,16 +139,20 @@ class OrdersAction(generics.GenericAPIView):
         payment_mode = cld['payment_mode']
         if cld.get('payment_status'):
             # 更新支付状态为现金支付
-            res_serializer = OrdersDetailSerializer(data=serializer.data)
+            orders_detail = self.get_orders_detail(obj)
+            res_serializer = OrdersDetailSerializer(data=orders_detail)
             if not res_serializer.is_valid():
                 return Response({'Detail': res_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
             return Response(res_serializer.data, status=status.HTTP_206_PARTIAL_CONTENT)
+
         else:
             if payment_mode == 'cash':     # 现金支付
-                res_serializer = OrdersDetailSerializer(data=serializer.data)
+                orders_detail = self.get_orders_detail(obj)
+                res_serializer = OrdersDetailSerializer(data=orders_detail)
                 if not res_serializer.is_valid():
                     return Response({'Detail': res_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
                 return Response(res_serializer.data, status=status.HTTP_206_PARTIAL_CONTENT)
+
             elif payment_mode == 'scan':     # 扫码支付
                 _wxPay = WXPay(obj)
                 wx_result = _wxPay.native()
@@ -162,6 +166,7 @@ class OrdersAction(generics.GenericAPIView):
                 return Response({'ali_code_url': ali_result,
                                  'wx_code_url': wx_result},
                                 status=status.HTTP_206_PARTIAL_CONTENT)
+
             elif payment_mode == 'yinshi':  # 吟食支付
                 data = self.make_yinshi_pay_initial_data(request, obj)
                 instance = self.save_yinshi_pay_random_code(data)

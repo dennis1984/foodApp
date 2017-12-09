@@ -109,7 +109,7 @@ class OrdersDetailSerializer(BaseSerializer):
     payment_mode = serializers.IntegerField()
     orders_type = serializers.IntegerField()
 
-    is_master = serializers.NullBooleanField()
+    is_master = serializers.NullBooleanField(required=False)
     notes = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     # 核销时段：例如：17:30~20:30
     consumer_time_slot = serializers.CharField(allow_null=True, allow_blank=True,
