@@ -18,15 +18,13 @@ from decimal import Decimal
 
 
 class WalletSerializer(BaseModelSerializer):
-    def __init__(self, instance=None, data=None, **kwargs):
-        if data:
+    def __init__(self, instance=None, data=None, request=None, **kwargs):
+        if data and request:
             password = data.get('password')
             if password:
                 password = make_password(password)
-            request = kwargs.get('_request')
-            user = getattr(request, 'user')
             _data = {'password': password,
-                     'user_id': getattr(user, 'id')}
+                     'user_id': request.user.id}
             super(WalletSerializer, self).__init__(data=_data, **kwargs)
         else:
             super(WalletSerializer, self).__init__(instance, **kwargs)

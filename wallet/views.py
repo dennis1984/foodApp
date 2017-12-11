@@ -44,7 +44,7 @@ class WalletAction(generics.GenericAPIView):
             return Response({'Detail': form.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
-        serializer = WalletSerializer(data=cld, _request=request)
+        serializer = WalletSerializer(data=cld, request=request)
         if not serializer.is_valid():
             return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         try:
