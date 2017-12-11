@@ -39,6 +39,8 @@ WITHDRAW_RECORD_STATUS = {
     'expired': 400,
     'failed': 500,
 }
+# 提现申请每周允许操作的时期
+WITHDRAW_ACTION_ISO_WEEKDAY = (1, 2)    # 周一、周二
 
 
 class WalletManager(models.Manager):

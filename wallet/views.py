@@ -1,4 +1,6 @@
 # -*- coding: utf8 -*-
+from django.utils.timezone import now
+
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import status
@@ -13,7 +15,8 @@ from wallet.permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
 from wallet.models import (Wallet,
                            WalletTradeDetail,
                            WithdrawRecord,
-                           BankCard)
+                           BankCard,
+                           WITHDRAW_ACTION_ISO_WEEKDAY)
 from wallet.forms import (WalletDetailListForm,
                           WalletCreateForm,
                           WithdrawActionForm,
@@ -129,6 +132,11 @@ class WithdrawAction(generics.GenericAPIView):
         return WithdrawRecord.get_unpaid_object(pk=pk)
 
     def is_request_data_valid(self, request):
+        current_time = now()
+        if current_time.isoweekday() not in WITHDRAW_ACTION_ISO_WEEKDAY:
+            return False, Exception('Withdraw operate must in weekday'
+                                    ' %s' % list(WITHDRAW_ACTION_ISO_WEEKDAY))
+
         form = WithdrawActionForm(request.data)
         if not form.is_valid():
             return False, Exception(form.errors)
