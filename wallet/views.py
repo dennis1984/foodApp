@@ -51,9 +51,10 @@ class WalletAction(generics.GenericAPIView):
             serializer.save()
         except Exception as e:
             return Response({'Detail': e.args}, status=status.HTTP_400_BAD_REQUEST)
-        serializer_res = WalletResponseSerializer(serializer.data)
-        if serializer_res.is_valid():
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        serializer_res = WalletResponseSerializer(data=serializer.data)
+        if not serializer_res.is_valid():
+            return Response({'Detail': serializer_res.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class WalletDetail(generics.GenericAPIView):
