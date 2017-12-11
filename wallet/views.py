@@ -35,6 +35,9 @@ class WalletAction(generics.GenericAPIView):
     """
     permission_classes = (IsOwnerOrReadOnly, )
 
+    def get_wallet_object(self, request):
+        return Wallet.get_object(user_id=request.user.id)
+
     def post(self, request, *args, **kwargs):
         """
         创建用户钱包
@@ -44,6 +47,11 @@ class WalletAction(generics.GenericAPIView):
             return Response({'Detail': form.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
+        wallet = self.get_wallet_object(request)
+        if not isinstance(wallet, Exception):
+            serializer_res = WalletResponseSerializer(wallet)
+            return Response(serializer_res.data, status=status.HTTP_400_BAD_REQUEST)
+
         serializer = WalletSerializer(data=cld, request=request)
         if not serializer.is_valid():
             return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
