@@ -45,12 +45,15 @@ class WalletAction(generics.GenericAPIView):
 
         cld = form.cleaned_data
         serializer = WalletSerializer(data=cld, _request=request)
-        if serializer.is_valid():
+        if not serializer.is_valid():
+            return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        try:
             serializer.save()
-            serializer_res = WalletResponseSerializer(serializer.data)
-            if serializer_res.is_valid():
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'Detail': e.args}, status=status.HTTP_400_BAD_REQUEST)
+        serializer_res = WalletResponseSerializer(serializer.data)
+        if serializer_res.is_valid():
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class WalletDetail(generics.GenericAPIView):
