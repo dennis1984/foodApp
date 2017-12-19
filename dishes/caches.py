@@ -7,12 +7,13 @@ from django.conf import settings
 from horizon import redis
 from django.utils.timezone import now
 
-from dishes.models import Dishes
+from dishes.models import Dishes, DISHES_MARK_DISCOUNT_VALUES
 from orders.models import Orders
 
 
 # 过期时间（单位：秒）
 EXPIRE_SECONDS = 10 * 60 * 60
+EXPIRE_24_HOURS = 24 * 60 * 60
 
 
 class DishesCache(object):
@@ -67,3 +68,19 @@ class DishesCache(object):
         if dishes_dict:
             sale_list.extend(sorted(dishes_dict.values(), key=lambda x: x.created, reverse=True))
         return sale_list
+
+
+class ConsumerHotSaleCache(object):
+    def __init__(self):
+        pool = redis.ConnectionPool(host=settings.REDIS_SETTINGS['host'],
+                                    port=settings.REDIS_SETTINGS['port'],
+                                    db=settings.REDIS_SETTINGS['db_set']['consumer'])
+        self.handle = redis.Redis(connection_pool=pool)
+
+    def get_hot_sale_list_key(self, food_court_id=1, mark=10):
+        return 'hot_sale_id_key:food_court_id:%s:mark:%s' % (food_court_id, mark)
+
+    def delete_data_from_cache(self, food_court_id):
+        for mark_id in (DISHES_MARK_DISCOUNT_VALUES + [0]):
+            key = self.get_hot_sale_list_key(food_court_id, mark_id)
+            self.handle.delete(key)

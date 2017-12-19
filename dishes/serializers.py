@@ -12,7 +12,7 @@ from dishes.models import (Dishes,
                            FoodCourt,
                            DISHES_SIZE_CN_MATCH,
                            DISHES_SIZE_DICT)
-from dishes.caches import DishesCache
+from dishes.caches import DishesCache, ConsumerHotSaleCache
 
 import datetime
 import json
@@ -22,6 +22,7 @@ def make_cache_expired(func):
     def decorator(self, request, *args, **kwargs):
         result = func(self, request, *args, **kwargs)
         DishesCache().delete_dishes_list(request)
+        ConsumerHotSaleCache().delete_data_from_cache(result.food_court_id)
         return result
     return decorator
 
