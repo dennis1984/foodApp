@@ -81,6 +81,6 @@ class ConsumerHotSaleCache(object):
         return 'hot_sale_id_key:food_court_id:%s:mark:%s' % (food_court_id, mark)
 
     def delete_data_from_cache(self, food_court_id):
-        for mark_id in DISHES_MARK_DISCOUNT_VALUES + [0]:
+        for mark_id in list(DISHES_MARK_DISCOUNT_VALUES) + [0]:
             key = self.get_hot_sale_list_key(food_court_id, mark_id)
             self.handle.delete(key)

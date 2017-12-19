@@ -22,8 +22,6 @@ from dishes.caches import DishesCache
 
 
 class DishesAction(generics.GenericAPIView):
-    # queryset = Dishes.objects.all()
-    # serializer_class = DishesSerializer
     permission_classes = (IsOwnerOrReadOnly, )
 
     def is_valid_request_data(self, cld):
