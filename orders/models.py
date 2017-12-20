@@ -174,7 +174,6 @@ class Orders(models.Model):
                        }
         if created:
             orders_data['created'] = created
-            orders_data['updated'] = created
         return orders_data
 
     @property

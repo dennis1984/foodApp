@@ -493,7 +493,15 @@ class SyncOrdersDataAction(generics.GenericAPIView):
     permission_classes = (IsOwnerOrReadOnly,)
 
     def is_request_data_valid(self, **kwargs):
-        return False, ''
+        orders_data = kwargs['orders_data']
+        try:
+            orders_data = self.get_perfect_orders_data(orders_data)
+        except Exception as e:
+            return False, e.args
+        for item in orders_data:
+            if 'dishes_ids' not in item or not isinstance(item['dishes_ids'], (list, tuple)):
+                return False, 'Params orders_data is incorrect.'
+        return True, None
 
     def get_perfect_orders_data(self, orders_data):
         orders_data = json.loads(orders_data)
