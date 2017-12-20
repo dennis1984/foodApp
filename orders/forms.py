@@ -63,3 +63,16 @@ class SaleListForm(forms.Form):
     # payment_mode = forms.IntegerField(required=False, min_value=1, max_value=3)
     page_size = forms.IntegerField(min_value=1, required=False)
     page_index = forms.IntegerField(min_value=1, required=False)
+
+
+class SyncOrdersDataForm(forms.Form):
+    """
+    同步离线订单
+    """
+    # orders_data为JSON字符串，数据结构为
+    # orders_data = '[{"dishes_ids": [{"count": 2, "dishes_id": 1},
+    #                                 {"count": 1, "dishes_id": 2}],
+    #                  "created": "2017-12-10 12:32:03"},
+    #                 ...
+    #                 ]'
+    orders_data = forms.CharField()

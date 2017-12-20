@@ -138,7 +138,7 @@ class Orders(models.Model):
             return e
 
     @classmethod
-    def make_orders_by_dishes_ids(cls, request, dishes_ids):
+    def make_orders_by_dishes_ids(cls, request, dishes_ids, created=None):
         meal_ids = []
         total_amount = '0'
         member_discount = '0'
@@ -172,6 +172,9 @@ class Orders(models.Model):
                                       Decimal(member_discount) -
                                       Decimal(other_discount))
                        }
+        if created:
+            orders_data['created'] = created
+            orders_data['updated'] = created
         return orders_data
 
     @property

@@ -13,7 +13,8 @@ from orders.forms import (OrdersInputForm,
                           VerifyOrdersListForm,
                           VerifyOrdersActionForm,
                           VerifyOrdersDetailForm,
-                          SaleListForm)
+                          SaleListForm,
+                          SyncOrdersDataForm)
 from orders.models import (Orders,
                            SaleListAction,
                            VerifyOrders,
@@ -33,6 +34,7 @@ from Consumer_App.cs_orders.models import ConfirmConsume
 from horizon import main
 
 import json
+import datetime
 
 
 class OrdersAction(generics.GenericAPIView):
@@ -482,3 +484,50 @@ class SaleDishesList(generics.GenericAPIView):
                 return Response({'Detail': results.args}, status=status.HTTP_400_BAD_REQUEST)
             return Response(results, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SyncOrdersDataAction(generics.GenericAPIView):
+    """
+    同步离线订单数据
+    """
+    permission_classes = (IsOwnerOrReadOnly,)
+
+    def is_request_data_valid(self, **kwargs):
+        return False, ''
+
+    def get_perfect_orders_data(self, orders_data):
+        orders_data = json.loads(orders_data)
+        for item in orders_data:
+            created = datetime.datetime.strptime(item['created'], '%Y-%m-%d %H:%M:%S')
+            item['created'] = created
+        return orders_data
+
+    def post(self, request, *args, **kwargs):
+        form = SyncOrdersDataForm(request.data)
+        if not form.is_valid():
+            return Response({'Detail': form.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        cld = form.cleaned_data
+        is_valid, error_message = self.is_request_data_valid(**cld)
+        if not is_valid:
+            return Response({'Detail': error_message}, status=status.HTTP_400_BAD_REQUEST)
+
+        orders_data = self.get_perfect_orders_data(cld['orders_data'])
+        for item in orders_data:
+            object_data = Orders.make_orders_by_dishes_ids(request,
+                                                           dishes_ids=item['dishes_ids'],
+                                                           created=item['created'])
+            if isinstance(object_data, Exception):
+                return Response({'Detail': object_data.args}, status=status.HTTP_400_BAD_REQUEST)
+
+            serializer = OrdersSerializer(data=object_data)
+            if not serializer.is_valid():
+                return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                serializer.save()
+            except Exception as e:
+                return Response({'Detail': e.args}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({'Result': True}, status=status.HTTP_201_CREATED)
+
+
