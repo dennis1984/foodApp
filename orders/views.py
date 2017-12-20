@@ -19,7 +19,8 @@ from orders.models import (Orders,
                            SaleListAction,
                            VerifyOrders,
                            YinshiPayCode,
-                           ORDERS_PAYMENT_MODE)
+                           ORDERS_PAYMENT_MODE,
+                           ORDERS_PAYMENT_STATUS)
 from orders.serializers import (OrdersSerializer,
                                 OrdersListSerializer,
                                 VerifyOrdersListSerializer,
@@ -531,8 +532,12 @@ class SyncOrdersDataAction(generics.GenericAPIView):
             serializer = OrdersSerializer(data=object_data)
             if not serializer.is_valid():
                 return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+            validated_data = {'payment_status': ORDERS_PAYMENT_STATUS['paid'],
+                              'payment_mode': ORDERS_PAYMENT_MODE['cash']}
             try:
-                serializer.save()
+                instance = serializer.save()
+                serializer.update_orders_status(instance, validated_data)
             except Exception as e:
                 return Response({'Detail': e.args}, status=status.HTTP_400_BAD_REQUEST)
 
