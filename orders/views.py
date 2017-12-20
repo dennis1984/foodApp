@@ -537,7 +537,7 @@ class SyncOrdersDataAction(generics.GenericAPIView):
                               'payment_mode': ORDERS_PAYMENT_MODE['cash']}
             try:
                 instance = serializer.save()
-                serializer.update_orders_status(instance, validated_data)
+                serializer.update_payment_status(instance, validated_data)
             except Exception as e:
                 return Response({'Detail': e.args}, status=status.HTTP_400_BAD_REQUEST)
 
