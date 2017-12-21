@@ -299,8 +299,8 @@ class ClientDetail(models.Model):
             return e
 
     @classmethod
-    def get_object_by_user(cls, request):
-        instances = cls.filter_objects(user_id=request.user.id)
+    def get_object_by_user(cls, user_id):
+        instances = cls.filter_objects(user_id=user_id)
         if isinstance(instances, Exception):
             return instances
         if len(instances) == 0:

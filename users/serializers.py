@@ -5,6 +5,7 @@ from users.models import (BusinessUser,
                           IdentifyingCode,
                           ClientDetail,
                           AdvertPicture)
+from users.caches import BusinessUserCache
 from horizon.serializers import (BaseListSerializer,
                                  BaseModelSerializer,
                                  BaseSerializer,
@@ -94,6 +95,14 @@ class ClientDetailSerializer(BaseModelSerializer):
     class Meta:
         model = ClientDetail
         fields = '__all__'
+
+    def save(self, **kwargs):
+        instance = super(ClientDetailSerializer, self).save(**kwargs)
+        if isinstance(instance, Exception):
+            return instance
+        # 删除缓存
+        BusinessUserCache().delete_client_ip_port_data(instance.user_id)
+        return instance
 
 
 class AdvertPictureSerializer(BaseModelSerializer):

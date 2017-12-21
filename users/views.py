@@ -273,7 +273,8 @@ class ClientDetailShow(generics.GenericAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get_client_detail(self, request):
-        return ClientDetail.get_object_by_user(request)
+        return BusinessUserCache().get_client_ip_port_data(request.user.id)
+        # return ClientDetail.get_object_by_user(request)
 
     def get(self, request, *args, **kwargs):
         instance = self.get_client_detail(request)

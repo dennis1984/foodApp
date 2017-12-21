@@ -7,7 +7,7 @@ from django.conf import settings
 from horizon import redis
 from django.utils.timezone import now
 
-from users.models import BusinessUser
+from users.models import BusinessUser, ClientDetail
 
 
 # 过期时间（单位：秒）
@@ -28,9 +28,18 @@ class BusinessUserCache(object):
     def get_user_name_key(self, user_name):
         return 'user_instance_phone:%s' % user_name
 
-    def set_user_to_cache(self, key, data):
+    def get_client_ip_port_by_user_id_key(self, user_id):
+        return 'client_ip_port:user_id:%s' % user_id
+
+    def set_data_to_cache(self, key, data):
         self.handle.set(key, data)
         self.handle.expire(key, EXPIRES_24_HOURS)
+
+    def get_data_from_cache(self, key):
+        return self.handle.get(key)
+
+    def delete_data_from_cache(self, key):
+        return self.handle.delete(key)
 
     def get_user_by_id(self, request, user_id=None):
         if not request.user.is_admin:
@@ -41,7 +50,7 @@ class BusinessUserCache(object):
             user_instance = BusinessUser.get_object(**{'pk': user_id})
             if isinstance(user_instance, Exception):
                 return user_instance
-            self.set_user_to_cache(key, user_instance)
+            self.set_data_to_cache(key, user_instance)
         return user_instance
 
     def get_user_by_username(self, user_name):
@@ -51,6 +60,19 @@ class BusinessUserCache(object):
             user_instance = BusinessUser.get_object(**{'phone': user_name})
             if isinstance(user_instance, Exception):
                 return user_instance
-            self.set_user_to_cache(key, user_instance)
+            self.set_data_to_cache(key, user_instance)
         return user_instance
 
+    def get_client_ip_port_data(self, user_id):
+        key = self.get_client_ip_port_by_user_id_key(user_id)
+        data = self.get_data_from_cache(key)
+        if not data:
+            data = ClientDetail.get_object_by_user(user_id)
+            if isinstance(data, Exception):
+                return data
+            self.set_data_to_cache(key, data)
+        return data
+
+    def delete_client_ip_port_data(self, user_id):
+        key = self.get_client_ip_port_by_user_id_key(user_id)
+        return self.delete_data_from_cache(key)
