@@ -107,7 +107,7 @@ class DishesAction(generics.GenericAPIView):
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
-        is_valid, error_message = self.is_valid_request_data(**cld)
+        is_valid, error_message = self.is_valid_request_data(request, **cld)
         if not is_valid:
             return Response({'Detail': error_message}, status=status.HTTP_400_BAD_REQUEST)
         obj = self.get_dishes_object(request, cld)
@@ -253,7 +253,6 @@ class FoodCourtList(generics.GenericAPIView):
             filter_list = self.get_object_list(**cld)
         except Exception as e:
             return Response({'Error': e.args}, status=status.HTTP_400_BAD_REQUEST)
-        # serializer = FoodCourtSerializer(filter_list, many=True)
         serializer = FoodCourtListSerializer(filter_list)
         results = serializer.list_data(**cld)
         if isinstance(results, Exception):
@@ -262,8 +261,6 @@ class FoodCourtList(generics.GenericAPIView):
 
 
 class FoodCourtDetail(generics.GenericAPIView):
-    # queryset = FoodCourt.objects.all()
-    # serializer_class = FoodCourtSerializer
     permission_classes = (IsAdminOrReadOnly, )
 
     def get_object_detail(self, **kwargs):
