@@ -4,18 +4,27 @@ from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework import permissions
 
-from dishes.models import Dishes, FoodCourt, DISHES_SIZE_DICT
+from dishes.models import (Dishes,
+                           FoodCourt,
+                           DISHES_SIZE_DICT,
+                           DishesClassify)
 from dishes.serializers import (DishesSerializer,
                                 FoodCourtSerializer,
                                 DishesListSerializer,
-                                FoodCourtListSerializer)
+                                FoodCourtListSerializer,
+                                DishesClassifySerializer,
+                                DishesClassifyListSerializer)
 from dishes.forms import (DishesGetForm,
                           DishesInputForm,
                           FoodCourtListForm,
                           FoodCourtGetForm,
                           DishesUpdateForm,
                           DishesDeleteForm,
-                          DishesListForm)
+                          DishesListForm,
+                          DishesClassifyInputForm,
+                          DishesClassifyUpdateForm,
+                          DishesClassifyDeleteForm,
+                          DishesClassifyListForm)
 from dishes.permissions import IsOwnerOrReadOnly
 from users.permissions import IsAdminOrReadOnly
 from dishes.caches import DishesCache
@@ -24,13 +33,22 @@ from dishes.caches import DishesCache
 class DishesAction(generics.GenericAPIView):
     permission_classes = (IsOwnerOrReadOnly, )
 
-    def is_valid_request_data(self, cld):
+    def get_dishes_classify_object(self, request, dishes_classify_id):
+        kwargs = {'user_id': request.user.id,
+                  'id': dishes_classify_id}
+        return DishesClassify.get_object(**kwargs)
+
+    def is_valid_request_data(self, request, **cld):
         size = cld.get('size', DISHES_SIZE_DICT['default'])
         if size not in DISHES_SIZE_DICT.values():
-            return False, ValueError('Size fields is incorrect')
+            return False, 'Size fields is incorrect'
         if size == DISHES_SIZE_DICT['custom']:
             if not cld.get('size_detail'):
-                return False, ValueError('When size is 20, size detail is required')
+                return False, 'When size is 20, size detail is required'
+        if 'classify' in cld:
+            dishes_classify_ins = self.get_dishes_classify_object(request, cld['classify'])
+            if isinstance(dishes_classify_ins, Exception):
+                return False, dishes_classify_ins.args
         return True, None
 
     def get_dishes_object(self, request, cld):
@@ -56,9 +74,9 @@ class DishesAction(generics.GenericAPIView):
             return Response({'Detail': form.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
-        result = self.is_valid_request_data(cld)
-        if not result[0]:
-            return Response({'Detail': result[1].args}, status=status.HTTP_400_BAD_REQUEST)
+        is_valid, error_message = self.is_valid_request_data(request, **cld)
+        if not is_valid:
+            return Response({'Detail': error_message}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = DishesSerializer(data=cld, request=request)
         if serializer.is_valid():
@@ -89,9 +107,9 @@ class DishesAction(generics.GenericAPIView):
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
-        result = self.is_valid_request_data(cld)
-        if not result[0]:
-            return Response({'Detail': result[1].args}, status=status.HTTP_400_BAD_REQUEST)
+        is_valid, error_message = self.is_valid_request_data(**cld)
+        if not is_valid:
+            return Response({'Detail': error_message}, status=status.HTTP_400_BAD_REQUEST)
         obj = self.get_dishes_object(request, cld)
         if isinstance(obj, Exception):
             return Response({'Detail': obj.args}, status=status.HTTP_400_BAD_REQUEST)
@@ -212,8 +230,6 @@ class FoodCourtAction(generics.GenericAPIView):
 
 
 class FoodCourtList(generics.GenericAPIView):
-    # queryset = FoodCourt.objects.all()
-    # serializer_class = FoodCourtSerializer
     permission_classes = (IsAdminOrReadOnly, )
 
     def get_object_list(self, **kwargs):
@@ -276,4 +292,108 @@ class FoodCourtDetail(generics.GenericAPIView):
             return Response({'Error': e.args}, status=status.HTTP_400_BAD_REQUEST)
         serializer = FoodCourtSerializer(obj)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class DishesClassifyAction(generics.GenericAPIView):
+    """
+    创建菜品类别
+    """
+    permission_classes = (IsOwnerOrReadOnly, )
+
+    def get_dishes_classify_object(self, request, dishes_classify_id):
+        kwargs = {'user_id': request.user.id,
+                  'id': dishes_classify_id}
+        return DishesClassify.get_object(**kwargs)
+
+    def post(self, request, *args, **kwargs):
+        """
+        创建菜品类别
+        """
+        form = DishesClassifyInputForm(request.data)
+        if not form.is_valid():
+            return Response({'Detail': form.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        cld = form.cleaned_data
+        serializer = DishesClassifySerializer(data=cld, request=request)
+        if not serializer.is_valid():
+            return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            serializer.save()
+        except Exception as e:
+            return Response({'Detail': e.args}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def put(self, request, *args, **kwargs):
+        """
+        更改菜品类别
+        """
+        form = DishesClassifyUpdateForm(request.data)
+        if not form.is_valid():
+            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        cld = form.cleaned_data
+        ins = self.get_dishes_classify_object(request, cld['id'])
+        if isinstance(ins, Exception):
+            return Response({'Detail': ins.args}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = DishesClassifySerializer(ins)
+        try:
+            serializer.update(ins, cld)
+        except Exception as e:
+            return Response({'Detail': e.args}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.data, status=status.HTTP_206_PARTIAL_CONTENT)
+
+    def delete(self, request, *args, **kwargs):
+        """
+        删除菜品
+        """
+        form = DishesClassifyDeleteForm(request.data)
+        if not form.is_valid():
+            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        cld = form.cleaned_data
+        ins = self.get_dishes_classify_object(request, cld['id'])
+        if isinstance(ins, Exception):
+            return Response({'Detail': ins.args}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = DishesClassifySerializer(ins)
+        try:
+            serializer.delete(ins)
+        except Exception as e:
+            return Response({'Detail': e.args}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+
+
+class DishesClassifyList(generics.GenericAPIView):
+    permission_classes = (IsAdminOrReadOnly, )
+
+    def get_object_list(self, request):
+        kwargs = {'user_id': request.user.id}
+        return DishesClassify.filter_objects(**kwargs)
+
+    def post(self, request, *args, **kwargs):
+        """
+        带分页功能
+        返回数据格式为：{'count': 当前返回的数据量,
+                       'all_count': 总数据量,
+                       'has_next': 是否有下一页,
+                       'data': [{
+                                 FoodCourt model数据
+                                },...]
+                       }
+        """
+        form = DishesClassifyListForm(request.data)
+        if not form.is_valid():
+            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        cld = form.cleaned_data
+        instances = self.get_object_list(request)
+        if isinstance(instances, Exception):
+            return Response({'Detail': instances.args}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = DishesClassifyListSerializer(instances)
+        data_list = serializer.list_data(**cld)
+        if isinstance(data_list, Exception):
+            return Response({'Detail': data_list.args}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(data_list, status=status.HTTP_200_OK)
+
 

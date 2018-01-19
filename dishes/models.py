@@ -73,6 +73,8 @@ class Dishes(models.Model):
     # 菜品标记和排序顺序
     tag = models.CharField('标记', max_length=64, default='', null=True, blank=True)
     sort_orders = models.IntegerField('排序标记', default=None,  null=True)
+    # 菜品类别:  0: 默认
+    classify = models.IntegerField('菜品类别', default=0)
 
     extend = models.TextField('扩展信息', default='', null=True, blank=True)
 
@@ -99,6 +101,40 @@ class Dishes(models.Model):
         filter_dict = {'user_id': request.user.id}
         try:
             return cls.objects.filter(**filter_dict)
+        except Exception as e:
+            return e
+
+
+class DishesClassify(models.Model):
+    """
+    菜品分类信息表
+    """
+    name = models.CharField('类别名称', max_length=64, unique=True, db_index=True)
+    description = models.CharField('类别描述', max_length=256, null=True, blank=True)
+    user_id = models.IntegerField('用户ID')
+    # 状态：1：有效 非1：已删除
+    status = models.IntegerField('数据状态', default=1)
+    created = models.DateTimeField('创建时间', default=now)
+    updated = models.DateTimeField('更新时间', auto_now=True)
+
+    objects = BaseManager()
+
+    class Meta:
+        db_table = 'ys_dishes_classify'
+        unique_together = ('user_id', 'name', 'status')
+        ordering = ('name',)
+
+    @classmethod
+    def get_object(cls, **kwargs):
+        try:
+            return cls.objects.get(**kwargs)
+        except Exception as e:
+            return e
+
+    @classmethod
+    def filter_objects(cls, **kwargs):
+        try:
+            return cls.objects.filter(**kwargs)
         except Exception as e:
             return e
 

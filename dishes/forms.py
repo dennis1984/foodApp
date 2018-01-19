@@ -11,6 +11,7 @@ class DishesInputForm(forms.Form):
     size = forms.IntegerField(min_value=10, max_value=20, required=False)
     size_detail = forms.CharField(min_length=2, max_length=30, required=False)
     image = forms.ImageField(required=False)
+    classify = forms.IntegerField(min_value=1, required=False)
     extend = forms.CharField(max_length=500, required=False)
 
 
@@ -24,6 +25,7 @@ class DishesUpdateForm(forms.Form):
     size_detail = forms.CharField(min_length=2, max_length=30, required=False)
     image = forms.ImageField(required=False)
     is_recommend = forms.IntegerField(min_value=0, max_value=1, required=False)
+    classify = forms.IntegerField(min_value=1, required=False)
     extend = forms.CharField(max_length=500, required=False)
 
 
@@ -59,4 +61,21 @@ class FoodCourtListForm(forms.Form):
     page_index = forms.IntegerField(min_value=1, required=False)
 
 
+class DishesClassifyInputForm(forms.Form):
+    name = forms.CharField(min_length=1, max_length=64)
+    description = forms.CharField(min_length=1, max_length=256, required=False)
 
+
+class DishesClassifyUpdateForm(forms.Form):
+    id = forms.IntegerField(min_value=1)
+    name = forms.CharField(min_length=1, max_length=64, required=False)
+    description = forms.CharField(min_length=1, max_length=256, required=False)
+
+
+class DishesClassifyDeleteForm(forms.Form):
+    id = forms.IntegerField(min_value=1)
+
+
+class DishesClassifyListForm(forms.Form):
+    page_size = forms.IntegerField(min_value=1, required=False)
+    page_index = forms.IntegerField(min_value=1, required=False)
