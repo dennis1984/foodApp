@@ -142,8 +142,6 @@ class DishesAction(generics.GenericAPIView):
 
 
 class DishesDetail(generics.GenericAPIView):
-    # queryset = Dishes.objects.all()
-    # serializer_class = DishesSerializer
     permission_classes = (IsOwnerOrReadOnly,)
 
     def get_object(self, *args, **kwargs):
@@ -199,7 +197,6 @@ class DishesList(generics.GenericAPIView):
             return Response({'detail': object_data.args}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = DishesListSerializer(object_data)
-        # serializer = DishesSerializer(object_data, many=True)
         results = serializer.list_data(**cld)
         if isinstance(results, Exception):
             return Response({'Error': results.args}, status=status.HTTP_400_BAD_REQUEST)
@@ -207,8 +204,6 @@ class DishesList(generics.GenericAPIView):
 
 
 class FoodCourtAction(generics.GenericAPIView):
-    # queryset = FoodCourt.objects.all()
-    # serializer_class = FoodCourtSerializer
     permission_classes = (IsAdminOrReadOnly, )
 
     def post(self, request, *args, **kwargs):
@@ -364,7 +359,7 @@ class DishesClassifyAction(generics.GenericAPIView):
 
 
 class DishesClassifyList(generics.GenericAPIView):
-    permission_classes = (IsAdminOrReadOnly, )
+    permission_classes = (IsOwnerOrReadOnly, )
 
     def get_object_list(self, request):
         kwargs = {'user_id': request.user.id}
