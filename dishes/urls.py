@@ -9,6 +9,9 @@ urlpatterns = [
     url(r'^dishes_detail/$', dishes_view.DishesDetail.as_view()),
     url(r'^dishes_list/$', dishes_view.DishesList.as_view()),
 
+    url(r'^dishes_classify_action/$', dishes_view.DishesClassifyAction.as_view()),
+    url(r'^dishes_classify_list/$', dishes_view.DishesClassifyList.as_view()),
+
     url(r'^food_court_action/$', dishes_view.FoodCourtAction.as_view()),
     url(r'^food_court_detail/$', dishes_view.FoodCourtDetail.as_view()),
     url(r'^food_court_list/$', dishes_view.FoodCourtList.as_view()),
