@@ -4,6 +4,9 @@ from __future__ import unicode_literals
 from django.db import models
 from django.utils.timezone import now
 from django.conf import settings
+
+from horizon.models import get_perfect_filter_params
+
 import os
 import json
 
@@ -91,6 +94,7 @@ class Dishes(models.Model):
 
     @classmethod
     def get_object(cls, **kwargs):
+        kwargs = get_perfect_filter_params(cls, **kwargs)
         try:
             return cls.objects.get(**kwargs)
         except Exception as e:
@@ -98,6 +102,7 @@ class Dishes(models.Model):
 
     @classmethod
     def get_object_list(cls, request, **kwargs):
+        kwargs = get_perfect_filter_params(cls, **kwargs)
         kwargs.update(**{'user_id': request.user.id})
         try:
             return cls.objects.filter(**kwargs)
