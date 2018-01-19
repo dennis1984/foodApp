@@ -37,6 +37,7 @@ class DishesListForm(forms.Form):
     gateway = forms.ChoiceField(choices=(('main_page', 1),
                                          ('edit_page', 2)),
                                 required=False)
+    classify = forms.IntegerField(min_value=1, required=False)
     page_size = forms.IntegerField(min_value=1, max_value=settings.MAX_PAGE_SIZE, required=False)
     page_index = forms.IntegerField(min_value=1, required=False)
 
