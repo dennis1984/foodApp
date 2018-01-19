@@ -98,9 +98,9 @@ class Dishes(models.Model):
 
     @classmethod
     def get_object_list(cls, request, **kwargs):
-        filter_dict = {'user_id': request.user.id}
+        kwargs.update(**{'user_id': request.user.id})
         try:
-            return cls.objects.filter(**filter_dict)
+            return cls.objects.filter(**kwargs)
         except Exception as e:
             return e
 

@@ -42,6 +42,13 @@ class DishesCache(object):
                                                        orders_list=orders_list)
             self.set_dishes_list(request, sale_list)
             return sale_list
+
+        if kwargs.get('classify', 0) != 0:
+            new_list = []
+            for dishes in dishes_list:
+                if dishes.classify == kwargs['classify']:
+                    new_list.append(dishes)
+            return new_list
         return dishes_list
 
     def get_dishes_list_key(self, request):
