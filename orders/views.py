@@ -420,6 +420,8 @@ class VerifyOrdersDetail(generics.GenericAPIView):
         )
         if isinstance(instances, Exception):
             return instances
+        elif not instances:
+            return Exception('Can not perform this action.')
         return instances[0]
 
     def post(self, request, *args, **kwargs):
@@ -429,7 +431,7 @@ class VerifyOrdersDetail(generics.GenericAPIView):
 
         orders_data = self.get_verfify_orders_detail(request, **cleaned_data)
         if isinstance(orders_data, Exception):
-            return Response({}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'Detail': orders_data.args}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = OrdersDetailSerializer(data=orders_data)
         if not serializer.is_valid():
