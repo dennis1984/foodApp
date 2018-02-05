@@ -31,7 +31,7 @@ WALLET_ACTION_METHOD = ('recharge', 'income', 'withdraw')
 WALLET_BLOCK_BALANCE = '0.00'
 WALLET_SERVICE_RATE = '0.000'            # '0.006'
 # 提现时钱包最小额度限制
-WALLET_MIN_BALANCE = '300.00'
+WALLET_MIN_BALANCE = '0.00'
 
 WITHDRAW_RECORD_STATUS = {
     'unpaid': 0,
@@ -40,7 +40,7 @@ WITHDRAW_RECORD_STATUS = {
     'failed': 500,
 }
 # 提现申请每周允许操作的时期
-WITHDRAW_ACTION_ISO_WEEKDAY = (1, 2)    # 周一、周二
+WITHDRAW_ACTION_ISO_WEEKDAY = (1, 2, 3, 4, 5, 6, 7)    # 周一、周二
 
 
 class WalletManager(models.Manager):

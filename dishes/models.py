@@ -114,7 +114,7 @@ class DishesClassify(models.Model):
     """
     菜品分类信息表
     """
-    name = models.CharField('类别名称', max_length=64, unique=True, db_index=True)
+    name = models.CharField('类别名称', max_length=64, unique=True)
     description = models.CharField('类别描述', max_length=256, null=True, blank=True)
     user_id = models.IntegerField('用户ID')
     # 状态：1：有效 非1：已删除
