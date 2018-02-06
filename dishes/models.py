@@ -5,7 +5,7 @@ from django.db import models
 from django.utils.timezone import now
 from django.conf import settings
 
-from horizon.models import get_perfect_filter_params
+from horizon.models import get_perfect_filter_params, model_to_dict
 
 import os
 import json
@@ -92,6 +92,16 @@ class Dishes(models.Model):
     def __unicode__(self):
         return self.title
 
+    @property
+    def perfect_data(self):
+        detail = model_to_dict(self)
+        dishes_classify = DishesClassify.get_object(pk=self.classify)
+        if isinstance(dishes_classify):
+            detail['classify_name'] = ''
+        else:
+            detail['classify_name'] = dishes_classify.name
+        return detail
+
     @classmethod
     def get_object(cls, **kwargs):
         kwargs = get_perfect_filter_params(cls, **kwargs)
@@ -101,6 +111,13 @@ class Dishes(models.Model):
             return e
 
     @classmethod
+    def get_detail(cls, **kwargs):
+        instance = cls.get_object(**kwargs)
+        if isinstance(instance, Exception):
+            return instance
+        return instance.perfect_data
+    
+    @classmethod
     def get_object_list(cls, request, **kwargs):
         kwargs = get_perfect_filter_params(cls, **kwargs)
         kwargs.update(**{'user_id': request.user.id})
@@ -108,6 +125,16 @@ class Dishes(models.Model):
             return cls.objects.filter(**kwargs)
         except Exception as e:
             return e
+
+    @classmethod
+    def filter_details(cls, request, **kwargs):
+        instances = cls.get_object_list(request, **kwargs)
+        if isinstance(instances, Exception):
+            return instances
+        details = []
+        for ins in instances:
+            details.append(ins.perfect_data)
+        return details
 
 
 class DishesClassify(models.Model):

@@ -144,11 +144,8 @@ class DishesAction(generics.GenericAPIView):
 class DishesDetail(generics.GenericAPIView):
     permission_classes = (IsOwnerOrReadOnly,)
 
-    def get_object(self, *args, **kwargs):
-        try:
-            return Dishes.objects.get(**kwargs)
-        except Dishes.DoesNotExist:
-            raise status.HTTP_404_NOT_FOUND
+    def get_dishes_detail(self, **kwargs):
+        return Dishes.get_detail(**kwargs)
 
     def post(self, request, *args, **kwargs):
         """
@@ -161,8 +158,10 @@ class DishesDetail(generics.GenericAPIView):
         if not cld:
             return Response(cld, status=status.HTTP_200_OK)
 
-        object_data = self.get_object(**cld)
-        serializer = DishesSerializer(object_data)
+        detail = self.get_dishes_detail(**cld)
+        serializer = DishesSerializer(data=detail)
+        if not serializer.is_valid():
+            return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -171,7 +170,7 @@ class DishesList(generics.GenericAPIView):
 
     def get_object_list(self, request, **kwargs):
         if kwargs.get('gateway') == 'edit_page':
-            return Dishes.get_object_list(request, **kwargs)
+            return Dishes.filter_details(request, **kwargs)
         else:
             dishes_cache = DishesCache()
             return dishes_cache.get_dishes_list(request, **kwargs)
@@ -192,15 +191,17 @@ class DishesList(generics.GenericAPIView):
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
         cld = form.cleaned_data
-        object_data = self.get_object_list(request, **cld)
-        if isinstance(object_data, Exception):
-            return Response({'detail': object_data.args}, status=status.HTTP_400_BAD_REQUEST)
+        details = self.get_object_list(request, **cld)
+        if isinstance(details, Exception):
+            return Response({'detail': details.args}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = DishesListSerializer(object_data)
-        results = serializer.list_data(**cld)
-        if isinstance(results, Exception):
-            return Response({'Error': results.args}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(results, status=status.HTTP_200_OK)
+        serializer = DishesListSerializer(data=details)
+        if not serializer.is_valid():
+            return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        list_data = serializer.list_data(**cld)
+        if isinstance(list_data, Exception):
+            return Response({'Detail': list_data.args}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(list_data, status=status.HTTP_200_OK)
 
 
 class FoodCourtAction(generics.GenericAPIView):

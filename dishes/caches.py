@@ -33,7 +33,7 @@ class DishesCache(object):
         key = self.get_dishes_list_key(request)
         dishes_list = self.handle.lrange(key)
         if not dishes_list:
-            _dishes_list = Dishes.get_object_list(request, **kwargs)
+            _dishes_list = Dishes.filter_details(request, **kwargs)
             # 用最近一个月的菜品销量来排序商户的菜品列表
             orders_filter = {'start_created': now() - datetime.timedelta(days=30),
                              'payment_status': 200}
@@ -68,12 +68,12 @@ class DishesCache(object):
                 pk = dishes_item['id']
                 sale_dict[pk] = dishes_item['count'] + sale_dict.get(pk, 0)
 
-        dishes_dict = {item.id: item for item in dishes_list}
+        dishes_dict = {item['id']: item for item in dishes_list}
         for key, value in sorted(sale_dict.items(), key=lambda x: x[1], reverse=True):
             if key in dishes_dict:
                 sale_list.append(dishes_dict.pop(key))
         if dishes_dict:
-            sale_list.extend(sorted(dishes_dict.values(), key=lambda x: x.created, reverse=True))
+            sale_list.extend(sorted(dishes_dict.values(), key=lambda x: x['created'], reverse=True))
         return sale_list
 
 

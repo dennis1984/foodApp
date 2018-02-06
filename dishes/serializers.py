@@ -83,8 +83,36 @@ class DishesSerializer(BaseModelSerializer):
         return super(DishesSerializer, self).update(instance, validated_data)
 
 
+class DishesDetailSerializer(BaseSerializer):
+    id = serializers.IntegerField()
+    title = serializers.CharField()
+    subtitle = serializers.CharField(allow_null=True, allow_blank=True)
+    description = serializers.CharField(allow_null=True, allow_blank=True)
+    size = serializers.IntegerField()
+    size_detail = serializers.CharField(allow_null=True, allow_blank=True)
+    price = serializers.CharField()
+    image = serializers.ImageField()
+    image_detail = serializers.ImageField()
+    user_id = serializers.IntegerField()
+    food_court_id = serializers.IntegerField()
+    created = serializers.DateTimeField()
+    updated = serializers.DateTimeField()
+    status = serializers.IntegerField()
+    is_recommend = serializers.BooleanField()
+
+    mark = serializers.IntegerField()
+    discount = serializers.CharField()
+    discount_time_slot_start = serializers.CharField(allow_null=True, allow_blank=True)
+    discount_time_slot_end = serializers.CharField(allow_null=True, allow_blank=True)
+
+    tag = serializers.CharField(allow_null=True, allow_blank=True)
+    sort_orders = serializers.IntegerField(allow_null=True)
+    classify = serializers.IntegerField()
+    classify_name = serializers.CharField(allow_null=True, allow_blank=True)
+
+
 class DishesListSerializer(BaseListSerializer):
-    child = DishesSerializer()
+    child = DishesDetailSerializer()
 
 
 class FoodCourtSerializer(BaseModelSerializer):
