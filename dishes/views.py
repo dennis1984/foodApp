@@ -13,7 +13,8 @@ from dishes.serializers import (DishesSerializer,
                                 DishesListSerializer,
                                 FoodCourtListSerializer,
                                 DishesClassifySerializer,
-                                DishesClassifyListSerializer)
+                                DishesClassifyListSerializer,
+                                DishesDetailSerializer)
 from dishes.forms import (DishesGetForm,
                           DishesInputForm,
                           FoodCourtListForm,
@@ -159,7 +160,7 @@ class DishesDetail(generics.GenericAPIView):
             return Response(cld, status=status.HTTP_200_OK)
 
         detail = self.get_dishes_detail(**cld)
-        serializer = DishesSerializer(data=detail)
+        serializer = DishesDetailSerializer(data=detail)
         if not serializer.is_valid():
             return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.data, status=status.HTTP_200_OK)
