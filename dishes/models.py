@@ -96,7 +96,7 @@ class Dishes(models.Model):
     def perfect_data(self):
         detail = model_to_dict(self)
         dishes_classify = DishesClassify.get_object(pk=self.classify)
-        if isinstance(dishes_classify):
+        if isinstance(dishes_classify, Exception):
             detail['classify_name'] = ''
         else:
             detail['classify_name'] = dishes_classify.name
@@ -116,7 +116,7 @@ class Dishes(models.Model):
         if isinstance(instance, Exception):
             return instance
         return instance.perfect_data
-    
+
     @classmethod
     def get_object_list(cls, request, **kwargs):
         kwargs = get_perfect_filter_params(cls, **kwargs)
