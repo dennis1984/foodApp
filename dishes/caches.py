@@ -46,7 +46,7 @@ class DishesCache(object):
         if kwargs.get('classify', 0) != 0:
             new_list = []
             for dishes in dishes_list:
-                if dishes.classify == kwargs.get('classify', 0):
+                if dishes['classify'] == kwargs['classify']:
                     new_list.append(dishes)
             return new_list
         return dishes_list
