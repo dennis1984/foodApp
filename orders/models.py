@@ -287,7 +287,7 @@ class Orders(models.Model):
             item_dict['consumer_id'] = None
             item_dict['notes'] = None
             if orders.payment_status == ORDERS_PAYMENT_STATUS['paid']:
-                item_dict['payment_status'] = ORDERS_PAYMENT_STATUS['finished']
+                item_dict['payment_status'] = ORDERS_PAYMENT_STATUS['paid']
             detail_list.append(item_dict)
         return detail_list
 
@@ -298,6 +298,7 @@ class Orders(models.Model):
 
         payment_status = validated_data.get('payment_status')
         payment_mode = validated_data.get('payment_mode')
+        payment_time = validated_data.get('payment_time')
         if payment_status not in (200, 400, 500):
             raise ValueError('Payment status must in range [200, 400, 500]')
         if payment_mode not in [2, 3]:    # 微信支付和支付宝支付
@@ -313,6 +314,7 @@ class Orders(models.Model):
                 raise Exception('Cannot perform this action')
             _instance.payment_status = payment_status
             _instance.payment_mode = payment_mode
+            _instance.payment_time = payment_time
             _instance.save()
             instance = _instance
         return instance
