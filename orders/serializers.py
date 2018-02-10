@@ -48,7 +48,8 @@ class OrdersSerializer(BaseModelSerializer):
             return super(OrdersSerializer, self).update(
                 instance,
                 {'payment_status': payment_status,
-                 'payment_mode': payment_mode}
+                 'payment_mode': payment_mode,
+                 'payment_time': now()}
             )
         else:
             return instance
@@ -116,6 +117,7 @@ class OrdersDetailSerializer(BaseSerializer):
                                                default='')
 
     created = serializers.DateTimeField()
+    payment_time = serializers.DateTimeField(allow_null=True)
     updated = serializers.DateTimeField()
     expires = serializers.DateTimeField()
 
