@@ -186,8 +186,8 @@ class OrdersDetail(generics.GenericAPIView):
     serializer_class = OrdersSerializer
 
     def get_detail(self, **kwargs):
-        if kwargs['order_id'].startswith('Z'):
-            return VerifyOrders.get_object(**kwargs)
+        if kwargs['orders_id'].startswith('Z'):
+            return VerifyOrders.get_detail(**kwargs)
         else:
             return Orders.get_detail(**kwargs)
 
