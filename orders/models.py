@@ -401,6 +401,15 @@ class VerifyOrders(models.Model):
             return e
 
     @classmethod
+    def get_detail(cls, **kwargs):
+        instance = cls.get_object(**kwargs)
+        if isinstance(instance, Exception):
+            return instance
+        detail = model_to_dict(instance)
+        detail['dishes_ids'] = json.loads(detail['dishes_ids'])
+        return detail
+
+    @classmethod
     def get_objects_list(cls, request, **kwargs):
         opts = cls._meta
         fields = []
