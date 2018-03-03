@@ -28,9 +28,13 @@ class ConsumeOrders(models.Model):
     member_discount = models.CharField('会员优惠', max_length=16, default='0')
     online_discount = models.CharField('在线下单优惠', max_length=16, default='0')
     other_discount = models.CharField('其他优惠', max_length=16, default='0')
+    coupons_discount = models.CharField('优惠券优惠', max_length=16, default='0')
+    coupons_id = models.IntegerField('优惠券ID', null=True)
+    service_dishes_subsidy = models.CharField('菜品优惠平台补贴', max_length=16, default='0')
+    service_coupons_subsidy = models.CharField('优惠券优惠平台补贴', max_length=16, default='0')
     payable = models.CharField('应付金额', max_length=16)
 
-    # 0:未支付 200:已支付 201:待消费 206:已完成 400: 已过期 500:支付失败
+    # 0:未支付 200:已支付 201:待消费 204:已取消 206:已完成 400: 已过期 500:支付失败
     payment_status = models.IntegerField('订单支付状态', default=201)
     # 支付方式：0:未指定支付方式 1：钱包支付 2：微信支付 3：支付宝支付
     payment_mode = models.IntegerField('订单支付方式', default=0)
@@ -43,6 +47,12 @@ class ConsumeOrders(models.Model):
     is_commented = models.IntegerField('是否点评过', default=0)
     # 核销码：如果已经核销，该字段不为空，如果没有核销，该字段为空
     confirm_code = models.CharField('核销码', max_length=32, default='', blank=True)
+
+    notes = models.CharField('订单备注', max_length=40, default='', blank=True, null=True)
+    # 核销时段：例如：17:30~20:30
+    consumer_time_slot = models.CharField('订单核销时间段', max_length=32, null=True, blank=True)
+    # 核销时间
+    confirm_time = models.DateTimeField('核销时间', null=True)
 
     created = models.DateTimeField('创建时间', default=now)
     payment_time = models.DateTimeField('订单支付时间', default=now)
@@ -89,6 +99,7 @@ class ConsumeOrdersAction(object):
 
         orders.payment_status = ORDERS_PAYMENT_STATUS['finished']
         orders.confirm_code = confirm_code
+        orders.confirm_time = now()
         try:
             orders.save()
         except Exception as e:

@@ -177,7 +177,8 @@ class VerifySerializer(BaseModelSerializer):
             else:
                 return TypeError('Data type error')
 
-        validated_data = {'payment_status': ORDERS_PAYMENT_STATUS['finished']}
+        validated_data = {'payment_status': ORDERS_PAYMENT_STATUS['finished'],
+                          'confirm_time': now()}
         for ins in instances:
             try:
                 super(VerifySerializer, self).update(ins, validated_data)
