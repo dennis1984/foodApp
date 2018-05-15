@@ -88,7 +88,7 @@ class BusinessUser(AbstractBaseUser):
                                          null=False, default='')
     stalls_number = models.CharField(u'档口编号', max_length=20,
                                      null=False, default='')
-
+    business_summary = models.CharField(u'商户简介', max_length=250, default='')
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=now)
